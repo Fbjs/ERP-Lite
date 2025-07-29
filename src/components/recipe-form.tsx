@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,13 +13,23 @@ type RecipeFormData = Omit<Recipe, 'id' | 'lastUpdated'>;
 type RecipeFormProps = {
   onSubmit: (data: RecipeFormData) => void;
   onCancel: () => void;
-  initialData?: Partial<RecipeFormData>;
+  initialData?: RecipeFormData;
 };
 
-export default function RecipeForm({ onSubmit, onCancel, initialData = {} }: RecipeFormProps) {
-  const [name, setName] = useState(initialData.name || '');
-  const [cost, setCost] = useState(initialData.cost || 0);
-  const [ingredients, setIngredients] = useState<Ingredient[]>(initialData.ingredients || [{ name: '', quantity: 0, unit: '' }]);
+export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFormProps) {
+  const [name, setName] = useState('');
+  const [cost, setCost] = useState(0);
+  const [ingredients, setIngredients] = useState<Ingredient[]>([{ name: '', quantity: 0, unit: '' }]);
+  
+  const isEditing = !!initialData;
+
+  useEffect(() => {
+    if (initialData) {
+      setName(initialData.name || '');
+      setCost(initialData.cost || 0);
+      setIngredients(initialData.ingredients && initialData.ingredients.length > 0 ? initialData.ingredients : [{ name: '', quantity: 0, unit: '' }]);
+    }
+  }, [initialData]);
 
   const handleIngredientChange = (index: number, field: keyof Ingredient, value: string | number) => {
     const newIngredients = [...ingredients];
@@ -36,6 +46,7 @@ export default function RecipeForm({ onSubmit, onCancel, initialData = {} }: Rec
   };
   
   const removeIngredient = (index: number) => {
+    if (ingredients.length <= 1) return; // Prevent removing the last ingredient
     const newIngredients = ingredients.filter((_, i) => i !== index);
     setIngredients(newIngredients);
   };
@@ -83,7 +94,7 @@ export default function RecipeForm({ onSubmit, onCancel, initialData = {} }: Rec
                         className="col-span-3"
                         required
                     />
-                    <Button type="button" variant="ghost" size="icon" onClick={() => removeIngredient(index)} className="col-span-1 h-8 w-8">
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeIngredient(index)} className="col-span-1 h-8 w-8" disabled={ingredients.length <= 1}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                 </div>
@@ -98,7 +109,7 @@ export default function RecipeForm({ onSubmit, onCancel, initialData = {} }: Rec
         <Button variant="outline" type="button" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit">Guardar Receta</Button>
+        <Button type="submit">{isEditing ? 'Guardar Cambios' : 'Guardar Receta'}</Button>
       </DialogFooter>
     </form>
   );

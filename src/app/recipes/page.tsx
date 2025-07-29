@@ -32,7 +32,7 @@ const initialRecipes: Recipe[] = [
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
-  const [isNewRecipeModalOpen, setNewRecipeModalOpen] = useState(false);
+  const [isFormModalOpen, setFormModalOpen] = useState(false);
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
@@ -43,13 +43,32 @@ export default function RecipesPage() {
       lastUpdated: new Date().toISOString().split('T')[0],
     };
     setRecipes(prev => [newRecipe, ...prev]);
-    setNewRecipeModalOpen(false);
+    setFormModalOpen(false);
   };
+  
+  const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
+      if (!selectedRecipe) return;
+      
+      const updatedRecipe: Recipe = {
+          ...updatedRecipeData,
+          id: selectedRecipe.id,
+          lastUpdated: new Date().toISOString().split('T')[0],
+      };
+      
+      setRecipes(recipes.map(r => r.id === selectedRecipe.id ? updatedRecipe : r));
+      setFormModalOpen(false);
+      setSelectedRecipe(null);
+  }
 
   const handleOpenDetails = (recipe: Recipe) => {
     setSelectedRecipe(recipe);
     setDetailsModalOpen(true);
   };
+
+  const handleOpenForm = (recipe: Recipe | null) => {
+      setSelectedRecipe(recipe);
+      setFormModalOpen(true);
+  }
 
   return (
     <AppLayout pageTitle="Recetas">
@@ -60,7 +79,7 @@ export default function RecipesPage() {
                     <CardTitle className="font-headline">Recetas</CardTitle>
                     <CardDescription className="font-body">Gestiona las recetas y costos de tus productos.</CardDescription>
                 </div>
-                <Button onClick={() => setNewRecipeModalOpen(true)}>
+                <Button onClick={() => handleOpenForm(null)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Nueva Receta
                 </Button>
@@ -82,7 +101,7 @@ export default function RecipesPage() {
             </TableHeader>
             <TableBody>
               {recipes.map((recipe) => (
-                <TableRow key={recipe.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => handleOpenDetails(recipe)}>
+                <TableRow key={recipe.id} className="hover:bg-muted/50">
                   <TableCell className="font-medium">{recipe.id}</TableCell>
                   <TableCell>{recipe.name}</TableCell>
                   <TableCell>{recipe.ingredients.length}</TableCell>
@@ -90,7 +109,7 @@ export default function RecipesPage() {
                   <TableCell>{recipe.lastUpdated}</TableCell>
                   <TableCell>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Menú</span>
@@ -99,7 +118,7 @@ export default function RecipesPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleOpenDetails(recipe)}>Ver Detalles</DropdownMenuItem>
-                        <DropdownMenuItem>Editar</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenForm(recipe)}>Editar</DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -111,51 +130,75 @@ export default function RecipesPage() {
         </CardContent>
       </Card>
 
-      {/* Modal Nueva Receta */}
-      <Dialog open={isNewRecipeModalOpen} onOpenChange={setNewRecipeModalOpen}>
+      {/* Modal Nueva/Editar Receta */}
+      <Dialog open={isFormModalOpen} onOpenChange={setFormModalOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">Crear Nueva Receta</DialogTitle>
+            <DialogTitle className="font-headline">{selectedRecipe ? 'Editar Receta' : 'Crear Nueva Receta'}</DialogTitle>
             <DialogDescription className="font-body">
-              Define el producto y sus ingredientes.
+              {selectedRecipe ? 'Modifica los detalles de la receta.' : 'Define el producto y sus ingredientes.'}
             </DialogDescription>
           </DialogHeader>
           <RecipeForm
-            onSubmit={handleCreateRecipe}
-            onCancel={() => setNewRecipeModalOpen(false)}
+            onSubmit={selectedRecipe ? handleUpdateRecipe : handleCreateRecipe}
+            onCancel={() => setFormModalOpen(false)}
+            initialData={selectedRecipe || undefined}
             />
         </DialogContent>
       </Dialog>
       
       {/* Modal Ver Detalles */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle className="font-headline">{selectedRecipe?.name}</DialogTitle>
-            <DialogDescription className="font-body">
-             Lista de ingredientes y cantidades para una unidad.
+             <DialogDescription className="font-body">
+                Ficha de Receta - {selectedRecipe?.id}
             </DialogDescription>
           </DialogHeader>
           {selectedRecipe && (
-             <div className="max-h-[60vh] overflow-y-auto font-body p-1">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Ingrediente</TableHead>
-                            <TableHead className="text-right">Cantidad</TableHead>
-                            <TableHead>Unidad</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {selectedRecipe.ingredients.map((ing, index) => (
-                            <TableRow key={index}>
-                                <TableCell className="font-medium">{ing.name}</TableCell>
-                                <TableCell className="text-right">{ing.quantity}</TableCell>
-                                <TableCell>{ing.unit}</TableCell>
+             <div className="max-h-[60vh] overflow-y-auto font-body p-1 bg-white text-black rounded-md">
+                <div className="p-6">
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
+                        <div>
+                            <p className="font-semibold text-gray-600">Nombre del Producto:</p>
+                            <p className="text-lg">{selectedRecipe.name}</p>
+                        </div>
+                        <div>
+                            <p className="font-semibold text-gray-600">Costo por Unidad:</p>
+                            <p className="text-lg">${selectedRecipe.cost.toFixed(2)}</p>
+                        </div>
+                        <div>
+                            <p className="font-semibold text-gray-600">Última Actualización:</p>
+                            <p>{selectedRecipe.lastUpdated}</p>
+                        </div>
+                    </div>
+                    
+                    <h3 className="font-headline text-xl mb-4 border-b pb-2">Ingredientes</h3>
+                    
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="text-black font-semibold">Ingrediente</TableHead>
+                                <TableHead className="text-right text-black font-semibold">Cantidad</TableHead>
+                                <TableHead className="text-black font-semibold">Unidad</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {selectedRecipe.ingredients.map((ing, index) => (
+                                <TableRow key={index} className="border-gray-200">
+                                    <TableCell className="font-medium">{ing.name}</TableCell>
+                                    <TableCell className="text-right">{ing.quantity}</TableCell>
+                                    <TableCell>{ing.unit}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                    
+                    <div className="border-t-2 border-gray-200 pt-4 mt-6 text-center text-xs text-gray-500">
+                        <p>Documento generado el {new Date().toLocaleDateString('es-ES')}</p>
+                    </div>
+                </div>
              </div>
           )}
            <DialogFooter className="mt-4">
