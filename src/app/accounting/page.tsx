@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 type Invoice = {
   id: string;
@@ -27,6 +28,7 @@ const initialInvoices: Invoice[] = [
 export default function AccountingPage() {
     const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
     const searchParams = useSearchParams();
+    const { toast } = useToast();
 
     useEffect(() => {
         const client = searchParams.get('client');
@@ -41,10 +43,14 @@ export default function AccountingPage() {
                 status: 'Pendiente',
             };
             setInvoices(prev => [newInvoice, ...prev]);
+            toast({
+                title: "Factura Generada",
+                description: `Se ha creado la factura para ${client}.`,
+            });
             // Clean up URL to avoid creating invoice on refresh
             window.history.replaceState(null, '', '/accounting');
         }
-    }, [searchParams]);
+    }, [searchParams, toast]);
 
   return (
     <AppLayout pageTitle="Contabilidad">

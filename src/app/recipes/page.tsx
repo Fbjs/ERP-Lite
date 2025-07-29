@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import RecipeForm from '@/components/recipe-form';
 import { useState, useRef } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export type Ingredient = {
     name: string;
@@ -36,6 +37,7 @@ export default function RecipesPage() {
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const detailsModalContentRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
   const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
     const newRecipe: Recipe = {
@@ -45,6 +47,10 @@ export default function RecipesPage() {
     };
     setRecipes(prev => [newRecipe, ...prev]);
     setFormModalOpen(false);
+    toast({
+        title: "Receta Creada",
+        description: `La receta para ${newRecipe.name} ha sido creada.`,
+    });
   };
   
   const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
@@ -59,6 +65,10 @@ export default function RecipesPage() {
       setRecipes(recipes.map(r => r.id === selectedRecipe.id ? updatedRecipe : r));
       setFormModalOpen(false);
       setSelectedRecipe(null);
+      toast({
+          title: "Receta Actualizada",
+          description: `La receta para ${updatedRecipe.name} ha sido actualizada.`,
+      });
   }
 
   const handleOpenDetails = (recipe: Recipe) => {
@@ -97,6 +107,10 @@ export default function RecipesPage() {
 
         pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
         pdf.save(`receta-${selectedRecipe?.id}.pdf`);
+        toast({
+            title: "PDF Descargado",
+            description: `La receta ${selectedRecipe?.name} ha sido descargada.`,
+        });
     }
   };
 

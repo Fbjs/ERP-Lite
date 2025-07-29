@@ -11,6 +11,7 @@ import { useState, useRef } from 'react';
 import SalesOrderForm, { OrderFormData } from '@/components/sales-order-form';
 import { Recipe, initialRecipes } from '@/app/recipes/page';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 type Order = {
   id: string;
@@ -36,6 +37,7 @@ export default function SalesPage() {
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
+    const { toast } = useToast();
 
     const handleCreateOrder = (newOrderData: OrderFormData) => {
         
@@ -61,6 +63,10 @@ export default function SalesPage() {
         };
         setOrders(prev => [newOrder, ...prev]);
         setNewOrderModalOpen(false);
+        toast({
+            title: "Orden de Venta Creada",
+            description: `Se ha creado una nueva orden para ${newOrder.customer}.`,
+        });
     };
 
     const handleOpenDetails = (order: Order) => {
@@ -94,6 +100,10 @@ export default function SalesPage() {
             
             pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
             pdf.save(`orden-venta-${selectedOrder?.id}.pdf`);
+            toast({
+                title: "PDF Descargado",
+                description: `La orden de venta ${selectedOrder?.id} ha sido descargada.`,
+            });
         }
     };
 

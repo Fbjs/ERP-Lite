@@ -68,6 +68,10 @@ export default function HRPage() {
         };
         setEmployees(prev => [newEmployee, ...prev]);
         setNewEmployeeModalOpen(false);
+        toast({
+            title: "Trabajador Creado",
+            description: `Se ha añadido a ${newEmployee.name} a la nómina.`,
+        });
     };
 
     const handleOpenDetails = (employee: Employee) => {
@@ -97,6 +101,10 @@ export default function HRPage() {
                 documentType: docType as any,
             });
             setGeneratedDoc(result);
+            toast({
+                title: 'Documento Generado',
+                description: `El ${docType} para ${selectedEmployee.name} ha sido generado con éxito.`,
+            });
         } catch (error) {
             console.error(error);
             toast({
@@ -159,6 +167,11 @@ export default function HRPage() {
 
             pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
             pdf.save(`nomina_trabajadores_${new Date().toISOString().split('T')[0]}.pdf`);
+            
+            toast({
+                title: "PDF Descargado",
+                description: "La nómina de trabajadores ha sido descargada.",
+            });
         }
     };
 

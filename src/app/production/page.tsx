@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ProductionOrderForm from '@/components/production-order-form';
+import { useToast } from '@/hooks/use-toast';
 
 type Order = {
     id: string;
@@ -38,6 +39,7 @@ export default function ProductionPage() {
     const [updatedStatus, setUpdatedStatus] = useState<Order['status']>('En Cola');
     const [updatedStage, setUpdatedStage] = useState('');
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
+    const { toast } = useToast();
 
 
     const handleOpenDetails = (order: Order) => {
@@ -61,12 +63,20 @@ export default function ProductionPage() {
       };
       setOrders(prev => [newOrder, ...prev]);
       setNewOrderModalOpen(false);
+      toast({
+          title: "Orden Creada",
+          description: `La orden de producción para ${newOrder.quantity}x ${newOrder.product} ha sido creada.`,
+      });
     }
 
     const handleUpdateOrder = () => {
         if (!selectedOrder) return;
         setOrders(orders.map(o => o.id === selectedOrder.id ? { ...o, status: updatedStatus, stage: updatedStage } : o));
         setUpdateStatusModalOpen(false);
+        toast({
+            title: "Orden Actualizada",
+            description: `La orden ${selectedOrder.id} ha sido actualizada.`,
+        });
         setSelectedOrder(null);
     }
 
@@ -96,6 +106,11 @@ export default function ProductionPage() {
             
             pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
             pdf.save(`orden-${selectedOrder?.id}.pdf`);
+
+            toast({
+                title: "PDF Descargado",
+                description: `La orden de producción ${selectedOrder?.id} ha sido descargada.`,
+            });
         }
     };
 
