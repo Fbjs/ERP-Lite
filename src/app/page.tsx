@@ -14,34 +14,34 @@ export default function LoginPage() {
                 <Wheat className="w-10 h-10 text-primary" />
                 <h1 className="text-4xl font-headline font-bold text-foreground">Vollkorn</h1>
             </div>
-          <CardTitle className="text-2xl font-headline">Welcome Back</CardTitle>
-          <CardDescription className="font-body">Enter your credentials to access your ERP</CardDescription>
+          <CardTitle className="text-2xl font-headline">Bienvenido de Vuelta</CardTitle>
+          <CardDescription className="font-body">Ingresa tus credenciales para acceder a tu ERP</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-body">Email</Label>
-              <Input id="email" type="email" placeholder="m@example.com" required className="font-body"/>
+              <Label htmlFor="email" className="font-body">Correo Electrónico</Label>
+              <Input id="email" type="email" placeholder="m@ejemplo.com" required className="font-body"/>
             </div>
             <div className="space-y-2">
               <div className="flex items-center">
-                <Label htmlFor="password" className="font-body">Password</Label>
+                <Label htmlFor="password" className="font-body">Contraseña</Label>
                 <Link href="#" className="ml-auto inline-block text-sm underline font-body">
-                  Forgot your password?
+                  ¿Olvidaste tu contraseña?
                 </Link>
               </div>
               <Input id="password" type="password" required  className="font-body"/>
             </div>
             <Link href="/dashboard" className="w-full">
                 <Button type="submit" className="w-full font-body">
-                    Login
+                    Iniciar Sesión
                 </Button>
             </Link>
           </div>
           <div className="mt-4 text-center text-sm font-body">
-            Don't have an account?{' '}
+            ¿No tienes una cuenta?{' '}
             <Link href="/signup" className="underline">
-              Sign up
+              Regístrate
             </Link>
           </div>
         </CardContent>

@@ -18,7 +18,7 @@ const alegreya = Alegreya({
 
 export const metadata: Metadata = {
   title: 'Vollkorn ERP Lite',
-  description: 'ERP for Vollkorn.cl',
+  description: 'ERP para Vollkorn.cl',
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <body className={cn(
           "min-h-screen bg-background font-body antialiased",
           belleza.variable,

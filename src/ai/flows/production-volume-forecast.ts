@@ -1,24 +1,24 @@
 'use server';
 
 /**
- * @fileOverview Production volume forecast AI agent.
+ * @fileOverview Agente de IA para el pronóstico del volumen de producción.
  *
- * - productionVolumeForecast - A function that handles the production volume forecast process.
- * - ProductionVolumeForecastInput - The input type for the productionVolumeForecast function.
- * - ProductionVolumeForecastOutput - The return type for the productionVolumeForecast function.
+ * - productionVolumeForecast - Una función que maneja el proceso de pronóstico de volumen de producción.
+ * - ProductionVolumeForecastInput - El tipo de entrada para la función productionVolumeForecast.
+ * - ProductionVolumeForecastOutput - El tipo de retorno para la función productionVolumeForecast.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const ProductionVolumeForecastInputSchema = z.object({
-  recentSalesData: z.string().describe('Recent sales data, including product names and quantities sold.'),
-  currentInventoryLevels: z.string().describe('Current inventory levels for each product.'),
+  recentSalesData: z.string().describe('Datos de ventas recientes, incluyendo nombres de productos y cantidades vendidas.'),
+  currentInventoryLevels: z.string().describe('Niveles de inventario actuales para cada producto.'),
 });
 export type ProductionVolumeForecastInput = z.infer<typeof ProductionVolumeForecastInputSchema>;
 
 const ProductionVolumeForecastOutputSchema = z.object({
-  forecast: z.string().describe('Recommended production volume forecast for each product.'),
+  forecast: z.string().describe('Pronóstico de volumen de producción recomendado para cada producto.'),
 });
 export type ProductionVolumeForecastOutput = z.infer<typeof ProductionVolumeForecastOutputSchema>;
 
@@ -30,14 +30,14 @@ const prompt = ai.definePrompt({
   name: 'productionVolumeForecastPrompt',
   input: {schema: ProductionVolumeForecastInputSchema},
   output: {schema: ProductionVolumeForecastOutputSchema},
-  prompt: `You are a production planning expert at an industrial bakery.
+  prompt: `Eres un experto en planificación de producción en una panadería industrial.
 
-Based on the recent sales data and current inventory levels, provide a production volume forecast for each product.
+Basado en los datos de ventas recientes y los niveles de inventario actuales, proporciona un pronóstico de volumen de producción para cada producto.
 
-Recent Sales Data: {{{recentSalesData}}}
-Current Inventory Levels: {{{currentInventoryLevels}}}
+Datos de Ventas Recientes: {{{recentSalesData}}}
+Niveles de Inventario Actuales: {{{currentInventoryLevels}}}
 
-Forecast:`,
+Pronóstico:`,
 });
 
 const productionVolumeForecastFlow = ai.defineFlow(

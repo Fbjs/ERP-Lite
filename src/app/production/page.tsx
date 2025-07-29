@@ -8,25 +8,25 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const orders = [
-  { id: 'PROD021', product: 'Pain au Levain', quantity: 200, status: 'In Progress', stage: 'Baking', date: '2023-10-28' },
-  { id: 'PROD022', product: 'Baguette Tradition', quantity: 500, status: 'Completed', stage: 'Packaged', date: '2023-10-28' },
-  { id: 'PROD023', product: 'Croissant au Beurre', quantity: 1000, status: 'Queued', stage: 'Mixing', date: '2023-10-29' },
-  { id: 'PROD024', product: 'Ciabatta', quantity: 150, status: 'In Progress', stage: 'Fermenting', date: '2023-10-28' },
+  { id: 'PROD021', product: 'Pain au Levain', quantity: 200, status: 'En Progreso', stage: 'Horneando', date: '2023-10-28' },
+  { id: 'PROD022', product: 'Baguette Tradition', quantity: 500, status: 'Completado', stage: 'Empaquetado', date: '2023-10-28' },
+  { id: 'PROD023', product: 'Croissant au Beurre', quantity: 1000, status: 'En Cola', stage: 'Mezclando', date: '2023-10-29' },
+  { id: 'PROD024', product: 'Ciabatta', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28' },
 ];
 
 export default function ProductionPage() {
   return (
-    <AppLayout pageTitle="Production Orders">
+    <AppLayout pageTitle="Órdenes de Producción">
       <Card>
         <CardHeader>
             <div className="flex justify-between items-center">
                 <div>
-                    <CardTitle className="font-headline">Production Orders</CardTitle>
-                    <CardDescription className="font-body">Track and manage production orders.</CardDescription>
+                    <CardTitle className="font-headline">Órdenes de Producción</CardTitle>
+                    <CardDescription className="font-body">Rastrea y gestiona las órdenes de producción.</CardDescription>
                 </div>
                 <Button>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    New Order
+                    Nueva Orden
                 </Button>
             </div>
         </CardHeader>
@@ -34,13 +34,13 @@ export default function ProductionPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Current Stage</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead><span className="sr-only">Actions</span></TableHead>
+                <TableHead>ID de Orden</TableHead>
+                <TableHead>Producto</TableHead>
+                <TableHead>Cantidad</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Etapa Actual</TableHead>
+                <TableHead>Fecha</TableHead>
+                <TableHead><span className="sr-only">Acciones</span></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -50,7 +50,7 @@ export default function ProductionPage() {
                   <TableCell>{order.product}</TableCell>
                   <TableCell>{order.quantity}</TableCell>
                   <TableCell>
-                    <Badge variant={order.status === 'Completed' ? 'default' : 'secondary'}>{order.status}</Badge>
+                    <Badge variant={order.status === 'Completado' ? 'default' : 'secondary'}>{order.status}</Badge>
                   </TableCell>
                   <TableCell>{order.stage}</TableCell>
                   <TableCell>{order.date}</TableCell>
@@ -59,13 +59,13 @@ export default function ProductionPage() {
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
+                          <span className="sr-only">Menú</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Update Status</DropdownMenuItem>
+                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                        <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
+                        <DropdownMenuItem>Actualizar Estado</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

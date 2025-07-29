@@ -11,11 +11,11 @@ const AppLayout = ({ children, pageTitle }: { children: ReactNode, pageTitle: st
     const pathname = usePathname();
 
     const menuItems = [
-        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/recipes', label: 'Recipes', icon: NotebookText },
-        { href: '/production', label: 'Production', icon: Factory },
-        { href: '/sales', label: 'Sales Orders', icon: ShoppingCart },
-        { href: '/forecast', label: 'Forecast', icon: BrainCircuit },
+        { href: '/dashboard', label: 'Panel de Control', icon: LayoutDashboard },
+        { href: '/recipes', label: 'Recetas', icon: NotebookText },
+        { href: '/production', label: 'Producción', icon: Factory },
+        { href: '/sales', label: 'Órdenes de Venta', icon: ShoppingCart },
+        { href: '/forecast', label: 'Pronóstico', icon: BrainCircuit },
     ];
 
     return (
@@ -44,11 +44,11 @@ const AppLayout = ({ children, pageTitle }: { children: ReactNode, pageTitle: st
                 <SidebarFooter className="p-4 border-t">
                     <div className="flex items-center gap-3">
                          <Avatar className="h-10 w-10">
-                            <AvatarImage src="https://placehold.co/100x100.png" alt="Admin User" data-ai-hint="person portrait" />
-                            <AvatarFallback>AU</AvatarFallback>
+                            <AvatarImage src="https://placehold.co/100x100.png" alt="Usuario Administrador" data-ai-hint="person portrait" />
+                            <AvatarFallback>UA</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-                            <span className="font-semibold font-body text-sm">Admin User</span>
+                            <span className="font-semibold font-body text-sm">Usuario Admin</span>
                             <span className="text-xs text-muted-foreground">admin@vollkorn.cl</span>
                         </div>
                         <SidebarMenuButton asChild className="ml-auto group-data-[collapsible=icon]:hidden">

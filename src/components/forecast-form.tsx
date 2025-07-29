@@ -32,7 +32,7 @@ export default function ForecastForm() {
             toast({
               variant: "destructive",
               title: "Error",
-              description: "An error occurred while generating the forecast.",
+              description: "Ocurrió un error al generar el pronóstico.",
             })
         } finally {
             setRunning(false);
@@ -43,10 +43,10 @@ export default function ForecastForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                    <Label htmlFor="recent-sales" className="font-body">Recent Sales Data</Label>
+                    <Label htmlFor="recent-sales" className="font-body">Datos de Ventas Recientes</Label>
                     <Textarea
                         id="recent-sales"
-                        placeholder="e.g., Pain au Levain: 50 units, Baguette: 120 units..."
+                        placeholder="ej., Pan de Masa Madre: 50 unidades, Baguette: 120 unidades..."
                         value={recentSales}
                         onChange={(e) => setRecentSales(e.target.value)}
                         required
@@ -54,10 +54,10 @@ export default function ForecastForm() {
                     />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="inventory-levels" className="font-body">Current Inventory Levels</Label>
+                    <Label htmlFor="inventory-levels" className="font-body">Niveles de Inventario Actuales</Label>
                     <Textarea
                         id="inventory-levels"
-                        placeholder="e.g., Pain au Levain: 20 units, Baguette: 30 units..."
+                        placeholder="ej., Pan de Masa Madre: 20 unidades, Baguette: 30 unidades..."
                         value={inventory}
                         onChange={(e) => setInventory(e.target.value)}
                         required
@@ -66,7 +66,7 @@ export default function ForecastForm() {
                 </div>
                 <Button type="submit" disabled={running} className="w-full">
                     {running ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                    Generate Forecast
+                    Generar Pronóstico
                 </Button>
             </form>
 
@@ -74,12 +74,12 @@ export default function ForecastForm() {
                 {running && !flowOutput ? (
                     <div className="flex flex-col items-center gap-4 text-muted-foreground">
                         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                        <p className="font-body">Generating forecast...</p>
+                        <p className="font-body">Generando pronóstico...</p>
                     </div>
                 ) : flowOutput ? (
                     <Card className="w-full bg-secondary">
                         <CardHeader>
-                            <CardTitle className="font-headline">AI-Powered Forecast</CardTitle>
+                            <CardTitle className="font-headline">Pronóstico con IA</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <p className="whitespace-pre-wrap font-body">{flowOutput.forecast}</p>
@@ -88,7 +88,7 @@ export default function ForecastForm() {
                 ) : (
                      <div className="flex flex-col items-center gap-4 text-center text-muted-foreground p-8 border-2 border-dashed rounded-lg w-full h-full justify-center">
                         <Wand2 className="h-10 w-10 text-primary" />
-                        <p className="font-body">Your production forecast will appear here.</p>
+                        <p className="font-body">Tu pronóstico de producción aparecerá aquí.</p>
                     </div>
                 )}
             </div>

@@ -4,13 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 
 export default function ForecastPage() {
     return (
-        <AppLayout pageTitle="Production Forecast">
+        <AppLayout pageTitle="Pronóstico de Producción">
             <div className="max-w-4xl mx-auto">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline">Production Volume Forecast</CardTitle>
+                        <CardTitle className="font-headline">Pronóstico de Volumen de Producción</CardTitle>
                         <CardDescription className="font-body">
-                            Based on recent sales data and current inventory, this tool will recommend a production volume forecast.
+                            Basado en datos de ventas recientes e inventario actual, esta herramienta recomendará un pronóstico de volumen de producción.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

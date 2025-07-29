@@ -15,17 +15,17 @@ const recipes = [
 
 export default function RecipesPage() {
   return (
-    <AppLayout pageTitle="Recipe Management">
+    <AppLayout pageTitle="Gestión de Recetas">
       <Card>
         <CardHeader>
             <div className="flex justify-between items-center">
                 <div>
-                    <CardTitle className="font-headline">Recipes</CardTitle>
-                    <CardDescription className="font-body">Manage your product recipes and costs.</CardDescription>
+                    <CardTitle className="font-headline">Recetas</CardTitle>
+                    <CardDescription className="font-body">Gestiona las recetas y costos de tus productos.</CardDescription>
                 </div>
                 <Button>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    New Recipe
+                    Nueva Receta
                 </Button>
             </div>
         </CardHeader>
@@ -33,13 +33,13 @@ export default function RecipesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Recipe ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Ingredients</TableHead>
-                <TableHead>Cost per Unit</TableHead>
-                <TableHead>Last Updated</TableHead>
+                <TableHead>ID de Receta</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Ingredientes</TableHead>
+                <TableHead>Costo por Unidad</TableHead>
+                <TableHead>Última Actualización</TableHead>
                 <TableHead>
-                  <span className="sr-only">Actions</span>
+                  <span className="sr-only">Acciones</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -56,13 +56,13 @@ export default function RecipesPage() {
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
+                          <span className="sr-only">Menú</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
+                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                        <DropdownMenuItem>Editar</DropdownMenuItem>
+                        <DropdownMenuItem>Eliminar</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
