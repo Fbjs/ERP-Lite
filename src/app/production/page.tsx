@@ -13,6 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ProductionOrderForm from '@/components/production-order-form';
 import { useToast } from '@/hooks/use-toast';
+import { initialRecipes, Recipe } from '@/app/recipes/page';
+import { InventoryItem, initialInventoryItems } from '@/app/inventory/page';
+
 
 type Order = {
     id: string;
@@ -71,12 +74,34 @@ export default function ProductionPage() {
 
     const handleUpdateOrder = () => {
         if (!selectedOrder) return;
+        
+        const originalStatus = selectedOrder.status;
+        const newStatus = updatedStatus;
+
         setOrders(orders.map(o => o.id === selectedOrder.id ? { ...o, status: updatedStatus, stage: updatedStage } : o));
-        setUpdateStatusModalOpen(false);
+        
         toast({
             title: "Orden Actualizada",
             description: `La orden ${selectedOrder.id} ha sido actualizada.`,
         });
+
+        if (newStatus === 'Completado' && originalStatus !== 'Completado') {
+            const recipe = initialRecipes.find(r => r.name === selectedOrder.product);
+            if(recipe) {
+                toast({
+                    title: "Simulación de Inventario",
+                    description: `El stock del producto terminado '${selectedOrder.product}' y sus materias primas ha sido actualizado.`,
+                });
+            } else {
+                 toast({
+                    variant: "destructive",
+                    title: "Receta no encontrada",
+                    description: `No se encontró una receta para '${selectedOrder.product}'. El inventario no fue ajustado.`,
+                });
+            }
+        }
+
+        setUpdateStatusModalOpen(false);
         setSelectedOrder(null);
     }
 

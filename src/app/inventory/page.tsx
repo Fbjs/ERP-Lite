@@ -24,10 +24,15 @@ export type InventoryItem = {
   location: string;
 };
 
-const initialInventoryItems: InventoryItem[] = [
+export const initialInventoryItems: InventoryItem[] = [
   { sku: 'HAR-001', name: 'Harina de Trigo', category: 'Materia Prima', stock: 1500, unit: 'kg', location: 'Bodega A-1' },
   { sku: 'LEV-002', name: 'Levadura Fresca', category: 'Materia Prima', stock: 250, unit: 'kg', location: 'Refrigerador 2' },
   { sku: 'SAL-003', name: 'Sal de Mar', category: 'Materia Prima', stock: 500, unit: 'kg', location: 'Bodega A-2' },
+  { sku: 'MAN-004', name: 'Mantequilla', category: 'Materia Prima', stock: 300, unit: 'kg', location: 'Refrigerador 1' },
+  { sku: 'AZU-005', name: 'Azucar', category: 'Materia Prima', stock: 400, unit: 'kg', location: 'Bodega A-2' },
+  { sku: 'AGU-006', name: 'Agua', category: 'Materia Prima', stock: 1000, unit: 'L', location: 'Estanque' },
+  { sku: 'MM-007', name: 'Masa Madre', category: 'Materia Prima', stock: 50, unit: 'kg', location: 'Refrigerador 3' },
+  { sku: 'LEC-008', name: 'Leche', category: 'Materia Prima', stock: 200, unit: 'L', location: 'Refrigerador 1' },
   { sku: 'PROD-PL-01', name: 'Pain au Levain', category: 'Producto Terminado', stock: 200, unit: 'unidades', location: 'Zona Despacho' },
   { sku: 'PROD-BG-01', name: 'Baguette Tradition', category: 'Producto Terminado', stock: 350, unit: 'unidades', location: 'Zona Despacho' },
   { sku: 'PROD-CB-01', name: 'Ciabatta', category: 'Producto Terminado', stock: 250, unit: 'unidades', location: 'Zona Despacho' },
