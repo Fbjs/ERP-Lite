@@ -14,6 +14,10 @@ type EmployeeData = {
     contractType: string;
     startDate: string;
     salary: number;
+    phone: string;
+    address: string;
+    healthInsurance: string;
+    pensionFund: string;
 };
 
 type EmployeeFormProps = {
@@ -29,15 +33,19 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
   const [contractType, setContractType] = useState(initialData.contractType || 'Indefinido');
   const [startDate, setStartDate] = useState(initialData.startDate || '');
   const [salary, setSalary] = useState(initialData.salary || 0);
+  const [phone, setPhone] = useState(initialData.phone || '');
+  const [address, setAddress] = useState(initialData.address || '');
+  const [healthInsurance, setHealthInsurance] = useState(initialData.healthInsurance || '');
+  const [pensionFund, setPensionFund] = useState(initialData.pensionFund || '');
 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ name, rut, position, contractType, startDate, salary });
+    onSubmit({ name, rut, position, contractType, startDate, salary, phone, address, healthInsurance, pensionFund });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 py-4 font-body">
+    <form onSubmit={handleSubmit} className="grid gap-4 py-4 font-body max-h-[70vh] overflow-y-auto px-2">
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="name" className="text-right">
           Nombre
@@ -60,6 +68,31 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
           onChange={(e) => setRut(e.target.value)}
           className="col-span-3"
           placeholder="12.345.678-9"
+          required
+        />
+      </div>
+       <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="phone" className="text-right">
+          Teléfono
+        </Label>
+        <Input
+          id="phone"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="col-span-3"
+          placeholder="+56912345678"
+          required
+        />
+      </div>
+       <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="address" className="text-right">
+          Dirección
+        </Label>
+        <Input
+          id="address"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          className="col-span-3"
           required
         />
       </div>
@@ -117,7 +150,33 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
             </SelectContent>
         </Select>
       </div>
-      <DialogFooter>
+        <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="healthInsurance" className="text-right">
+          Previsión
+        </Label>
+        <Input
+          id="healthInsurance"
+          value={healthInsurance}
+          onChange={(e) => setHealthInsurance(e.target.value)}
+          className="col-span-3"
+          placeholder="Ej: Fonasa, Consalud..."
+          required
+        />
+      </div>
+       <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="pensionFund" className="text-right">
+          AFP
+        </Label>
+        <Input
+          id="pensionFund"
+          value={pensionFund}
+          onChange={(e) => setPensionFund(e.target.value)}
+          className="col-span-3"
+          placeholder="Ej: Modelo, Habitat..."
+          required
+        />
+      </div>
+      <DialogFooter className="sticky bottom-0 bg-background pt-4 pb-0 -mx-2 -mb-4">
         <Button variant="outline" type="button" onClick={onCancel}>
           Cancelar
         </Button>

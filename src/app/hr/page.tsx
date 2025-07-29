@@ -18,13 +18,17 @@ type Employee = {
     startDate: string;
     salary: number;
     status: string;
+    phone: string;
+    address: string;
+    healthInsurance: string;
+    pensionFund: string;
 };
 
 const initialEmployees: Employee[] = [
-  { id: 'EMP001', name: 'Juan Pérez', rut: '12.345.678-9', position: 'Panadero Jefe', contractType: 'Indefinido', startDate: '2022-01-15', salary: 850000, status: 'Activo' },
-  { id: 'EMP002', name: 'Ana Gómez', rut: '23.456.789-0', position: 'Auxiliar de Pastelería', contractType: 'Plazo Fijo', startDate: '2023-03-01', salary: 600000, status: 'Activo' },
-  { id: 'EMP003', name: 'Luis Martínez', rut: '11.222.333-4', position: 'Conductor Despacho', contractType: 'Indefinido', startDate: '2021-08-20', salary: 750000, status: 'Vacaciones' },
-  { id: 'EMP004', name: 'María Rodríguez', rut: '15.678.901-2', position: 'Administrativa', contractType: 'Indefinido', startDate: '2020-05-10', salary: 950000, status: 'Activo' },
+  { id: 'EMP001', name: 'Juan Pérez', rut: '12.345.678-9', position: 'Panadero Jefe', contractType: 'Indefinido', startDate: '2022-01-15', salary: 850000, status: 'Activo', phone: '+56987654321', address: 'Av. Siempre Viva 742', healthInsurance: 'Fonasa', pensionFund: 'Modelo' },
+  { id: 'EMP002', name: 'Ana Gómez', rut: '23.456.789-0', position: 'Auxiliar de Pastelería', contractType: 'Plazo Fijo', startDate: '2023-03-01', salary: 600000, status: 'Activo', phone: '+56912345678', address: 'Calle Falsa 123', healthInsurance: 'Consalud', pensionFund: 'Habitat' },
+  { id: 'EMP003', name: 'Luis Martínez', rut: '11.222.333-4', position: 'Conductor Despacho', contractType: 'Indefinido', startDate: '2021-08-20', salary: 750000, status: 'Vacaciones', phone: '+56955554444', address: 'Pasaje Corto 45', healthInsurance: 'Cruz Blanca', pensionFund: 'Capital' },
+  { id: 'EMP004', name: 'María Rodríguez', rut: '15.678.901-2', position: 'Administrativa', contractType: 'Indefinido', startDate: '2020-05-10', salary: 950000, status: 'Activo', phone: '+56999998888', address: 'El Roble 1010', healthInsurance: 'Fonasa', pensionFund: 'PlanVital' },
 ];
 
 export default function HRPage() {
@@ -63,9 +67,8 @@ export default function HRPage() {
                 <TableHead>Nombre</TableHead>
                 <TableHead>RUT</TableHead>
                 <TableHead>Cargo</TableHead>
-                <TableHead>Contrato</TableHead>
-                <TableHead>Fecha Ingreso</TableHead>
-                <TableHead className="text-right">Sueldo</TableHead>
+                <TableHead>Teléfono</TableHead>
+                <TableHead>Dirección</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>
                   <span className="sr-only">Acciones</span>
@@ -78,9 +81,8 @@ export default function HRPage() {
                   <TableCell className="font-medium">{employee.name}</TableCell>
                   <TableCell>{employee.rut}</TableCell>
                   <TableCell>{employee.position}</TableCell>
-                  <TableCell>{employee.contractType}</TableCell>
-                  <TableCell>{employee.startDate}</TableCell>
-                  <TableCell className="text-right">${employee.salary.toLocaleString('es-CL')}</TableCell>
+                  <TableCell>{employee.phone}</TableCell>
+                  <TableCell>{employee.address}</TableCell>
                   <TableCell>{employee.status}</TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -106,7 +108,7 @@ export default function HRPage() {
       
       {/* Modal Nuevo Trabajador */}
       <Dialog open={isNewEmployeeModalOpen} onOpenChange={setNewEmployeeModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="font-headline">Añadir Nuevo Trabajador</DialogTitle>
             <DialogDescription className="font-body">
