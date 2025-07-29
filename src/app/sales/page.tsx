@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef } from 'react';
-import SalesOrderForm from '@/components/sales-order-form';
+import SalesOrderForm, { OrderFormData } from '@/components/sales-order-form';
+import { Recipe, initialRecipes } from '@/app/recipes/page';
 
 type Order = {
   id: string;
@@ -29,17 +30,33 @@ const initialOrders: Order[] = [
 
 export default function SalesPage() {
     const [orders, setOrders] = useState<Order[]>(initialOrders);
+    const [recipes] = useState<Recipe[]>(initialRecipes);
     const [isNewOrderModalOpen, setNewOrderModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
 
-    const handleCreateOrder = (newOrderData: Omit<Order, 'id' | 'status' | 'date'>) => {
+    const handleCreateOrder = (newOrderData: OrderFormData) => {
+        
+        const details = newOrderData.items
+            .map(item => {
+                const recipe = recipes.find(r => r.id === item.recipeId);
+                return `${item.quantity} x ${recipe ? recipe.name : 'Producto Desconocido'}`;
+            })
+            .join(', ');
+
+        const amount = newOrderData.items.reduce((total, item) => {
+            const recipe = recipes.find(r => r.id === item.recipeId);
+            return total + (item.quantity * (recipe?.cost || 0));
+        }, 0);
+
         const newOrder: Order = {
-            ...newOrderData,
             id: `SALE${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
             status: 'Pendiente',
             date: new Date().toISOString().split('T')[0],
+            customer: newOrderData.customer,
+            details,
+            amount,
         };
         setOrders(prev => [newOrder, ...prev]);
         setNewOrderModalOpen(false);
@@ -141,7 +158,7 @@ export default function SalesPage() {
 
       {/* Modal Nueva Orden */}
       <Dialog open={isNewOrderModalOpen} onOpenChange={setNewOrderModalOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-headline">Crear Nueva Orden de Venta</DialogTitle>
             <DialogDescription className="font-body">
@@ -151,6 +168,7 @@ export default function SalesPage() {
           <SalesOrderForm
             onSubmit={handleCreateOrder}
             onCancel={() => setNewOrderModalOpen(false)}
+            recipes={recipes}
             />
         </DialogContent>
       </Dialog>

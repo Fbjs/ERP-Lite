@@ -23,7 +23,7 @@ export type Recipe = {
   lastUpdated: string;
 };
 
-const initialRecipes: Recipe[] = [
+export const initialRecipes: Recipe[] = [
   { id: 'REC001', name: 'Pain au Levain', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.7, unit: 'L'}, {name: 'Masa Madre', quantity: 0.2, unit: 'kg'}, {name: 'Sal', quantity: 0.02, unit: 'kg'}], cost: 2.50, lastUpdated: '2023-10-26' },
   { id: 'REC002', name: 'Baguette Tradition', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}, {name: 'Levadura', quantity: 0.01, unit: 'kg'}, {name: 'Sal', quantity: 0.02, unit: 'kg'}], cost: 1.80, lastUpdated: '2023-10-25' },
   { id: 'REC003', name: 'Croissant au Beurre', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Mantequilla', quantity: 0.5, unit: 'kg'}, {name: 'Azucar', quantity: 0.1, unit: 'kg'}, {name: 'Leche', quantity: 0.4, unit: 'L'}], cost: 3.10, lastUpdated: '2023-10-27' },
