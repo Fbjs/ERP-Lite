@@ -1,3 +1,4 @@
+
 "use client";
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
@@ -18,15 +19,16 @@ type Shipment = {
   id: string;
   order: string;
   client: string;
+  address: string;
   vehicle: string;
   status: 'En Preparación' | 'En Ruta' | 'Entregado' | 'Cancelado';
 };
 
 const initialShipments: Shipment[] = [
-  { id: 'DSP001', order: 'SALE883', client: 'Hotel Grand Vista', vehicle: 'Patente XX-YY-ZZ', status: 'En Ruta' },
-  { id: 'DSP002', order: 'SALE881', client: 'Cafe Del Sol', vehicle: 'Courier Externo', status: 'Entregado' },
-  { id: 'DSP003', order: 'SALE882', client: 'La Esquina Market', vehicle: 'Sin Asignar', status: 'En Preparación' },
-  { id: 'DSP004', order: 'SALE884', client: 'Panaderia Central', vehicle: 'Courier Externo', status: 'Entregado' },
+  { id: 'DSP001', order: 'SALE883', client: 'Hotel Grand Vista', address: 'Avenida del Mar 456, Valparaíso', vehicle: 'Patente XX-YY-ZZ', status: 'En Ruta' },
+  { id: 'DSP002', order: 'SALE881', client: 'Cafe Del Sol', address: 'Calle Sol 123, Santiago', vehicle: 'Courier Externo', status: 'Entregado' },
+  { id: 'DSP003', order: 'SALE882', client: 'La Esquina Market', address: 'Pasaje Las Flores 78, Rancagua', vehicle: 'Sin Asignar', status: 'En Preparación' },
+  { id: 'DSP004', order: 'SALE884', client: 'Panaderia Central', address: 'Plaza de Armas 20, Talca', vehicle: 'Courier Externo', status: 'Entregado' },
 ];
 
 export default function LogisticsPage() {
@@ -134,8 +136,8 @@ export default function LogisticsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Despacho ID</TableHead>
-                <TableHead>Pedido</TableHead>
                 <TableHead>Cliente</TableHead>
+                <TableHead>Dirección</TableHead>
                 <TableHead>Vehículo</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>
@@ -147,8 +149,8 @@ export default function LogisticsPage() {
               {shipments.map((shipment) => (
                 <TableRow key={shipment.id}>
                   <TableCell className="font-medium">{shipment.id}</TableCell>
-                  <TableCell>{shipment.order}</TableCell>
                   <TableCell>{shipment.client}</TableCell>
+                  <TableCell>{shipment.address}</TableCell>
                   <TableCell>{shipment.vehicle}</TableCell>
                   <TableCell>
                     <Badge variant={
@@ -193,7 +195,7 @@ export default function LogisticsPage() {
           </DialogHeader>
           <ShipmentForm
             onSubmit={handleCreateShipment}
-            onCancel={() => handleOpenForm(null)}
+            onCancel={() => { setFormModalOpen(false); setSelectedShipment(null); }}
           />
         </DialogContent>
       </Dialog>
@@ -215,6 +217,7 @@ export default function LogisticsPage() {
                         <div><p className="font-semibold text-gray-600">Nº Despacho:</p><p>{selectedShipment.id}</p></div>
                         <div><p className="font-semibold text-gray-600">Nº Orden Venta:</p><p>{selectedShipment.order}</p></div>
                         <div className="col-span-2"><p className="font-semibold text-gray-600">Cliente:</p><p>{selectedShipment.client}</p></div>
+                        <div className="col-span-2"><p className="font-semibold text-gray-600">Dirección de Despacho:</p><p>{selectedShipment.address}</p></div>
                         <div><p className="font-semibold text-gray-600">Vehículo:</p><p>{selectedShipment.vehicle}</p></div>
                         <div><p className="font-semibold text-gray-600">Estado:</p><p>{selectedShipment.status}</p></div>
                     </div>
@@ -268,3 +271,5 @@ export default function LogisticsPage() {
     </AppLayout>
   );
 }
+
+    

@@ -10,6 +10,7 @@ import { DialogFooter } from '@/components/ui/dialog';
 type ShipmentFormData = {
     order: string;
     client: string;
+    address: string;
     vehicle: string;
 };
 
@@ -21,12 +22,13 @@ type ShipmentFormProps = {
 export default function ShipmentForm({ onSubmit, onCancel }: ShipmentFormProps) {
   const [order, setOrder] = useState('');
   const [client, setClient] = useState('');
+  const [address, setAddress] = useState('');
   const [vehicle, setVehicle] = useState('');
 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ order, client, vehicle });
+    onSubmit({ order, client, address, vehicle });
   };
 
   return (
@@ -57,6 +59,19 @@ export default function ShipmentForm({ onSubmit, onCancel }: ShipmentFormProps) 
         />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="address" className="text-right">
+          Dirección
+        </Label>
+        <Input
+          id="address"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          className="col-span-3"
+          placeholder="Dirección de despacho"
+          required
+        />
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="vehicle" className="text-right">
           Vehículo
         </Label>
@@ -78,3 +93,5 @@ export default function ShipmentForm({ onSubmit, onCancel }: ShipmentFormProps) 
     </form>
   );
 }
+
+    
