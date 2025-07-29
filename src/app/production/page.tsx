@@ -3,15 +3,17 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ProductionOrderForm from '@/components/production-order-form';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 type Order = {
     id: string;
@@ -37,6 +39,7 @@ export default function ProductionPage() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [updatedStatus, setUpdatedStatus] = useState<Order['status']>('En Cola');
     const [updatedStage, setUpdatedStage] = useState('');
+    const detailsModalContentRef = useRef<HTMLDivElement>(null);
 
 
     const handleOpenDetails = (order: Order) => {
@@ -68,6 +71,30 @@ export default function ProductionPage() {
         setUpdateStatusModalOpen(false);
         setSelectedOrder(null);
     }
+
+    const handleDownloadPdf = () => {
+        const input = detailsModalContentRef.current;
+        if (input) {
+            html2canvas(input, { scale: 2 }).then((canvas) => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'px', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const ratio = canvasWidth / canvasHeight;
+                const pdfImageWidth = pdfWidth - 20;
+                const pdfImageHeight = pdfImageWidth / ratio;
+                
+                // If the image height is greater than the page height, we might need to split it
+                // but for this implementation we will fit it in one page.
+                const finalHeight = Math.min(pdfImageHeight, pdfHeight - 20);
+
+                pdf.addImage(imgData, 'PNG', 10, 10, pdfImageWidth, finalHeight);
+                pdf.save(`orden-${selectedOrder?.id}.pdf`);
+            });
+        }
+    };
 
 
   return (
@@ -149,40 +176,53 @@ export default function ProductionPage() {
 
       {/* Modal Ver Detalles */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">Detalles de la Orden: {selectedOrder?.id}</DialogTitle>
+            <DialogTitle className="font-headline">Detalles de la Orden</DialogTitle>
           </DialogHeader>
           {selectedOrder && (
-             <div className="grid gap-4 py-4 font-body">
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Producto:</Label>
-                    <span className="col-span-3">{selectedOrder.product}</span>
+            <div ref={detailsModalContentRef} className="p-6 bg-white text-black">
+                <div className="border-b-2 border-gray-200 pb-4 mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800 font-headline">Orden de Producción: {selectedOrder.id}</h2>
+                    <p className="text-sm text-gray-500 font-body">Vollkorn ERP</p>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Cantidad:</Label>
-                    <span className="col-span-3">{selectedOrder.quantity}</span>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-4 font-body mb-6">
+                    <div>
+                        <p className="font-semibold text-gray-600">Producto:</p>
+                        <p>{selectedOrder.product}</p>
+                    </div>
+                    <div>
+                        <p className="font-semibold text-gray-600">Cantidad:</p>
+                        <p>{selectedOrder.quantity} unidades</p>
+                    </div>
+                    <div>
+                        <p className="font-semibold text-gray-600">Fecha de Emisión:</p>
+                        <p>{selectedOrder.date}</p>
+                    </div>
+                    <div>
+                        <p className="font-semibold text-gray-600">Estado Actual:</p>
+                        <p>
+                            <Badge variant={selectedOrder.status === 'Completado' ? 'default' : selectedOrder.status === 'En Progreso' ? 'secondary' : 'outline'}>
+                                {selectedOrder.status}
+                            </Badge>
+                        </p>
+                    </div>
+                    <div className="col-span-2">
+                        <p className="font-semibold text-gray-600">Etapa de Producción:</p>
+                        <p>{selectedOrder.stage}</p>
+                    </div>
                 </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Fecha:</Label>
-                    <span className="col-span-3">{selectedOrder.date}</span>
+                <div className="border-t-2 border-gray-200 pt-4 mt-4 text-center text-xs text-gray-500">
+                    <p>Documento generado el {new Date().toLocaleDateString('es-ES')} a las {new Date().toLocaleTimeString('es-ES')}</p>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Estado:</Label>
-                    <span className="col-span-3">
-                         <Badge variant={selectedOrder.status === 'Completado' ? 'default' : selectedOrder.status === 'En Progreso' ? 'secondary' : 'outline'}>
-                            {selectedOrder.status}
-                        </Badge>
-                    </span>
-                </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Etapa:</Label>
-                    <span className="col-span-3">{selectedOrder.stage}</span>
-                </div>
-             </div>
+            </div>
           )}
            <DialogFooter>
                 <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Cerrar</Button>
+                <Button onClick={handleDownloadPdf}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Descargar PDF
+                </Button>
             </DialogFooter>
         </DialogContent>
       </Dialog>
