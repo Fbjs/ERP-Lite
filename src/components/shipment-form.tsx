@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from './ui/textarea';
 
 type ShipmentFormData = {
     order: string;
     client: string;
     address: string;
+    details: string;
     vehicle: string;
 };
 
@@ -23,12 +25,13 @@ export default function ShipmentForm({ onSubmit, onCancel }: ShipmentFormProps) 
   const [order, setOrder] = useState('');
   const [client, setClient] = useState('');
   const [address, setAddress] = useState('');
+  const [details, setDetails] = useState('');
   const [vehicle, setVehicle] = useState('');
 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ order, client, address, vehicle });
+    onSubmit({ order, client, address, details, vehicle });
   };
 
   return (
@@ -68,6 +71,19 @@ export default function ShipmentForm({ onSubmit, onCancel }: ShipmentFormProps) 
           onChange={(e) => setAddress(e.target.value)}
           className="col-span-3"
           placeholder="Dirección de despacho"
+          required
+        />
+      </div>
+       <div className="grid grid-cols-4 items-start gap-4">
+        <Label htmlFor="details" className="text-right pt-2">
+          Detalle
+        </Label>
+        <Textarea
+          id="details"
+          value={details}
+          onChange={(e) => setDetails(e.target.value)}
+          className="col-span-3"
+          placeholder="Ej: 100 x Pan de Masa Madre..."
           required
         />
       </div>

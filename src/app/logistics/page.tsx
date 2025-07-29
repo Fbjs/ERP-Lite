@@ -20,15 +20,16 @@ type Shipment = {
   order: string;
   client: string;
   address: string;
+  details: string;
   vehicle: string;
   status: 'En Preparación' | 'En Ruta' | 'Entregado' | 'Cancelado';
 };
 
 const initialShipments: Shipment[] = [
-  { id: 'DSP001', order: 'SALE883', client: 'Hotel Grand Vista', address: 'Avenida del Mar 456, Valparaíso', vehicle: 'Patente XX-YY-ZZ', status: 'En Ruta' },
-  { id: 'DSP002', order: 'SALE881', client: 'Cafe Del Sol', address: 'Calle Sol 123, Santiago', vehicle: 'Courier Externo', status: 'Entregado' },
-  { id: 'DSP003', order: 'SALE882', client: 'La Esquina Market', address: 'Pasaje Las Flores 78, Rancagua', vehicle: 'Sin Asignar', status: 'En Preparación' },
-  { id: 'DSP004', order: 'SALE884', client: 'Panaderia Central', address: 'Plaza de Armas 20, Talca', vehicle: 'Courier Externo', status: 'Entregado' },
+  { id: 'DSP001', order: 'SALE883', client: 'Hotel Grand Vista', address: 'Avenida del Mar 456, Valparaíso', details: '50 Pain au Levain, 50 Baguette Tradition', vehicle: 'Patente XX-YY-ZZ', status: 'En Ruta' },
+  { id: 'DSP002', order: 'SALE881', client: 'Cafe Del Sol', address: 'Calle Sol 123, Santiago', details: '100 Pan de Masa Madre, 50 Baguettes', vehicle: 'Courier Externo', status: 'Entregado' },
+  { id: 'DSP003', order: 'SALE882', client: 'La Esquina Market', address: 'Pasaje Las Flores 78, Rancagua', details: '200 Croissants, 150 Ciabattas', vehicle: 'Sin Asignar', status: 'En Preparación' },
+  { id: 'DSP004', order: 'SALE884', client: 'Panaderia Central', address: 'Plaza de Armas 20, Talca', details: '300 Pan de Centeno', vehicle: 'Courier Externo', status: 'Entregado' },
 ];
 
 export default function LogisticsPage() {
@@ -220,6 +221,21 @@ export default function LogisticsPage() {
                         <div className="col-span-2"><p className="font-semibold text-gray-600">Dirección de Despacho:</p><p>{selectedShipment.address}</p></div>
                         <div><p className="font-semibold text-gray-600">Vehículo:</p><p>{selectedShipment.vehicle}</p></div>
                         <div><p className="font-semibold text-gray-600">Estado:</p><p>{selectedShipment.status}</p></div>
+                    </div>
+                     <div className="mt-6">
+                        <h3 className="text-lg font-bold font-headline text-gray-700 mb-2 border-b pb-1">Detalle del Despacho</h3>
+                         <Table className="w-full text-sm">
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="text-left font-bold text-gray-700 uppercase p-2">Descripción</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell className="p-2 whitespace-pre-wrap">{selectedShipment.details}</TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
                     </div>
                     <div className="border-t-2 border-gray-200 pt-4 mt-6 text-center text-xs text-gray-500">
                         <p>Documento generado el {new Date().toLocaleDateString('es-ES')}</p>
