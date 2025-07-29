@@ -4,11 +4,11 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail, Wheat, Calendar as CalendarIcon } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Wheat, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import InvoiceForm, { InvoiceFormData } from '@/components/invoice-form';
@@ -52,17 +52,23 @@ export default function AccountingPage() {
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-    const filteredInvoicesForReport = invoices.filter(invoice => {
-        if (!dateRange?.from || !dateRange?.to) return false;
-        const invoiceDate = new Date(invoice.date);
-        return invoiceDate >= dateRange.from && invoiceDate <= dateRange.to;
-    });
+    const filteredInvoices = useMemo(() => {
+        if (!dateRange?.from) return invoices; // Return all if no start date
+        const fromDate = dateRange.from;
+        const toDate = dateRange.to || fromDate; // If no end date, use start date
 
-    const reportTotals = {
-        paid: filteredInvoicesForReport.filter(i => i.status === 'Pagada').reduce((acc, i) => acc + i.total, 0),
-        pending: filteredInvoicesForReport.filter(i => i.status === 'Pendiente').reduce((acc, i) => acc + i.total, 0),
-        overdue: filteredInvoicesForReport.filter(i => i.status === 'Vencida').reduce((acc, i) => acc + i.total, 0),
-        total: filteredInvoicesForReport.reduce((acc, i) => acc + i.total, 0),
+        return invoices.filter(invoice => {
+            const invoiceDate = new Date(invoice.date);
+            return invoiceDate >= fromDate && invoiceDate <= toDate;
+        });
+    }, [invoices, dateRange]);
+
+
+    const summaryTotals = {
+        paid: filteredInvoices.filter(i => i.status === 'Pagada').reduce((acc, i) => acc + i.total, 0),
+        pending: filteredInvoices.filter(i => i.status === 'Pendiente').reduce((acc, i) => acc + i.total, 0),
+        overdue: filteredInvoices.filter(i => i.status === 'Vencida').reduce((acc, i) => acc + i.total, 0),
+        total: filteredInvoices.reduce((acc, i) => acc + i.total, 0),
     };
 
 
@@ -175,7 +181,7 @@ export default function AccountingPage() {
                   </div>
               </div>
               <div className="text-right text-sm">
-                  <p><span className="font-semibold">Período:</span> {dateRange?.from ? format(dateRange.from, "P", { locale: es }) : ''} - {dateRange?.to ? format(dateRange.to, "P", { locale: es }) : ''}</p>
+                  <p><span className="font-semibold">Período:</span> {dateRange?.from ? format(dateRange.from, "P", { locale: es }) : ''} - {dateRange?.to ? format(dateRange.to, "P", { locale: es }) : 'Ahora'}</p>
                   <p><span className="font-semibold">Fecha de Generación:</span> {format(new Date(), "P p", { locale: es })}</p>
               </div>
           </header>
@@ -193,7 +199,7 @@ export default function AccountingPage() {
                       </TableRow>
                   </TableHeader>
                   <TableBody>
-                      {filteredInvoicesForReport.map((invoice) => (
+                      {filteredInvoices.map((invoice) => (
                           <TableRow key={invoice.id} className="border-b border-gray-200">
                               <TableCell className="p-3">{invoice.id}</TableCell>
                               <TableCell className="p-3">{format(new Date(invoice.date), "P", { locale: es })}</TableCell>
@@ -202,7 +208,7 @@ export default function AccountingPage() {
                               <TableCell className="text-right p-3">${invoice.total.toLocaleString('es-CL')}</TableCell>
                           </TableRow>
                       ))}
-                      {filteredInvoicesForReport.length === 0 && (
+                      {filteredInvoices.length === 0 && (
                         <TableRow><TableCell colSpan={5} className="text-center p-4">No se encontraron facturas en el período seleccionado.</TableCell></TableRow>
                       )}
                   </TableBody>
@@ -215,19 +221,19 @@ export default function AccountingPage() {
                   <div className="bg-gray-50 p-4 rounded-lg border">
                       <div className="flex justify-between items-center py-2 border-b">
                           <span className="font-semibold text-gray-600">Total Pagado:</span>
-                          <span className="font-medium text-green-600">${reportTotals.paid.toLocaleString('es-CL')}</span>
+                          <span className="font-medium text-green-600">${summaryTotals.paid.toLocaleString('es-CL')}</span>
                       </div>
                       <div className="flex justify-between items-center py-2 border-b">
                           <span className="font-semibold text-gray-600">Total Pendiente:</span>
-                          <span className="font-medium text-yellow-500">${reportTotals.pending.toLocaleString('es-CL')}</span>
+                          <span className="font-medium text-yellow-500">${summaryTotals.pending.toLocaleString('es-CL')}</span>
                       </div>
                       <div className="flex justify-between items-center py-2 border-b">
                           <span className="font-semibold text-gray-600">Total Vencido:</span>
-                          <span className="font-medium text-red-600">${reportTotals.overdue.toLocaleString('es-CL')}</span>
+                          <span className="font-medium text-red-600">${summaryTotals.overdue.toLocaleString('es-CL')}</span>
                       </div>
                       <div className="flex justify-between items-center pt-3 mt-2">
                           <span className="font-headline font-bold text-lg text-gray-800">Total General Facturado:</span>
-                          <span className="font-headline font-bold text-xl text-gray-900">${reportTotals.total.toLocaleString('es-CL')}</span>
+                          <span className="font-headline font-bold text-xl text-gray-900">${summaryTotals.total.toLocaleString('es-CL')}</span>
                       </div>
                   </div>
               </div>
@@ -238,111 +244,169 @@ export default function AccountingPage() {
           </footer>
       </div>
 
-      <Card>
-        <CardHeader>
-            <div className="flex flex-wrap justify-between items-center gap-4">
-                <div>
-                    <CardTitle className="font-headline">Facturación y Cuentas</CardTitle>
-                    <CardDescription className="font-body">Gestiona facturas, cuentas por pagar y cobrar.</CardDescription>
-                </div>
-                 <div className="flex items-center gap-2">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                id="date"
-                                variant={"outline"}
-                                className={cn(
-                                "w-[300px] justify-start text-left font-normal",
-                                !dateRange && "text-muted-foreground"
-                                )}
+       <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <div className="flex flex-wrap justify-between items-center gap-4">
+                        <div>
+                            <CardTitle className="font-headline">Facturación y Cuentas</CardTitle>
+                            <CardDescription className="font-body">Gestiona facturas, cuentas por pagar y cobrar.</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="date"
+                                        variant={"outline"}
+                                        className={cn(
+                                        "w-[300px] justify-start text-left font-normal",
+                                        !dateRange && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dateRange?.from ? (
+                                        dateRange.to ? (
+                                            <>
+                                            {format(dateRange.from, "LLL dd, y")} -{" "}
+                                            {format(dateRange.to, "LLL dd, y")}
+                                            </>
+                                        ) : (
+                                            format(dateRange.from, "LLL dd, y")
+                                        )
+                                        ) : (
+                                        <span>Selecciona un rango</span>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="end">
+                                    <Calendar
+                                        initialFocus
+                                        mode="range"
+                                        defaultMonth={dateRange?.from}
+                                        selected={dateRange}
+                                        onSelect={setDateRange}
+                                        numberOfMonths={2}
+                                        locale={es}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                            <Button 
+                                onClick={() => handleDownloadPdf(reportContentRef, `reporte-facturacion-${format(dateRange!.from!, 'yyyy-MM-dd')}-a-${format(dateRange!.to!, 'yyyy-MM-dd')}.pdf`)} 
+                                disabled={!dateRange?.from || !dateRange?.to}
                             >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {dateRange?.from ? (
-                                dateRange.to ? (
-                                    <>
-                                    {format(dateRange.from, "LLL dd, y")} -{" "}
-                                    {format(dateRange.to, "LLL dd, y")}
-                                    </>
-                                ) : (
-                                    format(dateRange.from, "LLL dd, y")
-                                )
-                                ) : (
-                                <span>Selecciona un rango de fechas</span>
-                                )}
+                                <Download className="mr-2 h-4 w-4" />
+                                Generar Reporte
                             </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="end">
-                            <Calendar
-                                initialFocus
-                                mode="range"
-                                defaultMonth={dateRange?.from}
-                                selected={dateRange}
-                                onSelect={setDateRange}
-                                numberOfMonths={2}
-                            />
-                        </PopoverContent>
-                    </Popover>
-                    <Button 
-                        onClick={() => handleDownloadPdf(reportContentRef, `reporte-facturacion-${format(dateRange!.from!, 'yyyy-MM-dd')}-a-${format(dateRange!.to!, 'yyyy-MM-dd')}.pdf`)} 
-                        disabled={!dateRange?.from || !dateRange?.to}
-                    >
-                        <Download className="mr-2 h-4 w-4" />
-                        Generar Reporte
-                    </Button>
-                    <Button onClick={() => setNewInvoiceModalOpen(true)}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Nueva Factura
-                    </Button>
+                            <Button onClick={() => setNewInvoiceModalOpen(true)}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Nueva Factura
+                            </Button>
+                        </div>
+                    </div>
+                </CardHeader>
+            </Card>
+
+            {dateRange?.from && (
+                <div>
+                    <h3 className="text-lg font-headline font-semibold mb-4">
+                        Resumen para el Período Seleccionado
+                    </h3>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total Facturado</CardTitle>
+                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">${summaryTotals.total.toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total Pagado</CardTitle>
+                                <FileCheck className="h-4 w-4 text-green-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-green-600">${summaryTotals.paid.toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
+                         <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total Pendiente</CardTitle>
+                                <Clock className="h-4 w-4 text-yellow-500" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-yellow-500">${summaryTotals.pending.toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total Vencido</CardTitle>
+                                <AlertTriangle className="h-4 w-4 text-red-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-red-600">${summaryTotals.overdue.toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
-            </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Factura No.</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>
-                  <span className="sr-only">Acciones</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow key={invoice.id}>
-                  <TableCell className="font-medium">{invoice.id}</TableCell>
-                  <TableCell>{invoice.client}</TableCell>
-                  <TableCell>{new Date(invoice.date).toLocaleDateString('es-CL')}</TableCell>
-                  <TableCell className="text-right">${invoice.total.toLocaleString('es-CL')}</TableCell>
-                  <TableCell>
-                    <Badge variant={invoice.status === 'Pagada' ? 'default' : invoice.status === 'Pendiente' ? 'secondary' : 'destructive'}>
-                      {invoice.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Menú</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleOpenDetails(invoice)}>Ver Detalle</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleOpenSendEmail(invoice)}>Enviar por Correo</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            )}
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Listado de Facturas</CardTitle>
+                    <CardDescription className="font-body">
+                        {dateRange?.from ? 'Mostrando facturas para el período seleccionado.' : 'Mostrando todas las facturas.'}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Factura No.</TableHead>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead>
+                        <span className="sr-only">Acciones</span>
+                        </TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {filteredInvoices.map((invoice) => (
+                        <TableRow key={invoice.id}>
+                        <TableCell className="font-medium">{invoice.id}</TableCell>
+                        <TableCell>{invoice.client}</TableCell>
+                        <TableCell>{new Date(invoice.date).toLocaleDateString('es-CL')}</TableCell>
+                        <TableCell className="text-right">${invoice.total.toLocaleString('es-CL')}</TableCell>
+                        <TableCell>
+                            <Badge variant={invoice.status === 'Pagada' ? 'default' : invoice.status === 'Pendiente' ? 'secondary' : 'destructive'}>
+                            {invoice.status}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>
+                            <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Menú</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => handleOpenDetails(invoice)}>Ver Detalle</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleOpenSendEmail(invoice)}>Enviar por Correo</DropdownMenuItem>
+                            </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                </Table>
+                </CardContent>
+            </Card>
+       </div>
       
       {/* Modal Nueva Factura */}
       <Dialog open={isNewInvoiceModalOpen} onOpenChange={setNewInvoiceModalOpen}>
@@ -482,7 +546,5 @@ export default function AccountingPage() {
     </AppLayout>
   );
 }
-
-    
 
     
