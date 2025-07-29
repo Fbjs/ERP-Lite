@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useFlow } from '@genkit-ai/next/client';
+import { useStreamFlow } from '@genkit-ai/next/client';
 import { productionVolumeForecast, ProductionVolumeForecastInput } from '@/ai/flows/production-volume-forecast';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,15 +12,21 @@ import { Loader2, Wand2 } from 'lucide-react';
 export default function ForecastForm() {
     const [recentSales, setRecentSales] = useState('');
     const [inventory, setInventory] = useState('');
-    const [flow, running] = useFlow(productionVolumeForecast);
+    const [output, setOutput] = useState('');
+    const {run: stream, running, output: flowOutput, error} = useStreamFlow(productionVolumeForecast);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setOutput('');
         const input: ProductionVolumeForecastInput = {
             recentSalesData: recentSales,
             currentInventoryLevels: inventory,
         };
-        await flow(input);
+        
+        const stream = await productionVolumeForecast(input, (chunk) => {
+          setOutput(current => current + chunk.forecast)
+        });
+
     };
 
     return (
@@ -55,18 +61,18 @@ export default function ForecastForm() {
             </form>
 
             <div className="flex items-center justify-center">
-                {running ? (
+                {running && !output ? (
                     <div className="flex flex-col items-center gap-4 text-muted-foreground">
                         <Loader2 className="h-10 w-10 animate-spin text-primary" />
                         <p className="font-body">Generating forecast...</p>
                     </div>
-                ) : flow.output ? (
+                ) : output ? (
                     <Card className="w-full bg-secondary">
                         <CardHeader>
                             <CardTitle className="font-headline">AI-Powered Forecast</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="whitespace-pre-wrap font-body">{flow.output.forecast}</p>
+                            <p className="whitespace-pre-wrap font-body">{flowOutput?.forecast}</p>
                         </CardContent>
                     </Card>
                 ) : (
