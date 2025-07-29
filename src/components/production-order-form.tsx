@@ -49,7 +49,7 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData = 
         <Input
           id="quantity"
           type="number"
-          value={quantity}
+          value={quantity || ''}
           onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
           className="col-span-3"
           required
