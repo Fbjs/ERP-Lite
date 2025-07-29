@@ -3,11 +3,11 @@
 import type { ReactNode } from 'react';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Wheat, LayoutDashboard, NotebookText, Factory, ShoppingCart, BrainCircuit, Users, BookCopy, Truck } from 'lucide-react';
+import { LogOut, Wheat, LayoutDashboard, NotebookText, Factory, ShoppingCart, BrainCircuit, Users, BookCopy, Truck, Warehouse } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-const AppLayout = ({ children, pageTitle }: { children: ReactNode, pageTitle: string }) => {
+const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTitle: string }) => {
     const pathname = usePathname();
 
     const menuItems = [
@@ -15,6 +15,7 @@ const AppLayout = ({ children, pageTitle }: { children: ReactNode, pageTitle: st
         { href: '/production', label: 'Producción', icon: Factory },
         { href: '/recipes', label: 'Recetas', icon: NotebookText },
         { href: '/sales', label: 'Ventas', icon: ShoppingCart },
+        { href: '/inventory', label: 'Inventario', icon: Warehouse },
         { href: '/logistics', label: 'Logística', icon: Truck },
         { href: '/hr', label: 'Recursos Humanos', icon: Users },
         { href: '/accounting', label: 'Contabilidad', icon: BookCopy },
