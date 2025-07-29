@@ -33,7 +33,7 @@ type Order = {
 };
 
 
-const initialOrders: Order[] = [
+export const initialOrders: Order[] = [
   { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450.00, status: 'Completado', date: '2025-07-27', details: '100 x Pan de Masa Madre, 50 x Baguettes' },
   { id: 'SALE882', customer: 'La Esquina Market', amount: 1200.50, status: 'Pendiente', date: '2025-07-28', details: '200 x Croissants, 150 x Ciabattas' },
   { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875.00, status: 'Enviado', date: '2025-07-28', details: '50 x Pain au Levain, 50 x Baguette Tradition' },

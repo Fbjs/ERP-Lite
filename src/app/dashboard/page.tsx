@@ -5,23 +5,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Circle, Package, ShoppingCart } from 'lucide-react';
-
-const productionData = [
-  { name: 'Masa Madre', produced: 4000 },
-  { name: 'Baguette', produced: 3000 },
-  { name: 'Ciabatta', produced: 2000 },
-  { name: 'Pan de Centeno', produced: 2780 },
-  { name: 'Croissant', produced: 1890 },
-];
-
-const recentOrders = [
-  { id: 'ORD001', customer: 'Panaderia San Jose', items: 3, status: 'Enviado', total: '$250.00' },
-  { id: 'ORD002', customer: 'Cafe Central', items: 5, status: 'Procesando', total: '$150.75' },
-  { id: 'ORD003', customer: 'Supermercado del Sur', items: 10, status: 'Entregado', total: '$800.50' },
-  { id: 'ORD004', customer: 'Restaurante El Tenedor', items: 2, status: 'Enviado', total: '$95.00' },
-];
+import { initialOrders as allProductionOrders } from '@/app/production/page';
+import { initialOrders as allSalesOrders } from '@/app/sales/page';
 
 export default function DashboardPage() {
+
+  const productionData = allProductionOrders
+    .filter(order => order.status !== 'Completado')
+    .map(order => ({
+        name: order.product.length > 15 ? order.product.substring(0,12) + '...' : order.product,
+        produced: order.quantity,
+    }));
+    
+  const recentOrders = allSalesOrders.slice(0, 4);
+
   return (
     <AppLayout pageTitle="Panel de Control">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -51,8 +48,8 @@ export default function DashboardPage() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-headline">+573</div>
-            <p className="text-xs text-muted-foreground font-body">+201 desde la última hora</p>
+            <div className="text-2xl font-bold font-headline">+{recentOrders.length}</div>
+            <p className="text-xs text-muted-foreground font-body">Últimas 24 horas</p>
           </CardContent>
         </Card>
       </div>
@@ -78,11 +75,18 @@ export default function DashboardPage() {
                     <TableCell className="font-medium">{order.id}</TableCell>
                     <TableCell>{order.customer}</TableCell>
                     <TableCell>
-                      <Badge variant={order.status === 'Enviado' ? 'default' : order.status === 'Procesando' ? 'secondary' : 'outline'}>
+                      <Badge 
+                        variant={
+                            order.status === 'Completado' ? 'default' :
+                            order.status === 'Enviado' ? 'secondary' :
+                            order.status === 'Cancelado' ? 'destructive' :
+                            'outline'
+                        }
+                      >
                         {order.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">{order.total}</TableCell>
+                    <TableCell className="text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -91,8 +95,8 @@ export default function DashboardPage() {
         </Card>
         <Card className="lg:col-span-3">
           <CardHeader>
-            <CardTitle className="font-headline">Volumen de Producción</CardTitle>
-            <CardDescription className="font-body">Unidades producidas esta semana.</CardDescription>
+            <CardTitle className="font-headline">Volumen de Producción en Curso</CardTitle>
+            <CardDescription className="font-body">Unidades en estado "En Cola" o "En Progreso".</CardDescription>
           </CardHeader>
           <CardContent>
              <ResponsiveContainer width="100%" height={300}>
