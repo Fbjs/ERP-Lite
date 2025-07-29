@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Wheat } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -203,43 +203,85 @@ export default function LogisticsPage() {
       
       {/* Modal Ver Guía */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-headline">Guía de Despacho: {selectedShipment?.id}</DialogTitle>
           </DialogHeader>
           {selectedShipment && (
              <div className="max-h-[75vh] overflow-y-auto p-1">
-                <div ref={detailsModalContentRef} className="p-6 bg-white text-black font-body">
-                    <div className="border-b-2 border-gray-200 pb-4 mb-4 text-center">
-                        <h2 className="text-2xl font-bold text-gray-800 font-headline">Guía de Despacho</h2>
-                        <p className="text-sm text-gray-500">Vollkorn ERP</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
-                        <div><p className="font-semibold text-gray-600">Nº Despacho:</p><p>{selectedShipment.id}</p></div>
-                        <div><p className="font-semibold text-gray-600">Nº Orden Venta:</p><p>{selectedShipment.order}</p></div>
-                        <div className="col-span-2"><p className="font-semibold text-gray-600">Cliente:</p><p>{selectedShipment.client}</p></div>
-                        <div className="col-span-2"><p className="font-semibold text-gray-600">Dirección de Despacho:</p><p>{selectedShipment.address}</p></div>
-                        <div><p className="font-semibold text-gray-600">Vehículo:</p><p>{selectedShipment.vehicle}</p></div>
-                        <div><p className="font-semibold text-gray-600">Estado:</p><p>{selectedShipment.status}</p></div>
-                    </div>
-                     <div className="mt-6">
-                        <h3 className="text-lg font-bold font-headline text-gray-700 mb-2 border-b pb-1">Detalle del Despacho</h3>
+                <div ref={detailsModalContentRef} className="p-8 bg-white text-black font-body">
+                    <header className="flex justify-between items-start mb-10 border-b-2 border-gray-800 pb-4">
+                        <div className="flex items-center gap-3">
+                            <Wheat className="w-12 h-12 text-orange-600" />
+                            <div>
+                                <h1 className="text-2xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
+                                <p className="text-sm text-gray-500">Avenida Principal 123, Santiago, Chile</p>
+                                <p className="text-sm text-gray-500">RUT: 76.123.456-7</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <h2 className="text-3xl font-headline font-bold uppercase text-gray-700">Guía de Despacho</h2>
+                            <p className="text-sm text-gray-600 font-semibold">Nº: {selectedShipment.id}</p>
+                            <p className="text-sm text-gray-500">Fecha Emisión: {new Date().toLocaleDateString('es-ES')}</p>
+                        </div>
+                    </header>
+
+                    <section className="grid grid-cols-2 gap-8 mb-10">
+                        <div>
+                            <h3 className="font-headline text-base font-semibold text-gray-600 mb-2 border-b pb-1">Remitente:</h3>
+                            <p className="font-bold text-gray-800 text-sm">Panificadora Vollkorn</p>
+                            <p className="text-sm text-gray-700">Avenida Principal 123, Santiago, Chile</p>
+                        </div>
+                        <div>
+                            <h3 className="font-headline text-base font-semibold text-gray-600 mb-2 border-b pb-1">Destinatario:</h3>
+                            <p className="font-bold text-gray-800 text-sm">{selectedShipment.client}</p>
+                            <p className="text-sm text-gray-700">{selectedShipment.address}</p>
+                        </div>
+                    </section>
+                    
+                    <section className="grid grid-cols-3 gap-4 mb-10 text-sm">
+                        <div className="bg-gray-50 p-2 rounded-md border">
+                            <p className="font-semibold text-gray-600">Nº Orden de Venta:</p>
+                            <p>{selectedShipment.order}</p>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded-md border">
+                            <p className="font-semibold text-gray-600">Vehículo:</p>
+                            <p>{selectedShipment.vehicle}</p>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded-md border">
+                            <p className="font-semibold text-gray-600">Estado Actual:</p>
+                            <p>{selectedShipment.status}</p>
+                        </div>
+                    </section>
+
+                    <section className="mb-10">
+                         <h3 className="font-headline text-lg font-semibold text-gray-700 mb-3">Detalle de Productos</h3>
                          <Table className="w-full text-sm">
-                            <TableHeader>
+                            <TableHeader className="bg-gray-100">
                                 <TableRow>
-                                    <TableHead className="text-left font-bold text-gray-700 uppercase p-2">Descripción</TableHead>
+                                    <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Descripción</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow>
-                                    <TableCell className="p-2 whitespace-pre-wrap">{selectedShipment.details}</TableCell>
+                                <TableRow className="border-b border-gray-200">
+                                    <TableCell className="p-3 whitespace-pre-wrap">{selectedShipment.details}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
-                    </div>
-                    <div className="border-t-2 border-gray-200 pt-4 mt-6 text-center text-xs text-gray-500">
-                        <p>Documento generado el {new Date().toLocaleDateString('es-ES')}</p>
-                    </div>
+                    </section>
+                    
+                    <section className="flex justify-end mt-16">
+                        <div className="w-1/2 text-center">
+                            <div className="border-t-2 border-gray-400 pt-2">
+                                <p className="font-semibold text-gray-700">Recibí Conforme</p>
+                                <p className="text-xs text-gray-500 mt-1">(Nombre, RUT y Firma)</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <footer className="text-center text-xs text-gray-400 border-t pt-4 mt-12">
+                        <p>Gracias por su preferencia. Documento generado por Vollkorn ERP.</p>
+                    </footer>
                 </div>
             </div>
           )}
@@ -287,5 +329,3 @@ export default function LogisticsPage() {
     </AppLayout>
   );
 }
-
-    
