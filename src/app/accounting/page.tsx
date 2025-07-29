@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
-import { format } from 'date-fns';
+import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
@@ -32,10 +32,10 @@ type Invoice = {
 };
 
 const initialInvoices: Invoice[] = [
-  { id: 'F001', client: 'Panaderia San Jose', date: '2023-10-28', total: 450.00, status: 'Pagada', items: '100 x Pan de Masa Madre, 50 x Baguettes' },
-  { id: 'F002', client: 'Cafe Central', date: '2023-10-28', total: 1200.50, status: 'Pendiente', items: '200 x Croissants, 150 x Ciabattas' },
-  { id: 'F003', client: 'Supermercado del Sur', date: '2023-10-27', total: 875.00, status: 'Pagada', items: '50 x Pain au Levain, 50 x Baguette Tradition' },
-  { id: 'F004', client: 'Restaurante El Tenedor', date: '2023-10-26', total: 320.75, status: 'Vencida', items: '300 x Pan de Centeno' },
+  { id: 'F001', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', items: '100 x Pan de Masa Madre, 50 x Baguettes' },
+  { id: 'F002', client: 'Cafe Central', date: '2025-07-20', total: 1200.50, status: 'Pendiente', items: '200 x Croissants, 150 x Ciabattas' },
+  { id: 'F003', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', items: '50 x Pain au Levain, 50 x Baguette Tradition' },
+  { id: 'F004', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320.75, status: 'Vencida', items: '300 x Pan de Centeno' },
 ];
 
 export default function AccountingPage() {
@@ -50,7 +50,10 @@ export default function AccountingPage() {
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const reportContentRef = useRef<HTMLDivElement>(null);
 
-    const [dateRange, setDateRange] = useState<DateRange | undefined>();
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+        from: subMonths(new Date(2025, 6, 29), 1),
+        to: new Date(2025, 6, 29)
+    });
 
     const filteredInvoices = useMemo(() => {
         if (!dateRange?.from) return invoices; // Return all if no start date
@@ -64,12 +67,14 @@ export default function AccountingPage() {
     }, [invoices, dateRange]);
 
 
-    const summaryTotals = {
-        paid: filteredInvoices.filter(i => i.status === 'Pagada').reduce((acc, i) => acc + i.total, 0),
-        pending: filteredInvoices.filter(i => i.status === 'Pendiente').reduce((acc, i) => acc + i.total, 0),
-        overdue: filteredInvoices.filter(i => i.status === 'Vencida').reduce((acc, i) => acc + i.total, 0),
-        total: filteredInvoices.reduce((acc, i) => acc + i.total, 0),
-    };
+    const summaryTotals = useMemo(() => {
+        return {
+            paid: filteredInvoices.filter(i => i.status === 'Pagada').reduce((acc, i) => acc + i.total, 0),
+            pending: filteredInvoices.filter(i => i.status === 'Pendiente').reduce((acc, i) => acc + i.total, 0),
+            overdue: filteredInvoices.filter(i => i.status === 'Vencida').reduce((acc, i) => acc + i.total, 0),
+            total: filteredInvoices.reduce((acc, i) => acc + i.total, 0),
+        }
+    }, [filteredInvoices]);
 
 
     useEffect(() => {
@@ -291,7 +296,7 @@ export default function AccountingPage() {
                                 </PopoverContent>
                             </Popover>
                             <Button 
-                                onClick={() => handleDownloadPdf(reportContentRef, `reporte-facturacion-${format(dateRange!.from!, 'yyyy-MM-dd')}-a-${format(dateRange!.to!, 'yyyy-MM-dd')}.pdf`)} 
+                                onClick={() => handleDownloadPdf(reportContentRef, `reporte-facturacion-${format(dateRange?.from ?? new Date(), 'yyyy-MM-dd')}-a-${format(dateRange?.to ?? new Date(), 'yyyy-MM-dd')}.pdf`)} 
                                 disabled={!dateRange?.from || !dateRange?.to}
                             >
                                 <Download className="mr-2 h-4 w-4" />
