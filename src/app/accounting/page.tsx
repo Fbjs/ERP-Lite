@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Wheat } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -219,28 +219,76 @@ export default function AccountingPage() {
       
       {/* Modal Ver Detalles */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle className="font-headline">Detalle de Factura: {selectedInvoice?.id}</DialogTitle>
           </DialogHeader>
           {selectedInvoice && (
             <div className="max-h-[75vh] overflow-y-auto p-1">
-                <div ref={detailsModalContentRef} className="p-6 bg-white text-black">
-                    <div className="border-b-2 border-gray-200 pb-4 mb-4 text-center">
-                        <h2 className="text-2xl font-bold text-gray-800 font-headline">Factura</h2>
-                        <p className="text-sm text-gray-500 font-body">Vollkorn ERP</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4 font-body mb-6">
-                        <div><p className="font-semibold text-gray-600">Nº Factura:</p><p>{selectedInvoice.id}</p></div>
-                        <div><p className="font-semibold text-gray-600">Fecha:</p><p>{new Date(selectedInvoice.date).toLocaleDateString('es-ES')}</p></div>
-                        <div><p className="font-semibold text-gray-600">Cliente:</p><p>{selectedInvoice.client}</p></div>
-                        <div><p className="font-semibold text-gray-600">Monto Total:</p><p>${selectedInvoice.total.toLocaleString('es-CL')}</p></div>
-                        <div className="col-span-2"><p className="font-semibold text-gray-600">Estado:</p><p>{selectedInvoice.status}</p></div>
-                        <div className="col-span-2"><p className="font-semibold text-gray-600">Detalles:</p><p className="whitespace-pre-wrap">{selectedInvoice.items}</p></div>
-                    </div>
-                    <div className="border-t-2 border-gray-200 pt-4 mt-4 text-center text-xs text-gray-500">
-                        <p>Documento generado el {new Date().toLocaleDateString('es-ES')}</p>
-                    </div>
+                <div ref={detailsModalContentRef} className="p-8 bg-white text-black font-body">
+                    <header className="flex justify-between items-start mb-10 border-b pb-6">
+                        <div className="flex items-center gap-3">
+                            <Wheat className="w-12 h-12 text-orange-600" />
+                            <div>
+                                <h1 className="text-2xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
+                                <p className="text-sm text-gray-500">Avenida Principal 123, Santiago, Chile</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <h2 className="text-4xl font-headline font-bold uppercase text-gray-700">Factura</h2>
+                            <p className="text-sm text-gray-500">Nº: {selectedInvoice.id}</p>
+                        </div>
+                    </header>
+
+                    <section className="grid grid-cols-2 gap-8 mb-10">
+                        <div>
+                            <h3 className="font-headline text-lg font-semibold text-gray-600 mb-2 border-b pb-1">Facturar a:</h3>
+                            <p className="font-bold text-gray-800">{selectedInvoice.client}</p>
+                        </div>
+                        <div className="text-right">
+                             <div className="mb-2">
+                                <span className="font-semibold text-gray-600">Fecha de Emisión: </span>
+                                <span>{new Date(selectedInvoice.date).toLocaleDateString('es-ES')}</span>
+                            </div>
+                            <div>
+                                <span className="font-semibold text-gray-600">Estado: </span>
+                                <Badge 
+                                    className={`text-white ${selectedInvoice.status === 'Pagada' ? 'bg-green-600' : selectedInvoice.status === 'Pendiente' ? 'bg-yellow-500' : 'bg-red-600'}`}
+                                >
+                                    {selectedInvoice.status}
+                                </Badge>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="mb-10">
+                        <Table className="w-full">
+                            <TableHeader className="bg-gray-100">
+                                <TableRow>
+                                    <TableHead className="text-left font-bold text-gray-700 uppercase py-3 px-4">Descripción</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow className="border-b border-gray-200">
+                                    <TableCell className="py-3 px-4 whitespace-pre-wrap">{selectedInvoice.items}</TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </section>
+                    
+                    <section className="flex justify-end mb-12">
+                       <div className="w-1/3">
+                          <div className="flex justify-between items-center py-2 border-b-2 border-gray-800">
+                              <span className="font-headline font-semibold text-lg text-gray-700">Total</span>
+                              <span className="font-headline font-bold text-xl text-gray-800">${selectedInvoice.total.toLocaleString('es-CL')}</span>
+                          </div>
+                       </div>
+                    </section>
+
+                    <footer className="text-center text-xs text-gray-400 border-t pt-4">
+                        <p>Gracias por su compra. Documento generado por Vollkorn ERP.</p>
+                        <p>Generado el {new Date().toLocaleString('es-ES')}</p>
+                    </footer>
                 </div>
             </div>
           )}
@@ -291,3 +339,5 @@ export default function AccountingPage() {
     </AppLayout>
   );
 }
+
+    
