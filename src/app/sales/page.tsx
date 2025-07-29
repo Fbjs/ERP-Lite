@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useState, useRef } from 'react';
 import SalesOrderForm, { OrderFormData } from '@/components/sales-order-form';
 import { Recipe, initialRecipes } from '@/app/recipes/page';
+import Link from 'next/link';
 
 type Order = {
   id: string;
@@ -145,7 +146,11 @@ export default function SalesPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Orden</DropdownMenuItem>
-                        <DropdownMenuItem>Generar Factura</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                           <Link href={`/accounting?client=${encodeURIComponent(order.customer)}&amount=${order.amount}`}>
+                                Generar Factura
+                            </Link>
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

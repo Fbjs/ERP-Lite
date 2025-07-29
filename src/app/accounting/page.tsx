@@ -6,8 +6,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
-const invoices = [
+type Invoice = {
+  id: string;
+  client: string;
+  date: string;
+  total: string;
+  status: 'Pagada' | 'Pendiente' | 'Vencida';
+};
+
+const initialInvoices: Invoice[] = [
   { id: 'F001', client: 'Panaderia San Jose', date: '2023-10-28', total: '$450.00', status: 'Pagada' },
   { id: 'F002', client: 'Cafe Central', date: '2023-10-28', total: '$1,200.50', status: 'Pendiente' },
   { id: 'F003', client: 'Supermercado del Sur', date: '2023-10-27', total: '$875.00', status: 'Pagada' },
@@ -15,6 +25,27 @@ const invoices = [
 ];
 
 export default function AccountingPage() {
+    const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const client = searchParams.get('client');
+        const amount = searchParams.get('amount');
+
+        if (client && amount) {
+            const newInvoice: Invoice = {
+                id: `F${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+                client,
+                total: `$${parseFloat(amount).toLocaleString('es-CL')}`,
+                date: new Date().toISOString().split('T')[0],
+                status: 'Pendiente',
+            };
+            setInvoices(prev => [newInvoice, ...prev]);
+            // Clean up URL to avoid creating invoice on refresh
+            window.history.replaceState(null, '', '/accounting');
+        }
+    }, [searchParams]);
+
   return (
     <AppLayout pageTitle="Contabilidad">
       <Card>
@@ -49,7 +80,7 @@ export default function AccountingPage() {
                 <TableRow key={invoice.id}>
                   <TableCell className="font-medium">{invoice.id}</TableCell>
                   <TableCell>{invoice.client}</TableCell>
-                  <TableCell>{invoice.date}</TableCell>
+                  <TableCell>{new Date(invoice.date).toLocaleDateString('es-CL')}</TableCell>
                   <TableCell>{invoice.total}</TableCell>
                   <TableCell>
                     <Badge variant={invoice.status === 'Pagada' ? 'default' : invoice.status === 'Pendiente' ? 'secondary' : 'destructive'}>
