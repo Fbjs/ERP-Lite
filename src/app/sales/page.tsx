@@ -1,3 +1,4 @@
+
 "use client";
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
@@ -129,7 +130,7 @@ export default function SalesPage() {
               <TableRow>
                 <TableHead>ID de Orden</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead>Monto</TableHead>
+                <TableHead className="text-right">Monto</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead><span className="sr-only">Acciones</span></TableHead>
@@ -140,7 +141,7 @@ export default function SalesPage() {
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">{order.id}</TableCell>
                   <TableCell>{order.customer}</TableCell>
-                  <TableCell>${order.amount.toLocaleString('es-CL')}</TableCell>
+                  <TableCell className="text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
                   <TableCell>
                     <Badge variant={order.status === 'Completado' ? 'default' : order.status === 'Enviado' ? 'secondary' : 'outline'}>{order.status}</Badge>
                   </TableCell>
@@ -157,7 +158,7 @@ export default function SalesPage() {
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Orden</DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                           <Link href={`/accounting?client=${encodeURIComponent(order.customer)}&amount=${order.amount}`}>
+                           <Link href={`/accounting?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(order.details)}`}>
                                 Generar Factura
                             </Link>
                         </DropdownMenuItem>
