@@ -12,8 +12,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ProductionOrderForm from '@/components/production-order-form';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 type Order = {
     id: string;
@@ -72,27 +70,27 @@ export default function ProductionPage() {
         setSelectedOrder(null);
     }
 
-    const handleDownloadPdf = () => {
+    const handleDownloadPdf = async () => {
         const input = detailsModalContentRef.current;
         if (input) {
-            html2canvas(input, { scale: 2 }).then((canvas) => {
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF('p', 'px', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
-                const canvasWidth = canvas.width;
-                const canvasHeight = canvas.height;
-                const ratio = canvasWidth / canvasHeight;
-                const pdfImageWidth = pdfWidth - 20;
-                const pdfImageHeight = pdfImageWidth / ratio;
-                
-                // If the image height is greater than the page height, we might need to split it
-                // but for this implementation we will fit it in one page.
-                const finalHeight = Math.min(pdfImageHeight, pdfHeight - 20);
+            const { default: jsPDF } = await import('jspdf');
+            const { default: html2canvas } = await import('html2canvas');
+            
+            const canvas = await html2canvas(input, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'px', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const ratio = canvasWidth / canvasHeight;
+            const pdfImageWidth = pdfWidth - 20;
+            const pdfImageHeight = pdfImageWidth / ratio;
+            
+            const finalHeight = Math.min(pdfImageHeight, pdfHeight - 20);
 
-                pdf.addImage(imgData, 'PNG', 10, 10, pdfImageWidth, finalHeight);
-                pdf.save(`orden-${selectedOrder?.id}.pdf`);
-            });
+            pdf.addImage(imgData, 'PNG', 10, 10, pdfImageWidth, finalHeight);
+            pdf.save(`orden-${selectedOrder?.id}.pdf`);
         }
     };
 
