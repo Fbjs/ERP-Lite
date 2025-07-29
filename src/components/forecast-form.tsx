@@ -1,32 +1,42 @@
 'use client';
 
 import { useState } from 'react';
-import { useStreamFlow } from '@genkit-ai/next/client';
-import { productionVolumeForecast, ProductionVolumeForecastInput } from '@/ai/flows/production-volume-forecast';
+import { productionVolumeForecast, ProductionVolumeForecastOutput } from '@/ai/flows/production-volume-forecast';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Wand2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ForecastForm() {
     const [recentSales, setRecentSales] = useState('');
     const [inventory, setInventory] = useState('');
-    const [output, setOutput] = useState('');
-    const {run: stream, running, output: flowOutput, error} = useStreamFlow(productionVolumeForecast);
+    const [running, setRunning] = useState(false);
+    const [flowOutput, setFlowOutput] = useState<ProductionVolumeForecastOutput | null>(null);
+    const { toast } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setOutput('');
-        const input: ProductionVolumeForecastInput = {
-            recentSalesData: recentSales,
-            currentInventoryLevels: inventory,
-        };
-        
-        const stream = await productionVolumeForecast(input, (chunk) => {
-          setOutput(current => current + chunk.forecast)
-        });
+        setRunning(true);
+        setFlowOutput(null);
 
+        try {
+            const result = await productionVolumeForecast({
+                recentSalesData: recentSales,
+                currentInventoryLevels: inventory,
+            });
+            setFlowOutput(result);
+        } catch (error) {
+            console.error(error);
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "An error occurred while generating the forecast.",
+            })
+        } finally {
+            setRunning(false);
+        }
     };
 
     return (
@@ -61,18 +71,18 @@ export default function ForecastForm() {
             </form>
 
             <div className="flex items-center justify-center">
-                {running && !output ? (
+                {running && !flowOutput ? (
                     <div className="flex flex-col items-center gap-4 text-muted-foreground">
                         <Loader2 className="h-10 w-10 animate-spin text-primary" />
                         <p className="font-body">Generating forecast...</p>
                     </div>
-                ) : output ? (
+                ) : flowOutput ? (
                     <Card className="w-full bg-secondary">
                         <CardHeader>
                             <CardTitle className="font-headline">AI-Powered Forecast</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="whitespace-pre-wrap font-body">{flowOutput?.forecast}</p>
+                            <p className="whitespace-pre-wrap font-body">{flowOutput.forecast}</p>
                         </CardContent>
                     </Card>
                 ) : (
