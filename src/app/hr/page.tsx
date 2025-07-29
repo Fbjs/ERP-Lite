@@ -3,7 +3,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2 } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState } from 'react';
@@ -11,7 +11,10 @@ import EmployeeForm from '@/components/employee-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { generateHrDocument, GenerateHrDocumentOutput } from '@/ai/flows/generate-hr-document';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 type Document = {
     name: string;
@@ -45,8 +48,13 @@ export default function HRPage() {
     const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
     const [isNewEmployeeModalOpen, setNewEmployeeModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
+    const [isGenerateDocModalOpen, setGenerateDocModalOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
-
+    
+    const [docType, setDocType] = useState('');
+    const [generatedDoc, setGeneratedDoc] = useState<GenerateHrDocumentOutput | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const { toast } = useToast();
 
     const handleCreateEmployee = (newEmployeeData: Omit<Employee, 'id' | 'status' | 'documents'>) => {
         const newEmployee: Employee = {
@@ -63,6 +71,49 @@ export default function HRPage() {
         setSelectedEmployee(employee);
         setDetailsModalOpen(true);
     }
+    
+    const handleOpenGenerateDoc = (employee: Employee) => {
+        setSelectedEmployee(employee);
+        setDocType('');
+        setGeneratedDoc(null);
+        setGenerateDocModalOpen(true);
+    };
+
+    const handleGenerateDocument = async () => {
+        if (!selectedEmployee || !docType) return;
+        setIsGenerating(true);
+        setGeneratedDoc(null);
+        try {
+            const result = await generateHrDocument({
+                employeeName: selectedEmployee.name,
+                employeeRut: selectedEmployee.rut,
+                employeePosition: selectedEmployee.position,
+                employeeStartDate: selectedEmployee.startDate,
+                employeeSalary: selectedEmployee.salary,
+                employeeContractType: selectedEmployee.contractType,
+                documentType: docType as any,
+            });
+            setGeneratedDoc(result);
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Ocurrió un error al generar el documento.',
+            });
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+    
+    const handleCopyToClipboard = () => {
+        if (!generatedDoc?.documentContent) return;
+        navigator.clipboard.writeText(generatedDoc.documentContent);
+        toast({
+            title: "Copiado",
+            description: "El contenido del documento se ha copiado al portapapeles.",
+        });
+    };
 
   return (
     <AppLayout pageTitle="Recursos Humanos">
@@ -114,7 +165,7 @@ export default function HRPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleOpenDetails(employee)}>Ver Ficha</DropdownMenuItem>
-                        <DropdownMenuItem>Generar Documento</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenGenerateDoc(employee)}>Generar Documento</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -246,6 +297,61 @@ export default function HRPage() {
            <DialogFooter className="mt-4">
                 <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Cerrar</Button>
             </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal Generar Documento */}
+      <Dialog open={isGenerateDocModalOpen} onOpenChange={setGenerateDocModalOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-headline">Generar Documento Laboral</DialogTitle>
+             <DialogDescription className="font-body">
+              Genera documentos para {selectedEmployee?.name} usando IA.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-3 items-center gap-4">
+                <Label htmlFor="doc-type" className="font-body">Tipo de Documento</Label>
+                <Select value={docType} onValueChange={setDocType}>
+                    <SelectTrigger className="col-span-2">
+                        <SelectValue placeholder="Selecciona un documento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Contrato de Trabajo">Contrato de Trabajo</SelectItem>
+                        <SelectItem value="Certificado de Antigüedad">Certificado de Antigüedad</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <Button onClick={handleGenerateDocument} disabled={isGenerating || !docType} className="w-full">
+                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                Generar Documento
+            </Button>
+          </div>
+
+        {isGenerating ? (
+            <div className="flex items-center justify-center h-48">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        ) : generatedDoc && (
+             <div className="space-y-4">
+                <Label htmlFor="generated-content" className="font-body">Contenido Generado</Label>
+                <Textarea
+                    id="generated-content"
+                    readOnly
+                    value={generatedDoc.documentContent}
+                    className="min-h-[300px] font-mono text-sm bg-secondary"
+                />
+                 <Button variant="outline" onClick={handleCopyToClipboard}>
+                    <Clipboard className="mr-2 h-4 w-4" />
+                    Copiar al Portapapeles
+                </Button>
+            </div>
+        )}
+
+        <DialogFooter className="mt-4">
+             <Button variant="outline" onClick={() => setGenerateDocModalOpen(false)}>Cerrar</Button>
+        </DialogFooter>
+
         </DialogContent>
       </Dialog>
     </AppLayout>
