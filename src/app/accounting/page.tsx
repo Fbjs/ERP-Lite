@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -12,6 +12,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import InvoiceForm, { InvoiceFormData } from '@/components/invoice-form';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 type Invoice = {
   id: string;
@@ -33,7 +35,9 @@ export default function AccountingPage() {
     const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
     const [isNewInvoiceModalOpen, setNewInvoiceModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
+    const [isSendEmailModalOpen, setSendEmailModalOpen] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+    const [emailToSend, setEmailToSend] = useState('');
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
@@ -84,13 +88,22 @@ export default function AccountingPage() {
         setDetailsModalOpen(true);
     };
 
-    const handleSendByEmail = () => {
-        toast({
-            title: "Factura Enviada",
-            description: `La factura ${selectedInvoice?.id} ha sido enviada por correo.`,
-        });
+    const handleOpenSendEmail = (invoice: Invoice) => {
+        setSelectedInvoice(invoice);
+        setEmailToSend('');
+        setSendEmailModalOpen(true);
     };
     
+    const handleConfirmSendEmail = () => {
+        if (!emailToSend || !selectedInvoice) return;
+        toast({
+            title: "Factura Enviada",
+            description: `La factura ${selectedInvoice.id} ha sido enviada a ${emailToSend}.`,
+        });
+        setSendEmailModalOpen(false);
+        setEmailToSend('');
+    };
+
     const handleDownloadPdf = async () => {
         const input = detailsModalContentRef.current;
         if (input) {
@@ -177,7 +190,7 @@ export default function AccountingPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleOpenDetails(invoice)}>Ver Detalle</DropdownMenuItem>
-                        <DropdownMenuItem onClick={handleSendByEmail}>Enviar por Correo</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenSendEmail(invoice)}>Enviar por Correo</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -241,7 +254,40 @@ export default function AccountingPage() {
         </DialogContent>
       </Dialog>
       
+      {/* Modal Enviar por Correo */}
+      <Dialog open={isSendEmailModalOpen} onOpenChange={setSendEmailModalOpen}>
+        <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+                <DialogTitle className="font-headline">Enviar Factura por Correo</DialogTitle>
+                <DialogDescription className="font-body">
+                    Ingresa el correo electrónico para enviar la factura {selectedInvoice?.id}.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="email" className="text-right">
+                        Correo
+                    </Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        value={emailToSend}
+                        onChange={(e) => setEmailToSend(e.target.value)}
+                        placeholder="ejemplo@correo.com"
+                        className="col-span-3"
+                    />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setSendEmailModalOpen(false)}>Cancelar</Button>
+                <Button onClick={handleConfirmSendEmail}>
+                    <Mail className="mr-2 h-4 w-4"/>
+                    Enviar
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
     </AppLayout>
   );
 }
-
