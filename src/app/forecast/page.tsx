@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 
 export default function ForecastPage() {
     return (
-        <AppLayout pageTitle="Pronóstico de Producción">
+        <AppLayout pageTitle="Pronóstico con IA">
             <div className="max-w-4xl mx-auto">
                 <Card>
                     <CardHeader>

@@ -7,26 +7,26 @@ import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-const orders = [
-  { id: 'PROD021', product: 'Pain au Levain', quantity: 200, status: 'En Progreso', stage: 'Horneando', date: '2023-10-28' },
-  { id: 'PROD022', product: 'Baguette Tradition', quantity: 500, status: 'Completado', stage: 'Empaquetado', date: '2023-10-28' },
-  { id: 'PROD023', product: 'Croissant au Beurre', quantity: 1000, status: 'En Cola', stage: 'Mezclando', date: '2023-10-29' },
-  { id: 'PROD024', product: 'Ciabatta', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28' },
+const invoices = [
+  { id: 'F001', client: 'Panaderia San Jose', date: '2023-10-28', total: '$450.00', status: 'Pagada' },
+  { id: 'F002', client: 'Cafe Central', date: '2023-10-28', total: '$1,200.50', status: 'Pendiente' },
+  { id: 'F003', client: 'Supermercado del Sur', date: '2023-10-27', total: '$875.00', status: 'Pagada' },
+  { id: 'F004', client: 'Restaurante El Tenedor', date: '2023-10-26', total: '$320.75', status: 'Vencida' },
 ];
 
-export default function ProductionPage() {
+export default function AccountingPage() {
   return (
-    <AppLayout pageTitle="Producción">
+    <AppLayout pageTitle="Contabilidad">
       <Card>
         <CardHeader>
             <div className="flex justify-between items-center">
                 <div>
-                    <CardTitle className="font-headline">Órdenes de Producción</CardTitle>
-                    <CardDescription className="font-body">Rastrea y gestiona las órdenes de producción.</CardDescription>
+                    <CardTitle className="font-headline">Facturación y Cuentas</CardTitle>
+                    <CardDescription className="font-body">Gestiona facturas, cuentas por pagar y cobrar.</CardDescription>
                 </div>
                 <Button>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Nueva Orden
+                    Nueva Factura
                 </Button>
             </div>
         </CardHeader>
@@ -34,27 +34,29 @@ export default function ProductionPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID de Orden</TableHead>
-                <TableHead>Producto</TableHead>
-                <TableHead>Cantidad</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Etapa Actual</TableHead>
+                <TableHead>Factura No.</TableHead>
+                <TableHead>Cliente</TableHead>
                 <TableHead>Fecha</TableHead>
-                <TableHead><span className="sr-only">Acciones</span></TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>
+                  <span className="sr-only">Acciones</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.product}</TableCell>
-                  <TableCell>{order.quantity}</TableCell>
+              {invoices.map((invoice) => (
+                <TableRow key={invoice.id}>
+                  <TableCell className="font-medium">{invoice.id}</TableCell>
+                  <TableCell>{invoice.client}</TableCell>
+                  <TableCell>{invoice.date}</TableCell>
+                  <TableCell>{invoice.total}</TableCell>
                   <TableCell>
-                    <Badge variant={order.status === 'Completado' ? 'default' : 'secondary'}>{order.status}</Badge>
+                    <Badge variant={invoice.status === 'Pagada' ? 'default' : invoice.status === 'Pendiente' ? 'secondary' : 'destructive'}>
+                      {invoice.status}
+                    </Badge>
                   </TableCell>
-                  <TableCell>{order.stage}</TableCell>
-                  <TableCell>{order.date}</TableCell>
-                   <TableCell>
+                  <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -64,8 +66,8 @@ export default function ProductionPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
-                        <DropdownMenuItem>Actualizar Estado</DropdownMenuItem>
+                        <DropdownMenuItem>Ver Detalle</DropdownMenuItem>
+                        <DropdownMenuItem>Enviar por Correo</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

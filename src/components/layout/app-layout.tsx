@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Wheat, LayoutDashboard, NotebookText, Factory, ShoppingCart, BrainCircuit } from 'lucide-react';
+import { LogOut, Wheat, LayoutDashboard, NotebookText, Factory, ShoppingCart, BrainCircuit, Users, BookCopy, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -12,10 +12,13 @@ const AppLayout = ({ children, pageTitle }: { children: ReactNode, pageTitle: st
 
     const menuItems = [
         { href: '/dashboard', label: 'Panel de Control', icon: LayoutDashboard },
-        { href: '/recipes', label: 'Recetas', icon: NotebookText },
         { href: '/production', label: 'Producción', icon: Factory },
-        { href: '/sales', label: 'Órdenes de Venta', icon: ShoppingCart },
-        { href: '/forecast', label: 'Pronóstico', icon: BrainCircuit },
+        { href: '/recipes', label: 'Recetas', icon: NotebookText },
+        { href: '/sales', label: 'Ventas', icon: ShoppingCart },
+        { href: '/logistics', label: 'Logística', icon: Truck },
+        { href: '/hr', label: 'Recursos Humanos', icon: Users },
+        { href: '/accounting', label: 'Contabilidad', icon: BookCopy },
+        { href: '/forecast', label: 'Pronóstico IA', icon: BrainCircuit },
     ];
 
     return (

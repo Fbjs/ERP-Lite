@@ -15,7 +15,7 @@ const recipes = [
 
 export default function RecipesPage() {
   return (
-    <AppLayout pageTitle="Gestión de Recetas">
+    <AppLayout pageTitle="Recetas">
       <Card>
         <CardHeader>
             <div className="flex justify-between items-center">

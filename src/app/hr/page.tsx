@@ -4,29 +4,28 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-const orders = [
-  { id: 'SALE881', customer: 'Cafe Del Sol', amount: '$450.00', status: 'Completado', date: '2023-10-27' },
-  { id: 'SALE882', customer: 'La Esquina Market', amount: '$1,200.50', status: 'Pendiente', date: '2023-10-28' },
-  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: '$875.00', status: 'Enviado', date: '2023-10-28' },
-  { id: 'SALE884', customer: 'Panaderia Central', amount: '$320.75', status: 'Completado', date: '2023-10-26' },
+const employees = [
+  { id: 'EMP001', name: 'Juan Pérez', position: 'Panadero Jefe', contractType: 'Indefinido', status: 'Activo' },
+  { id: 'EMP002', name: 'Ana Gómez', position: 'Auxiliar de Pastelería', contractType: 'Plazo Fijo', status: 'Activo' },
+  { id: 'EMP003', name: 'Luis Martínez', position: 'Conductor Despacho', contractType: 'Indefinido', status: 'Vacaciones' },
+  { id: 'EMP004', name: 'María Rodríguez', position: 'Administrativa', contractType: 'Indefinido', status: 'Activo' },
 ];
 
-export default function SalesPage() {
+export default function HRPage() {
   return (
-    <AppLayout pageTitle="Ventas">
-       <Card>
+    <AppLayout pageTitle="Recursos Humanos">
+      <Card>
         <CardHeader>
             <div className="flex justify-between items-center">
                 <div>
-                    <CardTitle className="font-headline">Órdenes de Venta</CardTitle>
-                    <CardDescription className="font-body">Ingresa nuevas órdenes de venta y rastrea las existentes.</CardDescription>
+                    <CardTitle className="font-headline">Gestión de Personal</CardTitle>
+                    <CardDescription className="font-body">Administra la información y documentos de los trabajadores.</CardDescription>
                 </div>
                 <Button>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Nueva Orden de Venta
+                    Nuevo Trabajador
                 </Button>
             </div>
         </CardHeader>
@@ -34,25 +33,25 @@ export default function SalesPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID de Orden</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Monto</TableHead>
+                <TableHead>ID</TableHead>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Cargo</TableHead>
+                <TableHead>Contrato</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead><span className="sr-only">Acciones</span></TableHead>
+                <TableHead>
+                  <span className="sr-only">Acciones</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.customer}</TableCell>
-                  <TableCell>{order.amount}</TableCell>
+              {employees.map((employee) => (
+                <TableRow key={employee.id}>
+                  <TableCell className="font-medium">{employee.id}</TableCell>
+                  <TableCell>{employee.name}</TableCell>
+                  <TableCell>{employee.position}</TableCell>
+                  <TableCell>{employee.contractType}</TableCell>
+                  <TableCell>{employee.status}</TableCell>
                   <TableCell>
-                    <Badge variant={order.status === 'Completado' ? 'default' : 'secondary'}>{order.status}</Badge>
-                  </TableCell>
-                  <TableCell>{order.date}</TableCell>
-                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -62,8 +61,8 @@ export default function SalesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem>Ver Orden</DropdownMenuItem>
-                        <DropdownMenuItem>Generar Factura</DropdownMenuItem>
+                        <DropdownMenuItem>Ver Ficha</DropdownMenuItem>
+                        <DropdownMenuItem>Generar Documento</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
