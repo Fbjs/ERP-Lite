@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail, Wheat } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Wheat, Calendar as CalendarIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -14,6 +14,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import InvoiceForm, { InvoiceFormData } from '@/components/invoice-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+
 
 type Invoice = {
   id: string;
@@ -41,6 +48,23 @@ export default function AccountingPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
+    const reportContentRef = useRef<HTMLDivElement>(null);
+
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+    const filteredInvoicesForReport = invoices.filter(invoice => {
+        if (!dateRange?.from || !dateRange?.to) return false;
+        const invoiceDate = new Date(invoice.date);
+        return invoiceDate >= dateRange.from && invoiceDate <= dateRange.to;
+    });
+
+    const reportTotals = {
+        paid: filteredInvoicesForReport.filter(i => i.status === 'Pagada').reduce((acc, i) => acc + i.total, 0),
+        pending: filteredInvoicesForReport.filter(i => i.status === 'Pendiente').reduce((acc, i) => acc + i.total, 0),
+        overdue: filteredInvoicesForReport.filter(i => i.status === 'Vencida').reduce((acc, i) => acc + i.total, 0),
+        total: filteredInvoicesForReport.reduce((acc, i) => acc + i.total, 0),
+    };
+
 
     useEffect(() => {
         const client = searchParams.get('client');
@@ -104,8 +128,8 @@ export default function AccountingPage() {
         setEmailToSend('');
     };
 
-    const handleDownloadPdf = async () => {
-        const input = detailsModalContentRef.current;
+    const handleDownloadPdf = async (contentRef: React.RefObject<HTMLDivElement>, fileName: string) => {
+        const input = contentRef.current;
         if (input) {
             const { default: jsPDF } = await import('jspdf');
             const { default: html2canvas } = await import('html2canvas');
@@ -129,10 +153,10 @@ export default function AccountingPage() {
             const xOffset = (pdfWidth - pdfImageWidth) / 2;
 
             pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
-            pdf.save(`factura-${selectedInvoice?.id}.pdf`);
+            pdf.save(fileName);
             toast({
                 title: "PDF Descargado",
-                description: `La factura ${selectedInvoice?.id} ha sido descargada.`,
+                description: `El documento ${fileName} ha sido descargado.`,
             });
         }
     };
@@ -140,17 +164,136 @@ export default function AccountingPage() {
 
   return (
     <AppLayout pageTitle="Contabilidad">
+    
+      <div ref={reportContentRef} className="fixed -left-[9999px] top-0 bg-white text-black p-8 font-body" style={{ width: '8.5in', minHeight: '11in'}}>
+          <header className="flex justify-between items-center mb-8 border-b-2 border-gray-800 pb-4">
+              <div className="flex items-center gap-3">
+                  <Wheat className="w-12 h-12 text-orange-600" />
+                  <div>
+                      <h1 className="text-3xl font-bold font-headline text-gray-800">Reporte de Facturación</h1>
+                      <p className="text-sm text-gray-500">Panificadora Vollkorn</p>
+                  </div>
+              </div>
+              <div className="text-right text-sm">
+                  <p><span className="font-semibold">Período:</span> {dateRange?.from ? format(dateRange.from, "P", { locale: es }) : ''} - {dateRange?.to ? format(dateRange.to, "P", { locale: es }) : ''}</p>
+                  <p><span className="font-semibold">Fecha de Generación:</span> {format(new Date(), "P p", { locale: es })}</p>
+              </div>
+          </header>
+
+          <main>
+              <h2 className="text-xl font-headline font-semibold text-gray-700 mb-4">Detalle de Facturas</h2>
+              <Table className="w-full text-sm">
+                  <TableHeader className="bg-gray-100">
+                      <TableRow>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Nº Factura</TableHead>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Fecha</TableHead>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Cliente</TableHead>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Estado</TableHead>
+                          <TableHead className="text-right font-bold text-gray-700 uppercase p-3">Monto</TableHead>
+                      </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                      {filteredInvoicesForReport.map((invoice) => (
+                          <TableRow key={invoice.id} className="border-b border-gray-200">
+                              <TableCell className="p-3">{invoice.id}</TableCell>
+                              <TableCell className="p-3">{format(new Date(invoice.date), "P", { locale: es })}</TableCell>
+                              <TableCell className="p-3">{invoice.client}</TableCell>
+                              <TableCell className="p-3">{invoice.status}</TableCell>
+                              <TableCell className="text-right p-3">${invoice.total.toLocaleString('es-CL')}</TableCell>
+                          </TableRow>
+                      ))}
+                      {filteredInvoicesForReport.length === 0 && (
+                        <TableRow><TableCell colSpan={5} className="text-center p-4">No se encontraron facturas en el período seleccionado.</TableCell></TableRow>
+                      )}
+                  </TableBody>
+              </Table>
+          </main>
+          
+          <section className="mt-8 flex justify-end">
+              <div className="w-1/2">
+                  <h2 className="text-xl font-headline font-semibold text-gray-700 mb-4">Resumen del Período</h2>
+                  <div className="bg-gray-50 p-4 rounded-lg border">
+                      <div className="flex justify-between items-center py-2 border-b">
+                          <span className="font-semibold text-gray-600">Total Pagado:</span>
+                          <span className="font-medium text-green-600">${reportTotals.paid.toLocaleString('es-CL')}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                          <span className="font-semibold text-gray-600">Total Pendiente:</span>
+                          <span className="font-medium text-yellow-500">${reportTotals.pending.toLocaleString('es-CL')}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                          <span className="font-semibold text-gray-600">Total Vencido:</span>
+                          <span className="font-medium text-red-600">${reportTotals.overdue.toLocaleString('es-CL')}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-3 mt-2">
+                          <span className="font-headline font-bold text-lg text-gray-800">Total General Facturado:</span>
+                          <span className="font-headline font-bold text-xl text-gray-900">${reportTotals.total.toLocaleString('es-CL')}</span>
+                      </div>
+                  </div>
+              </div>
+          </section>
+
+          <footer className="text-center text-xs text-gray-400 border-t pt-4 mt-8">
+              <p>Reporte generado por Vollkorn ERP.</p>
+          </footer>
+      </div>
+
       <Card>
         <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
                     <CardTitle className="font-headline">Facturación y Cuentas</CardTitle>
                     <CardDescription className="font-body">Gestiona facturas, cuentas por pagar y cobrar.</CardDescription>
                 </div>
-                <Button onClick={() => setNewInvoiceModalOpen(true)}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nueva Factura
-                </Button>
+                 <div className="flex items-center gap-2">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant={"outline"}
+                                className={cn(
+                                "w-[300px] justify-start text-left font-normal",
+                                !dateRange && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {dateRange?.from ? (
+                                dateRange.to ? (
+                                    <>
+                                    {format(dateRange.from, "LLL dd, y")} -{" "}
+                                    {format(dateRange.to, "LLL dd, y")}
+                                    </>
+                                ) : (
+                                    format(dateRange.from, "LLL dd, y")
+                                )
+                                ) : (
+                                <span>Selecciona un rango de fechas</span>
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={dateRange?.from}
+                                selected={dateRange}
+                                onSelect={setDateRange}
+                                numberOfMonths={2}
+                            />
+                        </PopoverContent>
+                    </Popover>
+                    <Button 
+                        onClick={() => handleDownloadPdf(reportContentRef, `reporte-facturacion-${format(dateRange!.from!, 'yyyy-MM-dd')}-a-${format(dateRange!.to!, 'yyyy-MM-dd')}.pdf`)} 
+                        disabled={!dateRange?.from || !dateRange?.to}
+                    >
+                        <Download className="mr-2 h-4 w-4" />
+                        Generar Reporte
+                    </Button>
+                    <Button onClick={() => setNewInvoiceModalOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Nueva Factura
+                    </Button>
+                </div>
             </div>
         </CardHeader>
         <CardContent>
@@ -294,7 +437,7 @@ export default function AccountingPage() {
           )}
            <DialogFooter className="mt-4">
                 <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Cerrar</Button>
-                <Button onClick={handleDownloadPdf}>
+                <Button onClick={() => handleDownloadPdf(detailsModalContentRef, `factura-${selectedInvoice?.id}.pdf`)}>
                     <Download className="mr-2 h-4 w-4" />
                     Descargar PDF
                 </Button>
@@ -339,5 +482,7 @@ export default function AccountingPage() {
     </AppLayout>
   );
 }
+
+    
 
     
