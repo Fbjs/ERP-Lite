@@ -4,15 +4,22 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import SalesOrderForm, { OrderFormData } from '@/components/sales-order-form';
 import { Recipe, initialRecipes } from '@/app/recipes/page';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
+import { format, subMonths } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+
 
 type Order = {
   id: string;
@@ -25,10 +32,12 @@ type Order = {
 
 
 const initialOrders: Order[] = [
-  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450.00, status: 'Completado', date: '2023-10-27', details: '100 Pan de Masa Madre, 50 Baguettes' },
-  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200.50, status: 'Pendiente', date: '2023-10-28', details: '200 Croissants, 150 Ciabattas' },
-  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875.00, status: 'Enviado', date: '2023-10-28', details: '50 Pain au Levain, 50 Baguette Tradition' },
-  { id: 'SALE884', customer: 'Panaderia Central', amount: 320.75, status: 'Completado', date: '2023-10-26', details: '300 Pan de Centeno' },
+  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450.00, status: 'Completado', date: '2025-07-27', details: '100 Pan de Masa Madre, 50 Baguettes' },
+  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200.50, status: 'Pendiente', date: '2025-07-28', details: '200 Croissants, 150 Ciabattas' },
+  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875.00, status: 'Enviado', date: '2025-07-28', details: '50 Pain au Levain, 50 Baguette Tradition' },
+  { id: 'SALE884', customer: 'Panaderia Central', amount: 320.75, status: 'Completado', date: '2025-07-26', details: '300 Pan de Centeno' },
+  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950.00, status: 'Cancelado', date: '2025-07-25', details: '500 Pan de Molde' },
+  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210.00, status: 'Pendiente', date: '2025-07-29', details: '100 Bagels' },
 ];
 
 export default function SalesPage() {
@@ -39,6 +48,33 @@ export default function SalesPage() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
+    
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+        from: subMonths(new Date(2025, 6, 29), 1),
+        to: new Date(2025, 6, 29)
+    });
+
+    const filteredOrders = useMemo(() => {
+        if (!dateRange?.from) return orders;
+        const fromDate = dateRange.from;
+        const toDate = dateRange.to || fromDate;
+
+        return orders.filter(order => {
+            const orderDate = new Date(order.date);
+            return orderDate >= fromDate && orderDate <= toDate;
+        });
+    }, [orders, dateRange]);
+
+    const summaryTotals = useMemo(() => {
+        return {
+            completed: filteredOrders.filter(o => o.status === 'Completado').reduce((acc, o) => acc + o.amount, 0),
+            pending: filteredOrders.filter(o => o.status === 'Pendiente').reduce((acc, o) => acc + o.amount, 0),
+            shipped: filteredOrders.filter(o => o.status === 'Enviado').reduce((acc, o) => acc + o.amount, 0),
+            cancelled: filteredOrders.filter(o => o.status === 'Cancelado').reduce((acc, o) => acc + o.amount, 0),
+            total: filteredOrders.reduce((acc, o) => acc + o.amount, 0),
+        }
+    }, [filteredOrders]);
+
 
     const handleCreateOrder = (newOrderData: OrderFormData) => {
         
@@ -111,66 +147,171 @@ export default function SalesPage() {
 
   return (
     <AppLayout pageTitle="Ventas">
-       <Card>
-        <CardHeader>
-            <div className="flex justify-between items-center">
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <div className="flex flex-wrap justify-between items-center gap-4">
+                        <div>
+                            <CardTitle className="font-headline">Órdenes de Venta</CardTitle>
+                            <CardDescription className="font-body">Ingresa nuevas órdenes de venta y rastrea las existentes.</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                             <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="date"
+                                        variant={"outline"}
+                                        className={cn(
+                                        "w-[300px] justify-start text-left font-normal",
+                                        !dateRange && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dateRange?.from ? (
+                                        dateRange.to ? (
+                                            <>
+                                            {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                                            {format(dateRange.to, "LLL dd, y", { locale: es })}
+                                            </>
+                                        ) : (
+                                            format(dateRange.from, "LLL dd, y", { locale: es })
+                                        )
+                                        ) : (
+                                        <span>Selecciona un rango</span>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="end">
+                                    <Calendar
+                                        initialFocus
+                                        mode="range"
+                                        defaultMonth={dateRange?.from}
+                                        selected={dateRange}
+                                        onSelect={setDateRange}
+                                        numberOfMonths={2}
+                                        locale={es}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                            <Button onClick={() => setNewOrderModalOpen(true)}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Nueva Orden
+                            </Button>
+                        </div>
+                    </div>
+                </CardHeader>
+            </Card>
+
+            {dateRange?.from && (
                 <div>
-                    <CardTitle className="font-headline">Órdenes de Venta</CardTitle>
-                    <CardDescription className="font-body">Ingresa nuevas órdenes de venta y rastrea las existentes.</CardDescription>
+                    <h3 className="text-lg font-headline font-semibold mb-4">
+                        Resumen para el Período Seleccionado
+                    </h3>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total en Ventas</CardTitle>
+                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">${summaryTotals.total.toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Completadas</CardTitle>
+                                <FileCheck className="h-4 w-4 text-green-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-green-600">${summaryTotals.completed.toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
+                         <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Pendientes y Enviadas</CardTitle>
+                                <Clock className="h-4 w-4 text-yellow-500" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-yellow-500">${(summaryTotals.pending + summaryTotals.shipped).toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Canceladas</CardTitle>
+                                <Ban className="h-4 w-4 text-red-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-red-600">${summaryTotals.cancelled.toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
-                <Button onClick={() => setNewOrderModalOpen(true)}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nueva Orden de Venta
-                </Button>
-            </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID de Orden</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead className="text-right">Monto</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead><span className="sr-only">Acciones</span></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.customer}</TableCell>
-                  <TableCell className="text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
-                  <TableCell>
-                    <Badge variant={order.status === 'Completado' ? 'default' : order.status === 'Enviado' ? 'secondary' : 'outline'}>{order.status}</Badge>
-                  </TableCell>
-                  <TableCell>{new Date(order.date).toLocaleDateString('es-CL')}</TableCell>
-                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Menú</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Orden</DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                           <Link href={`/accounting?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(order.details)}`}>
-                                Generar Factura
-                            </Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            )}
+
+           <Card>
+            <CardHeader>
+                <CardTitle className="font-headline">Listado de Órdenes de Venta</CardTitle>
+                <CardDescription className="font-body">
+                    {dateRange?.from ? 'Mostrando órdenes para el período seleccionado.' : 'Mostrando todas las órdenes.'}
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID de Orden</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead className="text-right">Monto</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead><span className="sr-only">Acciones</span></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredOrders.map((order) => (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-medium">{order.id}</TableCell>
+                      <TableCell>{order.customer}</TableCell>
+                      <TableCell className="text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
+                      <TableCell>
+                         <Badge 
+                            variant={
+                                order.status === 'Completado' ? 'default' :
+                                order.status === 'Enviado' ? 'secondary' :
+                                order.status === 'Cancelado' ? 'destructive' :
+                                'outline'
+                            }
+                        >
+                            {order.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{new Date(order.date).toLocaleDateString('es-CL')}</TableCell>
+                       <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Menú</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Orden</DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                               <Link href={`/accounting?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(order.details)}`}>
+                                    Generar Factura
+                                </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
 
       {/* Modal Nueva Orden */}
       <Dialog open={isNewOrderModalOpen} onOpenChange={setNewOrderModalOpen}>
@@ -228,3 +369,5 @@ export default function SalesPage() {
     </AppLayout>
   );
 }
+
+    
