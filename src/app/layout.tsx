@@ -1,13 +1,20 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import { Inter as FontSans } from "next/font/google"
+import { Belleza, Alegreya } from 'next/font/google';
 import { cn } from "@/lib/utils"
 
-const fontSans = FontSans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-})
+const belleza = Belleza({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-belleza',
+});
+
+const alegreya = Alegreya({
+  subsets: ['latin'],
+  variable: '--font-alegreya',
+});
+
 
 export const metadata: Metadata = {
   title: 'Vollkorn ERP Lite',
@@ -22,8 +29,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable
+          "min-h-screen bg-background font-body antialiased",
+          belleza.variable,
+          alegreya.variable
         )}>
         {children}
         <Toaster />

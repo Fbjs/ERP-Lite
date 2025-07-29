@@ -12,8 +12,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
-        body: ["var(--font-sans)", ...fontFamily.sans],
-        headline: ["var(--font-sans)", ...fontFamily.sans],
+        body: ["var(--font-alegreya)", ...fontFamily.sans],
+        headline: ["var(--font-belleza)", ...fontFamily.sans],
         code: ['monospace'],
       },
       colors: {
