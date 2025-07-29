@@ -19,25 +19,27 @@ import { DateRange } from 'react-day-picker';
 import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 
 type Order = {
   id: string;
   customer: string;
   amount: number;
-  status: 'Completado' | 'Pendiente' | 'Enviado' | 'Cancelado';
+  status: 'Completado' | 'Pendiente' | 'Enviado' | 'Cancelado' | 'En Preparación';
   date: string;
   details: string;
 };
 
 
 const initialOrders: Order[] = [
-  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450.00, status: 'Completado', date: '2025-07-27', details: '100 Pan de Masa Madre, 50 Baguettes' },
-  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200.50, status: 'Pendiente', date: '2025-07-28', details: '200 Croissants, 150 Ciabattas' },
-  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875.00, status: 'Enviado', date: '2025-07-28', details: '50 Pain au Levain, 50 Baguette Tradition' },
-  { id: 'SALE884', customer: 'Panaderia Central', amount: 320.75, status: 'Completado', date: '2025-07-26', details: '300 Pan de Centeno' },
-  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950.00, status: 'Cancelado', date: '2025-07-25', details: '500 Pan de Molde' },
-  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210.00, status: 'Pendiente', date: '2025-07-29', details: '100 Bagels' },
+  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450.00, status: 'Completado', date: '2025-07-27', details: '100 x Pan de Masa Madre, 50 x Baguettes' },
+  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200.50, status: 'Pendiente', date: '2025-07-28', details: '200 x Croissants, 150 x Ciabattas' },
+  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875.00, status: 'Enviado', date: '2025-07-28', details: '50 x Pain au Levain, 50 x Baguette Tradition' },
+  { id: 'SALE884', customer: 'Panaderia Central', amount: 320.75, status: 'Completado', date: '2025-07-26', details: '300 x Pan de Centeno' },
+  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950.00, status: 'Cancelado', date: '2025-07-25', details: '500 x Pan de Molde' },
+  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210.00, status: 'En Preparación', date: '2025-07-29', details: '100 x Bagels' },
 ];
 
 export default function SalesPage() {
@@ -45,7 +47,9 @@ export default function SalesPage() {
     const [recipes] = useState<Recipe[]>(initialRecipes);
     const [isNewOrderModalOpen, setNewOrderModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
+    const [isUpdateStatusModalOpen, setUpdateStatusModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [updatedStatus, setUpdatedStatus] = useState<Order['status']>('Pendiente');
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
     
@@ -68,10 +72,10 @@ export default function SalesPage() {
     const summaryTotals = useMemo(() => {
         return {
             completed: filteredOrders.filter(o => o.status === 'Completado').reduce((acc, o) => acc + o.amount, 0),
-            pending: filteredOrders.filter(o => o.status === 'Pendiente').reduce((acc, o) => acc + o.amount, 0),
+            pending: filteredOrders.filter(o => ['Pendiente', 'En Preparación'].includes(o.status)).reduce((acc, o) => acc + o.amount, 0),
             shipped: filteredOrders.filter(o => o.status === 'Enviado').reduce((acc, o) => acc + o.amount, 0),
             cancelled: filteredOrders.filter(o => o.status === 'Cancelado').reduce((acc, o) => acc + o.amount, 0),
-            total: filteredOrders.reduce((acc, o) => acc + o.amount, 0),
+            total: filteredOrders.filter(o => o.status !== 'Cancelado').reduce((acc, o) => acc + o.amount, 0),
         }
     }, [filteredOrders]);
 
@@ -110,6 +114,34 @@ export default function SalesPage() {
         setSelectedOrder(order);
         setDetailsModalOpen(true);
     };
+
+    const handleOpenUpdateStatus = (order: Order) => {
+        setSelectedOrder(order);
+        setUpdatedStatus(order.status);
+        setUpdateStatusModalOpen(true);
+    };
+
+    const handleUpdateOrderStatus = () => {
+        if (!selectedOrder) return;
+
+        setOrders(orders.map(o => o.id === selectedOrder.id ? { ...o, status: updatedStatus } : o));
+        
+        toast({
+            title: "Estado de Orden Actualizado",
+            description: `La orden ${selectedOrder.id} ha sido actualizada a "${updatedStatus}".`,
+        });
+
+        if(updatedStatus === 'Enviado') {
+             toast({
+                title: "Simulación de Inventario",
+                description: `El stock de los productos de la orden ${selectedOrder.id} ha sido descontado del inventario.`,
+            });
+        }
+
+        setUpdateStatusModalOpen(false);
+        setSelectedOrder(null);
+    };
+
 
     const handleDownloadPdf = async () => {
         const input = detailsModalContentRef.current;
@@ -228,11 +260,11 @@ export default function SalesPage() {
                         </Card>
                          <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Pendientes y Enviadas</CardTitle>
+                                <CardTitle className="text-sm font-medium">Pendientes y en Prep.</CardTitle>
                                 <Clock className="h-4 w-4 text-yellow-500" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold text-yellow-500">${(summaryTotals.pending + summaryTotals.shipped).toLocaleString('es-CL')}</div>
+                                <div className="text-2xl font-bold text-yellow-500">${(summaryTotals.pending).toLocaleString('es-CL')}</div>
                             </CardContent>
                         </Card>
                         <Card>
@@ -297,6 +329,7 @@ export default function SalesPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Orden</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenUpdateStatus(order)}>Actualizar Estado</DropdownMenuItem>
                             <DropdownMenuItem asChild>
                                <Link href={`/accounting?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(order.details)}`}>
                                     Generar Factura
@@ -366,8 +399,40 @@ export default function SalesPage() {
             </DialogFooter>
         </DialogContent>
       </Dialog>
+
+       {/* Modal Actualizar Estado */}
+      <Dialog open={isUpdateStatusModalOpen} onOpenChange={setUpdateStatusModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-headline">Actualizar Estado de la Orden</DialogTitle>
+            <DialogDescription className="font-body">
+              Selecciona el nuevo estado para la orden {selectedOrder?.id}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">Estado</Label>
+                <Select value={updatedStatus} onValueChange={(value: Order['status']) => setUpdatedStatus(value)}>
+                    <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Selecciona un estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Pendiente">Pendiente</SelectItem>
+                        <SelectItem value="En Preparación">En Preparación</SelectItem>
+                        <SelectItem value="Enviado">Enviado</SelectItem>
+                        <SelectItem value="Completado">Completado</SelectItem>
+                        <SelectItem value="Cancelado">Cancelado</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUpdateStatusModalOpen(false)}>Cancelar</Button>
+            <Button onClick={handleUpdateOrderStatus}>Guardar Cambios</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </AppLayout>
   );
 }
-
-    

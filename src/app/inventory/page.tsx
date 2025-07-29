@@ -28,8 +28,10 @@ const initialInventoryItems: InventoryItem[] = [
   { sku: 'HAR-001', name: 'Harina de Trigo', category: 'Materia Prima', stock: 1500, unit: 'kg', location: 'Bodega A-1' },
   { sku: 'LEV-002', name: 'Levadura Fresca', category: 'Materia Prima', stock: 250, unit: 'kg', location: 'Refrigerador 2' },
   { sku: 'SAL-003', name: 'Sal de Mar', category: 'Materia Prima', stock: 500, unit: 'kg', location: 'Bodega A-2' },
-  { sku: 'PROD-PL-01', name: 'Pain au Levain', category: 'Producto Terminado', stock: 50, unit: 'unidades', location: 'Zona Despacho' },
-  { sku: 'PROD-BG-01', name: 'Baguette Tradition', category: 'Producto Terminado', stock: 120, unit: 'unidades', location: 'Zona Despacho' },
+  { sku: 'PROD-PL-01', name: 'Pain au Levain', category: 'Producto Terminado', stock: 200, unit: 'unidades', location: 'Zona Despacho' },
+  { sku: 'PROD-BG-01', name: 'Baguette Tradition', category: 'Producto Terminado', stock: 350, unit: 'unidades', location: 'Zona Despacho' },
+  { sku: 'PROD-CB-01', name: 'Ciabatta', category: 'Producto Terminado', stock: 250, unit: 'unidades', location: 'Zona Despacho' },
+  { sku: 'PROD-CR-01', name: 'Croissant au Beurre', category: 'Producto Terminado', stock: 500, unit: 'unidades', location: 'Zona Despacho' },
   { sku: 'INS-EM-01', name: 'Bolsas de Papel', category: 'Insumo', stock: 5000, unit: 'unidades', location: 'Estante B-3' },
 ];
 
