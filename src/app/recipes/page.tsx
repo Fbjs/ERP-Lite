@@ -3,11 +3,11 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import RecipeForm from '@/components/recipe-form';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export type Ingredient = {
     name: string;
@@ -35,6 +35,7 @@ export default function RecipesPage() {
   const [isFormModalOpen, setFormModalOpen] = useState(false);
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const detailsModalContentRef = useRef<HTMLDivElement>(null);
 
   const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
     const newRecipe: Recipe = {
@@ -69,6 +70,35 @@ export default function RecipesPage() {
       setSelectedRecipe(recipe);
       setFormModalOpen(true);
   }
+
+  const handleDownloadPdf = async () => {
+    const input = detailsModalContentRef.current;
+    if (input) {
+        const { default: jsPDF } = await import('jspdf');
+        const { default: html2canvas } = await import('html2canvas');
+        
+        const canvas = await html2canvas(input, { scale: 2, backgroundColor: null });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'px', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        let pdfImageWidth = pdfWidth - 20;
+        let pdfImageHeight = pdfImageWidth / ratio;
+
+        if (pdfImageHeight > pdfHeight - 20) {
+          pdfImageHeight = pdfHeight - 20;
+          pdfImageWidth = pdfImageHeight * ratio;
+        }
+        
+        const xOffset = (pdfWidth - pdfImageWidth) / 2;
+
+        pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
+        pdf.save(`receta-${selectedRecipe?.id}.pdf`);
+    }
+  };
 
   return (
     <AppLayout pageTitle="Recetas">
@@ -157,7 +187,7 @@ export default function RecipesPage() {
             </DialogDescription>
           </DialogHeader>
           {selectedRecipe && (
-             <div className="max-h-[60vh] overflow-y-auto font-body p-1 bg-white text-black rounded-md">
+             <div ref={detailsModalContentRef} className="max-h-[60vh] overflow-y-auto font-body p-1 bg-white text-black rounded-md">
                 <div className="p-6">
                     <div className="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
                         <div>
@@ -203,6 +233,10 @@ export default function RecipesPage() {
           )}
            <DialogFooter className="mt-4">
                 <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Cerrar</Button>
+                <Button onClick={handleDownloadPdf}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Descargar PDF
+                </Button>
             </DialogFooter>
         </DialogContent>
       </Dialog>
