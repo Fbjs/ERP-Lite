@@ -177,8 +177,9 @@ export default function HRPage() {
                     <TableHead>Nombre</TableHead>
                     <TableHead>RUT</TableHead>
                     <TableHead>Cargo</TableHead>
-                    <TableHead>Teléfono</TableHead>
-                    <TableHead>Dirección</TableHead>
+                    <TableHead>Sueldo Bruto</TableHead>
+                    <TableHead>Previsión</TableHead>
+                    <TableHead>AFP</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>
                       <span className="sr-only">Acciones</span>
@@ -191,9 +192,12 @@ export default function HRPage() {
                       <TableCell className="font-medium">{employee.name}</TableCell>
                       <TableCell>{employee.rut}</TableCell>
                       <TableCell>{employee.position}</TableCell>
-                      <TableCell>{employee.phone}</TableCell>
-                      <TableCell>{employee.address}</TableCell>
-                      <TableCell>{employee.status}</TableCell>
+                      <TableCell>${employee.salary.toLocaleString('es-CL')}</TableCell>
+                      <TableCell>{employee.healthInsurance}</TableCell>
+                      <TableCell>{employee.pensionFund}</TableCell>
+                      <TableCell>
+                        <Badge variant={employee.status === 'Activo' ? 'default' : 'secondary'}>{employee.status}</Badge>
+                      </TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
