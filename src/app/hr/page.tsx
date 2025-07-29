@@ -3,10 +3,10 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import EmployeeForm from '@/components/employee-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,6 +56,8 @@ export default function HRPage() {
     const [generatedDoc, setGeneratedDoc] = useState<GenerateHrDocumentOutput | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const { toast } = useToast();
+    const payrollTableRef = useRef<HTMLDivElement>(null);
+
 
     const handleCreateEmployee = (newEmployeeData: Omit<Employee, 'id' | 'status' | 'documents'>) => {
         const newEmployee: Employee = {
@@ -116,6 +118,36 @@ export default function HRPage() {
         });
     };
 
+    const handleDownloadPdf = async () => {
+        const input = payrollTableRef.current;
+        if (input) {
+            const { default: jsPDF } = await import('jspdf');
+            const { default: html2canvas } = await import('html2canvas');
+            
+            const canvas = await html2canvas(input, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('l', 'px', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const ratio = canvasWidth / canvasHeight;
+            let pdfImageWidth = pdfWidth - 20;
+            let pdfImageHeight = pdfImageWidth / ratio;
+            
+            if (pdfImageHeight > pdfHeight - 20) {
+              pdfImageHeight = pdfHeight - 20;
+              pdfImageWidth = pdfImageHeight * ratio;
+            }
+
+            const xOffset = (pdfWidth - pdfImageWidth) / 2;
+
+            pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
+            pdf.save(`nomina_trabajadores.pdf`);
+        }
+    };
+
+
   return (
     <AppLayout pageTitle="Recursos Humanos">
       <Card>
@@ -125,55 +157,63 @@ export default function HRPage() {
                     <CardTitle className="font-headline">Gestión de Personal</CardTitle>
                     <CardDescription className="font-body">Administra la información y documentos de los trabajadores.</CardDescription>
                 </div>
-                <Button onClick={() => setNewEmployeeModalOpen(true)}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nuevo Trabajador
-                </Button>
+                <div className="flex items-center gap-2">
+                     <Button variant="outline" onClick={handleDownloadPdf}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Descargar Nómina (PDF)
+                    </Button>
+                    <Button onClick={() => setNewEmployeeModalOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Nuevo Trabajador
+                    </Button>
+                </div>
             </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>RUT</TableHead>
-                <TableHead>Cargo</TableHead>
-                <TableHead>Teléfono</TableHead>
-                <TableHead>Dirección</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>
-                  <span className="sr-only">Acciones</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {employees.map((employee) => (
-                <TableRow key={employee.id}>
-                  <TableCell className="font-medium">{employee.name}</TableCell>
-                  <TableCell>{employee.rut}</TableCell>
-                  <TableCell>{employee.position}</TableCell>
-                  <TableCell>{employee.phone}</TableCell>
-                  <TableCell>{employee.address}</TableCell>
-                  <TableCell>{employee.status}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Menú</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleOpenDetails(employee)}>Ver Ficha</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleOpenGenerateDoc(employee)}>Generar Documento</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+            <div ref={payrollTableRef} className="p-4 bg-background">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nombre</TableHead>
+                    <TableHead>RUT</TableHead>
+                    <TableHead>Cargo</TableHead>
+                    <TableHead>Teléfono</TableHead>
+                    <TableHead>Dirección</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>
+                      <span className="sr-only">Acciones</span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {employees.map((employee) => (
+                    <TableRow key={employee.id}>
+                      <TableCell className="font-medium">{employee.name}</TableCell>
+                      <TableCell>{employee.rut}</TableCell>
+                      <TableCell>{employee.position}</TableCell>
+                      <TableCell>{employee.phone}</TableCell>
+                      <TableCell>{employee.address}</TableCell>
+                      <TableCell>{employee.status}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Menú</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleOpenDetails(employee)}>Ver Ficha</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenGenerateDoc(employee)}>Generar Documento</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
         </CardContent>
       </Card>
       
