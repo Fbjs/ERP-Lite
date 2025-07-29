@@ -56,7 +56,7 @@ export default function HRPage() {
     const [generatedDoc, setGeneratedDoc] = useState<GenerateHrDocumentOutput | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const { toast } = useToast();
-    const payrollTableRef = useRef<HTMLDivElement>(null);
+    const pdfContentRef = useRef<HTMLDivElement>(null);
 
 
     const handleCreateEmployee = (newEmployeeData: Omit<Employee, 'id' | 'status' | 'documents'>) => {
@@ -119,14 +119,29 @@ export default function HRPage() {
     };
 
     const handleDownloadPdf = async () => {
-        const input = payrollTableRef.current;
+        const input = pdfContentRef.current;
         if (input) {
             const { default: jsPDF } = await import('jspdf');
             const { default: html2canvas } = await import('html2canvas');
             
-            const canvas = await html2canvas(input, { scale: 2 });
+            // To ensure all content is visible for capture, we need to temporarily make it visible.
+            input.style.position = 'fixed';
+            input.style.left = '-9999px';
+            input.style.top = '0';
+            input.style.zIndex = '1000';
+            input.style.display = 'block';
+
+            const canvas = await html2canvas(input, { scale: 2, backgroundColor: null });
+            
+            // Revert styles
+            input.style.position = '';
+            input.style.left = '';
+            input.style.top = '';
+            input.style.zIndex = '';
+            input.style.display = 'none';
+
             const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('l', 'px', 'a4');
+            const pdf = new jsPDF('p', 'px', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
             const canvasWidth = canvas.width;
@@ -134,22 +149,62 @@ export default function HRPage() {
             const ratio = canvasWidth / canvasHeight;
             let pdfImageWidth = pdfWidth - 20;
             let pdfImageHeight = pdfImageWidth / ratio;
-            
+
             if (pdfImageHeight > pdfHeight - 20) {
               pdfImageHeight = pdfHeight - 20;
               pdfImageWidth = pdfImageHeight * ratio;
             }
-
+            
             const xOffset = (pdfWidth - pdfImageWidth) / 2;
 
             pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
-            pdf.save(`nomina_trabajadores.pdf`);
+            pdf.save(`nomina_trabajadores_${new Date().toISOString().split('T')[0]}.pdf`);
         }
     };
 
 
   return (
     <AppLayout pageTitle="Recursos Humanos">
+    
+      {/* Hidden component for PDF generation */}
+      <div ref={pdfContentRef} style={{ display: 'none' }}>
+        <div className="p-6 bg-white text-black" style={{ width: '8.5in', minHeight: '11in'}}>
+            <div className="border-b-2 border-gray-200 pb-4 mb-4">
+                <h2 className="text-2xl font-bold text-gray-800 font-headline">Nómina de Trabajadores</h2>
+                <p className="text-sm text-gray-500 font-body">Vollkorn ERP - {new Date().toLocaleDateString('es-ES')}</p>
+            </div>
+            <table className="w-full text-left text-sm">
+                <thead className="border-b bg-gray-50">
+                    <tr>
+                        <th className="p-2 font-semibold">Nombre</th>
+                        <th className="p-2 font-semibold">RUT</th>
+                        <th className="p-2 font-semibold">Cargo</th>
+                        <th className="p-2 font-semibold">Sueldo Bruto</th>
+                        <th className="p-2 font-semibold">Previsión</th>
+                        <th className="p-2 font-semibold">AFP</th>
+                        <th className="p-2 font-semibold">F. Ingreso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {employees.map((employee) => (
+                        <tr key={employee.id} className="border-b">
+                            <td className="p-2">{employee.name}</td>
+                            <td className="p-2">{employee.rut}</td>
+                            <td className="p-2">{employee.position}</td>
+                            <td className="p-2">${employee.salary.toLocaleString('es-CL')}</td>
+                            <td className="p-2">{employee.healthInsurance}</td>
+                            <td className="p-2">{employee.pensionFund}</td>
+                            <td className="p-2">{new Date(employee.startDate).toLocaleDateString('es-CL')}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+             <div className="border-t-2 border-gray-200 pt-4 mt-4 text-center text-xs text-gray-500">
+                <p>Documento generado el {new Date().toLocaleDateString('es-ES')} a las {new Date().toLocaleTimeString('es-ES')}</p>
+            </div>
+        </div>
+      </div>
+      
       <Card>
         <CardHeader>
             <div className="flex justify-between items-center">
@@ -170,7 +225,7 @@ export default function HRPage() {
             </div>
         </CardHeader>
         <CardContent>
-            <div ref={payrollTableRef} className="p-4 bg-background">
+            <div className="p-4 bg-background">
               <Table>
                 <TableHeader>
                   <TableRow>
