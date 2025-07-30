@@ -81,9 +81,9 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
                         <h2 className="text-2xl font-headline font-semibold">{pageTitle}</h2>
                     </div>
                 </header>
-                <div className="p-4 md:p-6">
+                <main className="p-4 md:p-6 fade-in">
                     {children}
-                </div>
+                </main>
             </SidebarInset>
         </SidebarProvider>
     );
