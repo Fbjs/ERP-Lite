@@ -1,5 +1,5 @@
+'use client';
 
-"use client";
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,7 +8,7 @@ import { MoreHorizontal, PlusCircle, Download, Mail, Wheat, Calendar as Calendar
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import InvoiceForm, { InvoiceFormData } from '@/components/invoice-form';
@@ -38,7 +38,7 @@ const initialInvoices: Invoice[] = [
   { id: 'F004', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320.75, status: 'Vencida', items: '300 x Pan de Centeno' },
 ];
 
-export default function AccountingPage() {
+function AccountingPageContent() {
     const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
     const [isNewInvoiceModalOpen, setNewInvoiceModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
@@ -174,7 +174,8 @@ export default function AccountingPage() {
 
 
   return (
-    <AppLayout pageTitle="Contabilidad">
+    <Suspense fallback={<div>Cargando...</div>}>
+      <AppLayout pageTitle="Contabilidad">
     
       <div ref={reportContentRef} className="fixed -left-[9999px] top-0 bg-white text-black p-8 font-body" style={{ width: '8.5in', minHeight: '11in'}}>
           <header className="flex justify-between items-center mb-8 border-b-2 border-gray-800 pb-4">
@@ -549,7 +550,15 @@ export default function AccountingPage() {
       </Dialog>
       
     </AppLayout>
+    </Suspense>
   );
 }
 
-    
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <AccountingPageContent />
+    </Suspense>
+  );
+}
+
