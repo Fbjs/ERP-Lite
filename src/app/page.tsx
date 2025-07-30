@@ -32,11 +32,11 @@ export default function LoginPage() {
               </div>
               <Input id="password" type="password" required  className="font-body"/>
             </div>
-            <Link href="/dashboard" className="w-full">
-                <Button type="submit" className="w-full font-body">
+             <Button asChild type="submit" className="w-full font-body">
+                <Link href="/dashboard">
                     Iniciar Sesión
-                </Button>
-            </Link>
+                </Link>
+            </Button>
           </div>
           <div className="mt-4 text-center text-sm font-body">
             ¿No tienes una cuenta?{' '}
