@@ -7,6 +7,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContaine
 import { Circle, Package, ShoppingCart } from 'lucide-react';
 import { initialOrders as allProductionOrders } from '@/app/production/page';
 import { initialOrders as allSalesOrders } from '@/app/sales/page';
+import { initialInventoryItems } from '@/app/inventory/page';
 
 export default function DashboardPage() {
 
@@ -19,6 +20,15 @@ export default function DashboardPage() {
     
   const recentOrders = allSalesOrders.slice(0, 4);
 
+  const completedProductionOrders = allProductionOrders.filter(o => o.status === 'Completado').length;
+  const totalProductionOrders = allProductionOrders.length;
+  const productionCompletionPercentage = totalProductionOrders > 0 ? Math.round((completedProductionOrders / totalProductionOrders) * 100) : 0;
+
+  const totalFinishedGoods = initialInventoryItems
+    .filter(item => item.category === 'Producto Terminado')
+    .reduce((acc, item) => acc + item.stock, 0);
+
+
   return (
     <AppLayout pageTitle="Panel de Control">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -28,8 +38,8 @@ export default function DashboardPage() {
             <Circle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-headline">75% Completado</div>
-            <p className="text-xs text-muted-foreground font-body">+20.1% desde la semana pasada</p>
+            <div className="text-2xl font-bold font-headline">{productionCompletionPercentage}% Completado</div>
+            <p className="text-xs text-muted-foreground font-body">{completedProductionOrders} de {totalProductionOrders} órdenes completadas</p>
           </CardContent>
         </Card>
         <Card>
@@ -38,8 +48,8 @@ export default function DashboardPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-headline">12,234 unidades</div>
-            <p className="text-xs text-muted-foreground font-body">Todos los almacenes</p>
+            <div className="text-2xl font-bold font-headline">{totalFinishedGoods.toLocaleString('es-CL')} unidades</div>
+            <p className="text-xs text-muted-foreground font-body">Total de productos terminados</p>
           </CardContent>
         </Card>
         <Card>
