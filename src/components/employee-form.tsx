@@ -11,6 +11,7 @@ type EmployeeData = {
     name: string;
     rut: string;
     position: string;
+    role: 'Admin' | 'Producción' | 'Ventas' | 'Logística' | 'Contabilidad';
     contractType: string;
     startDate: string;
     salary: number;
@@ -30,6 +31,7 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
   const [name, setName] = useState(initialData.name || '');
   const [rut, setRut] = useState(initialData.rut || '');
   const [position, setPosition] = useState(initialData.position || '');
+  const [role, setRole] = useState(initialData.role || 'Producción');
   const [contractType, setContractType] = useState(initialData.contractType || 'Indefinido');
   const [startDate, setStartDate] = useState(initialData.startDate || '');
   const [salary, setSalary] = useState(initialData.salary || 0);
@@ -41,7 +43,7 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ name, rut, position, contractType, startDate, salary, phone, address, healthInsurance, pensionFund });
+    onSubmit({ name, rut, position, role, contractType, startDate, salary, phone, address, healthInsurance, pensionFund });
   };
 
   return (
@@ -107,6 +109,23 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
           className="col-span-3"
           required
         />
+      </div>
+       <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="role" className="text-right">
+          Rol
+        </Label>
+         <Select value={role} onValueChange={(value) => setRole(value as EmployeeData['role'])}>
+            <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Selecciona un rol" />
+            </SelectTrigger>
+            <SelectContent>
+                <SelectItem value="Admin">Admin</SelectItem>
+                <SelectItem value="Producción">Producción</SelectItem>
+                <SelectItem value="Ventas">Ventas</SelectItem>
+                <SelectItem value="Logística">Logística</SelectItem>
+                <SelectItem value="Contabilidad">Contabilidad</SelectItem>
+            </SelectContent>
+        </Select>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="startDate" className="text-right">

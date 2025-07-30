@@ -27,6 +27,7 @@ type Employee = {
     name: string;
     rut: string;
     position: string;
+    role: 'Admin' | 'Producción' | 'Ventas' | 'Logística' | 'Contabilidad';
     contractType: string;
     startDate: string;
     salary: number;
@@ -39,10 +40,10 @@ type Employee = {
 };
 
 const initialEmployees: Employee[] = [
-  { id: 'EMP001', name: 'Juan Pérez', rut: '12.345.678-9', position: 'Panadero Jefe', contractType: 'Indefinido', startDate: '2022-01-15', salary: 850000, status: 'Activo', phone: '+56987654321', address: 'Av. Siempre Viva 742', healthInsurance: 'Fonasa', pensionFund: 'Modelo', documents: [{name: 'Contrato.pdf', url: '#'}] },
-  { id: 'EMP002', name: 'Ana Gómez', rut: '23.456.789-0', position: 'Auxiliar de Pastelería', contractType: 'Plazo Fijo', startDate: '2023-03-01', salary: 600000, status: 'Activo', phone: '+56912345678', address: 'Calle Falsa 123', healthInsurance: 'Consalud', pensionFund: 'Habitat', documents: [] },
-  { id: 'EMP003', name: 'Luis Martínez', rut: '11.222.333-4', position: 'Conductor Despacho', contractType: 'Indefinido', startDate: '2021-08-20', salary: 750000, status: 'Vacaciones', phone: '+56955554444', address: 'Pasaje Corto 45', healthInsurance: 'Cruz Blanca', pensionFund: 'Capital', documents: [] },
-  { id: 'EMP004', name: 'María Rodríguez', rut: '15.678.901-2', position: 'Administrativa', contractType: 'Indefinido', startDate: '2020-05-10', salary: 950000, status: 'Activo', phone: '+56999998888', address: 'El Roble 1010', healthInsurance: 'Fonasa', pensionFund: 'PlanVital', documents: [] },
+  { id: 'EMP001', name: 'Juan Pérez', rut: '12.345.678-9', position: 'Panadero Jefe', role: 'Producción', contractType: 'Indefinido', startDate: '2022-01-15', salary: 850000, status: 'Activo', phone: '+56987654321', address: 'Av. Siempre Viva 742', healthInsurance: 'Fonasa', pensionFund: 'Modelo', documents: [{name: 'Contrato.pdf', url: '#'}] },
+  { id: 'EMP002', name: 'Ana Gómez', rut: '23.456.789-0', position: 'Auxiliar de Pastelería', role: 'Producción', contractType: 'Plazo Fijo', startDate: '2023-03-01', salary: 600000, status: 'Activo', phone: '+56912345678', address: 'Calle Falsa 123', healthInsurance: 'Consalud', pensionFund: 'Habitat', documents: [] },
+  { id: 'EMP003', name: 'Luis Martínez', rut: '11.222.333-4', position: 'Conductor Despacho', role: 'Logística', contractType: 'Indefinido', startDate: '2021-08-20', salary: 750000, status: 'Vacaciones', phone: '+56955554444', address: 'Pasaje Corto 45', healthInsurance: 'Cruz Blanca', pensionFund: 'Capital', documents: [] },
+  { id: 'EMP004', name: 'María Rodríguez', rut: '15.678.901-2', position: 'Administrativa', role: 'Admin', contractType: 'Indefinido', startDate: '2020-05-10', salary: 950000, status: 'Activo', phone: '+56999998888', address: 'El Roble 1010', healthInsurance: 'Fonasa', pensionFund: 'PlanVital', documents: [] },
 ];
 
 export default function HRPage() {
@@ -245,9 +246,7 @@ export default function HRPage() {
                     <TableHead>Nombre</TableHead>
                     <TableHead>RUT</TableHead>
                     <TableHead>Cargo</TableHead>
-                    <TableHead>Sueldo Bruto</TableHead>
-                    <TableHead>Previsión</TableHead>
-                    <TableHead>AFP</TableHead>
+                    <TableHead>Rol</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>
                       <span className="sr-only">Acciones</span>
@@ -260,9 +259,7 @@ export default function HRPage() {
                       <TableCell className="font-medium">{employee.name}</TableCell>
                       <TableCell>{employee.rut}</TableCell>
                       <TableCell>{employee.position}</TableCell>
-                      <TableCell>${employee.salary.toLocaleString('es-CL')}</TableCell>
-                      <TableCell>{employee.healthInsurance}</TableCell>
-                      <TableCell>{employee.pensionFund}</TableCell>
+                      <TableCell><Badge variant="secondary">{employee.role}</Badge></TableCell>
                       <TableCell>
                         <Badge variant={employee.status === 'Activo' ? 'default' : 'secondary'}>{employee.status}</Badge>
                       </TableCell>
@@ -340,6 +337,10 @@ export default function HRPage() {
                     <div className="space-y-1">
                         <p className="font-semibold text-muted-foreground text-sm">Tipo Contrato</p>
                         <p>{selectedEmployee.contractType}</p>
+                    </div>
+                     <div className="space-y-1">
+                        <p className="font-semibold text-muted-foreground text-sm">Rol</p>
+                        <p>{selectedEmployee.role}</p>
                     </div>
                     <div className="space-y-1">
                         <p className="font-semibold text-muted-foreground text-sm">Fecha Ingreso</p>
