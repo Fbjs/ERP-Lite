@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,7 +31,7 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
   const [name, setName] = useState(initialData.name || '');
   const [rut, setRut] = useState(initialData.rut || '');
   const [position, setPosition] = useState(initialData.position || '');
-  const [role, setRole] = useState(initialData.role || 'Producción');
+  const [role, setRole] = useState<EmployeeData['role']>(initialData.role || 'Producción');
   const [contractType, setContractType] = useState(initialData.contractType || 'Indefinido');
   const [startDate, setStartDate] = useState(initialData.startDate || '');
   const [salary, setSalary] = useState(initialData.salary || 0);
@@ -40,6 +40,7 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
   const [healthInsurance, setHealthInsurance] = useState(initialData.healthInsurance || '');
   const [pensionFund, setPensionFund] = useState(initialData.pensionFund || '');
 
+  const isEditing = !!initialData.name;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,7 +200,7 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
         <Button variant="outline" type="button" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit">Crear Trabajador</Button>
+        <Button type="submit">{isEditing ? 'Guardar Cambios' : 'Crear Trabajador'}</Button>
       </DialogFooter>
     </form>
   );

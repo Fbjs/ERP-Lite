@@ -7,20 +7,31 @@ import { LogOut, Wheat, LayoutDashboard, NotebookText, Factory, ShoppingCart, Br
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+type UserRole = 'Admin' | 'Producción' | 'Ventas' | 'Logística' | 'Contabilidad';
+
 const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTitle: string }) => {
     const pathname = usePathname();
 
-    const menuItems = [
-        { href: '/dashboard', label: 'Panel de Control', icon: LayoutDashboard },
-        { href: '/production', label: 'Producción', icon: Factory },
-        { href: '/recipes', label: 'Recetas', icon: NotebookText },
-        { href: '/sales', label: 'Ventas', icon: ShoppingCart },
-        { href: '/inventory', label: 'Inventario', icon: Warehouse },
-        { href: '/logistics', label: 'Logística', icon: Truck },
-        { href: '/hr', label: 'Recursos Humanos', icon: Users },
-        { href: '/accounting', label: 'Contabilidad', icon: BookCopy },
-        { href: '/forecast', label: 'Pronóstico IA', icon: BrainCircuit },
+    // --- Simulación de Usuario y Rol ---
+    // Cambia el rol aquí para probar diferentes vistas:
+    // 'Admin', 'Producción', 'Ventas', 'Logística', 'Contabilidad'
+    const currentUserRole: UserRole = 'Admin'; 
+    // ------------------------------------
+
+    const allMenuItems = [
+        { href: '/dashboard', label: 'Panel de Control', icon: LayoutDashboard, roles: ['Admin', 'Producción', 'Ventas', 'Logística', 'Contabilidad'] },
+        { href: '/production', label: 'Producción', icon: Factory, roles: ['Admin', 'Producción'] },
+        { href: '/recipes', label: 'Recetas', icon: NotebookText, roles: ['Admin', 'Producción'] },
+        { href: '/sales', label: 'Ventas', icon: ShoppingCart, roles: ['Admin', 'Ventas', 'Contabilidad'] },
+        { href: '/inventory', label: 'Inventario', icon: Warehouse, roles: ['Admin', 'Producción', 'Logística'] },
+        { href: '/logistics', label: 'Logística', icon: Truck, roles: ['Admin', 'Ventas', 'Logística'] },
+        { href: '/hr', label: 'Recursos Humanos', icon: Users, roles: ['Admin'] },
+        { href: '/accounting', label: 'Contabilidad', icon: BookCopy, roles: ['Admin', 'Contabilidad'] },
+        { href: '/forecast', label: 'Pronóstico IA', icon: BrainCircuit, roles: ['Admin'] },
     ];
+
+    const menuItems = allMenuItems.filter(item => item.roles.includes(currentUserRole));
+
 
     return (
         <SidebarProvider>
