@@ -221,7 +221,7 @@ export default function HRPage() {
       
       <Card>
         <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
                     <CardTitle className="font-headline">Gestión de Personal</CardTitle>
                     <CardDescription className="font-body">Administra la información y documentos de los trabajadores.</CardDescription>
@@ -239,8 +239,8 @@ export default function HRPage() {
             </div>
         </CardHeader>
         <CardContent>
-            <div className="p-4 bg-background">
-              <Table>
+            <div className="p-0 md:p-4 bg-background">
+              <Table className="responsive-table">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Nombre</TableHead>
@@ -256,11 +256,11 @@ export default function HRPage() {
                 <TableBody>
                   {employees.map((employee) => (
                     <TableRow key={employee.id}>
-                      <TableCell className="font-medium">{employee.name}</TableCell>
-                      <TableCell>{employee.rut}</TableCell>
-                      <TableCell>{employee.position}</TableCell>
-                      <TableCell><Badge variant="secondary">{employee.role}</Badge></TableCell>
-                      <TableCell>
+                      <TableCell data-label="Nombre" className="font-medium">{employee.name}</TableCell>
+                      <TableCell data-label="RUT">{employee.rut}</TableCell>
+                      <TableCell data-label="Cargo">{employee.position}</TableCell>
+                      <TableCell data-label="Rol"><Badge variant="secondary">{employee.role}</Badge></TableCell>
+                      <TableCell data-label="Estado">
                         <Badge variant={employee.status === 'Activo' ? 'default' : 'secondary'}>{employee.status}</Badge>
                       </TableCell>
                       <TableCell>

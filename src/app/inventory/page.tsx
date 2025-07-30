@@ -198,7 +198,7 @@ export default function InventoryPage() {
                         <Input 
                           type="search" 
                           placeholder="Buscar por SKU o nombre..." 
-                          className="pl-8 sm:w-[300px]"
+                          className="pl-8 w-full sm:w-[300px]"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -215,7 +215,7 @@ export default function InventoryPage() {
             </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="responsive-table">
             <TableHeader>
               <TableRow>
                 <TableHead>SKU</TableHead>
@@ -231,13 +231,13 @@ export default function InventoryPage() {
             <TableBody>
               {filteredItems.map((item) => (
                 <TableRow key={item.sku}>
-                  <TableCell className="font-medium">{item.sku}</TableCell>
-                  <TableCell>{item.name}</TableCell>
-                  <TableCell>
+                  <TableCell data-label="SKU" className="font-medium">{item.sku}</TableCell>
+                  <TableCell data-label="Nombre">{item.name}</TableCell>
+                  <TableCell data-label="Categoría">
                     <Badge variant="outline">{item.category}</Badge>
                   </TableCell>
-                  <TableCell>{item.stock} {item.unit}</TableCell>
-                  <TableCell>{item.location}</TableCell>
+                  <TableCell data-label="Stock">{item.stock} {item.unit}</TableCell>
+                  <TableCell data-label="Ubicación">{item.location}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

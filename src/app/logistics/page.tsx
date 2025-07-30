@@ -121,7 +121,7 @@ export default function LogisticsPage() {
     <AppLayout pageTitle="Logística y Despacho">
       <Card>
         <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
                     <CardTitle className="font-headline">Gestión de Despachos</CardTitle>
                     <CardDescription className="font-body">Coordina la preparación y entrega de pedidos.</CardDescription>
@@ -133,7 +133,7 @@ export default function LogisticsPage() {
             </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="responsive-table">
             <TableHeader>
               <TableRow>
                 <TableHead>Despacho ID</TableHead>
@@ -149,11 +149,11 @@ export default function LogisticsPage() {
             <TableBody>
               {shipments.map((shipment) => (
                 <TableRow key={shipment.id}>
-                  <TableCell className="font-medium">{shipment.id}</TableCell>
-                  <TableCell>{shipment.client}</TableCell>
-                  <TableCell>{shipment.address}</TableCell>
-                  <TableCell>{shipment.vehicle}</TableCell>
-                  <TableCell>
+                  <TableCell data-label="Despacho ID" className="font-medium">{shipment.id}</TableCell>
+                  <TableCell data-label="Cliente">{shipment.client}</TableCell>
+                  <TableCell data-label="Dirección">{shipment.address}</TableCell>
+                  <TableCell data-label="Vehículo">{shipment.vehicle}</TableCell>
+                  <TableCell data-label="Estado">
                     <Badge variant={
                         shipment.status === 'Entregado' ? 'default' :
                         shipment.status === 'En Ruta' ? 'secondary' :
@@ -226,7 +226,7 @@ export default function LogisticsPage() {
                         </div>
                     </header>
 
-                    <section className="grid grid-cols-2 gap-8 mb-10">
+                    <section className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-10">
                         <div>
                             <h3 className="font-headline text-base font-semibold text-gray-600 mb-2 border-b pb-1">Remitente:</h3>
                             <p className="font-bold text-gray-800 text-sm">Panificadora Vollkorn</p>
@@ -239,7 +239,7 @@ export default function LogisticsPage() {
                         </div>
                     </section>
                     
-                    <section className="grid grid-cols-3 gap-4 mb-10 text-sm">
+                    <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 text-sm">
                         <div className="bg-gray-50 p-2 rounded-md border">
                             <p className="font-semibold text-gray-600">Nº Orden de Venta:</p>
                             <p>{selectedShipment.order}</p>

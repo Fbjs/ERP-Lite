@@ -144,7 +144,7 @@ export default function ProductionPage() {
     <AppLayout pageTitle="Producción">
       <Card>
         <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
                     <CardTitle className="font-headline">Órdenes de Producción</CardTitle>
                     <CardDescription className="font-body">Rastrea y gestiona las órdenes de producción.</CardDescription>
@@ -156,7 +156,7 @@ export default function ProductionPage() {
             </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="responsive-table">
             <TableHeader>
               <TableRow>
                 <TableHead>ID de Orden</TableHead>
@@ -171,14 +171,14 @@ export default function ProductionPage() {
             <TableBody>
               {orders.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.product}</TableCell>
-                  <TableCell>{order.quantity}</TableCell>
-                  <TableCell>
+                  <TableCell data-label="ID de Orden" className="font-medium">{order.id}</TableCell>
+                  <TableCell data-label="Producto">{order.product}</TableCell>
+                  <TableCell data-label="Cantidad">{order.quantity}</TableCell>
+                  <TableCell data-label="Estado">
                     <Badge variant={order.status === 'Completado' ? 'default' : order.status === 'En Progreso' ? 'secondary' : 'outline'}>{order.status}</Badge>
                   </TableCell>
-                  <TableCell>{order.stage}</TableCell>
-                  <TableCell>{order.date}</TableCell>
+                  <TableCell data-label="Etapa">{order.stage}</TableCell>
+                  <TableCell data-label="Fecha">{order.date}</TableCell>
                    <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -230,7 +230,7 @@ export default function ProductionPage() {
                         <h2 className="text-2xl font-bold text-gray-800 font-headline">Orden de Producción: {selectedOrder.id}</h2>
                         <p className="text-sm text-gray-500 font-body">Vollkorn ERP</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4 font-body mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 font-body mb-6">
                         <div>
                             <p className="font-semibold text-gray-600">Producto:</p>
                             <p>{selectedOrder.product}</p>
@@ -251,7 +251,7 @@ export default function ProductionPage() {
                                 </Badge>
                             </p>
                         </div>
-                        <div className="col-span-2">
+                        <div className="sm:col-span-2">
                             <p className="font-semibold text-gray-600">Etapa de Producción:</p>
                             <p>{selectedOrder.stage}</p>
                         </div>

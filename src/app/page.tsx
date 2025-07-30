@@ -7,7 +7,7 @@ import { Wheat } from 'lucide-react';
 
 export default function LoginPage() {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="mx-auto max-w-sm w-full shadow-2xl">
         <CardHeader className="space-y-1 text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
@@ -32,10 +32,8 @@ export default function LoginPage() {
               </div>
               <Input id="password" type="password" required  className="font-body"/>
             </div>
-             <Button asChild type="submit" className="w-full font-body">
-                <Link href="/dashboard">
-                    Iniciar Sesión
-                </Link>
+            <Button asChild type="submit" className="w-full font-body">
+              <Link href="/dashboard">Iniciar Sesión</Link>
             </Button>
           </div>
           <div className="mt-4 text-center text-sm font-body">

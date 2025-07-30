@@ -118,7 +118,7 @@ export default function RecipesPage() {
     <AppLayout pageTitle="Recetas">
       <Card>
         <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
                     <CardTitle className="font-headline">Recetas</CardTitle>
                     <CardDescription className="font-body">Gestiona las recetas y costos de tus productos.</CardDescription>
@@ -130,7 +130,7 @@ export default function RecipesPage() {
             </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="responsive-table">
             <TableHeader>
               <TableRow>
                 <TableHead>ID de Receta</TableHead>
@@ -146,11 +146,11 @@ export default function RecipesPage() {
             <TableBody>
               {recipes.map((recipe) => (
                 <TableRow key={recipe.id} className="hover:bg-muted/50">
-                  <TableCell className="font-medium">{recipe.id}</TableCell>
-                  <TableCell>{recipe.name}</TableCell>
-                  <TableCell>{recipe.ingredients.length}</TableCell>
-                  <TableCell>${recipe.cost.toFixed(2)}</TableCell>
-                  <TableCell>{recipe.lastUpdated}</TableCell>
+                  <TableCell data-label="ID Receta" className="font-medium">{recipe.id}</TableCell>
+                  <TableCell data-label="Nombre">{recipe.name}</TableCell>
+                  <TableCell data-label="Nº Ingredientes">{recipe.ingredients.length}</TableCell>
+                  <TableCell data-label="Costo">${recipe.cost.toFixed(2)}</TableCell>
+                  <TableCell data-label="Actualizado">{recipe.lastUpdated}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -203,7 +203,7 @@ export default function RecipesPage() {
           {selectedRecipe && (
              <div ref={detailsModalContentRef} className="max-h-[60vh] overflow-y-auto font-body p-1 bg-white text-black rounded-md">
                 <div className="p-6">
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 mb-6">
                         <div>
                             <p className="font-semibold text-gray-600">Nombre del Producto:</p>
                             <p className="text-lg">{selectedRecipe.name}</p>

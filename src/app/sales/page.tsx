@@ -187,14 +187,14 @@ export default function SalesPage() {
                             <CardTitle className="font-headline">Órdenes de Venta</CardTitle>
                             <CardDescription className="font-body">Ingresa nuevas órdenes de venta y rastrea las existentes.</CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center flex-wrap gap-2">
                              <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
                                         id="date"
                                         variant={"outline"}
                                         className={cn(
-                                        "w-[300px] justify-start text-left font-normal",
+                                        "w-full sm:w-[300px] justify-start text-left font-normal",
                                         !dateRange && "text-muted-foreground"
                                         )}
                                     >
@@ -288,7 +288,7 @@ export default function SalesPage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
+              <Table className="responsive-table">
                 <TableHeader>
                   <TableRow>
                     <TableHead>ID de Orden</TableHead>
@@ -302,10 +302,10 @@ export default function SalesPage() {
                 <TableBody>
                   {filteredOrders.map((order) => (
                     <TableRow key={order.id}>
-                      <TableCell className="font-medium">{order.id}</TableCell>
-                      <TableCell>{order.customer}</TableCell>
-                      <TableCell className="text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
-                      <TableCell>
+                      <TableCell data-label="ID Orden" className="font-medium">{order.id}</TableCell>
+                      <TableCell data-label="Cliente">{order.customer}</TableCell>
+                      <TableCell data-label="Monto" className="text-left sm:text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
+                      <TableCell data-label="Estado">
                          <Badge 
                             variant={
                                 order.status === 'Completado' ? 'default' :
@@ -317,7 +317,7 @@ export default function SalesPage() {
                             {order.status}
                         </Badge>
                       </TableCell>
-                      <TableCell>{new Date(order.date).toLocaleDateString('es-CL')}</TableCell>
+                      <TableCell data-label="Fecha">{new Date(order.date).toLocaleDateString('es-CL')}</TableCell>
                        <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -376,13 +376,13 @@ export default function SalesPage() {
                         <h2 className="text-2xl font-bold text-gray-800 font-headline">Orden de Venta</h2>
                         <p className="text-sm text-gray-500 font-body">Vollkorn ERP</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4 font-body mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 font-body mb-6">
                         <div><p className="font-semibold text-gray-600">ID Orden:</p><p>{selectedOrder.id}</p></div>
                         <div><p className="font-semibold text-gray-600">Fecha:</p><p>{new Date(selectedOrder.date).toLocaleDateString('es-ES')}</p></div>
                         <div><p className="font-semibold text-gray-600">Cliente:</p><p>{selectedOrder.customer}</p></div>
                         <div><p className="font-semibold text-gray-600">Monto Total:</p><p>${selectedOrder.amount.toLocaleString('es-CL')}</p></div>
-                        <div className="col-span-2"><p className="font-semibold text-gray-600">Estado:</p><p>{selectedOrder.status}</p></div>
-                        <div className="col-span-2"><p className="font-semibold text-gray-600">Detalles del Pedido:</p><p className="whitespace-pre-wrap">{selectedOrder.details}</p></div>
+                        <div className="sm:col-span-2"><p className="font-semibold text-gray-600">Estado:</p><p>{selectedOrder.status}</p></div>
+                        <div className="sm:col-span-2"><p className="font-semibold text-gray-600">Detalles del Pedido:</p><p className="whitespace-pre-wrap">{selectedOrder.details}</p></div>
                     </div>
                     <div className="border-t-2 border-gray-200 pt-4 mt-4 text-center text-xs text-gray-500">
                         <p>Documento generado el {new Date().toLocaleDateString('es-ES')}</p>
