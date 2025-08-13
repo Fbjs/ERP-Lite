@@ -256,8 +256,8 @@ export default function ProductionPage() {
                                 <div className="flex items-center gap-3">
                                     <Logo className="w-28 text-orange-600" />
                                     <div>
-                                        <h1 className="text-xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
-                                        <p className="text-xs text-gray-500">Avenida Principal 123, Santiago, Chile</p>
+                                        <h1 className="text-xl font-bold font-headline text-gray-800">Alimentos Vollkorn</h1>
+                                        <p className="text-xs text-gray-500">Casa Matriz</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
@@ -266,40 +266,39 @@ export default function ProductionPage() {
                                 </div>
                             </header>
 
-                            {/* TURNOS Y RESPONSABLES */}
-                            <div className="border border-gray-400 p-2 rounded-md">
-                                <h3 className="text-sm font-bold text-center mb-2 font-headline">TURNOS</h3>
-                                <div className="grid grid-cols-4 gap-2 text-center">
-                                    <div><div className="border p-1">7-10</div></div>
-                                    <div><div className="border p-1">10-12</div></div>
-                                    <div><div className="border p-1">12-15</div></div>
-                                    <div><div className="border p-1">15-18</div></div>
+                             {/* DETALLES DE ORDEN */}
+                            <div className="border border-gray-400 p-2 rounded-md grid grid-cols-2 gap-x-4">
+                                <div>
+                                    <p><span className="font-semibold">Producto a Fabricar:</span> {selectedOrder.product}</p>
+                                    <p><span className="font-semibold">Clasificación:</span> Producto Terminado</p>
+                                    <p><span className="font-semibold">Cantidad:</span> {selectedOrder.quantity} unidades</p>
                                 </div>
-                                <div className="grid grid-cols-2 gap-x-4 mt-2 border-t pt-2">
-                                    <div className="space-y-1"><p className="font-semibold">Resp. Fraccionamiento:</p><div className="border-b h-4"></div></div>
-                                    <div className="space-y-1"><p className="font-semibold">Resp. Producción:</p><div className="border-b h-4"></div></div>
-                                    <div className="space-y-1"><p className="font-semibold">Resp. Cocción:</p><div className="border-b h-4"></div></div>
+                                <div className="text-right">
+                                    <p><span className="font-semibold">Fecha:</span> {new Date(selectedOrder.date).toLocaleDateString('es-CL')}</p>
+                                    <p><span className="font-semibold">Hora:</span> {new Date(selectedOrder.date).toLocaleTimeString('es-CL')}</p>
                                 </div>
                             </div>
-                            
+
                              {/* MATERIALES REQUERIDOS */}
                             <div className="border border-gray-400 p-2 rounded-md">
-                                <h3 className="text-sm font-bold text-center mb-2 font-headline">Materiales Requeridos</h3>
+                                <h3 className="text-sm font-bold text-center mb-2 font-headline">LISTA DE MATERIALES</h3>
                                 {selectedOrderRecipe ? (
                                     <Table className="w-full text-xs">
                                         <TableHeader><TableRow>
-                                            <TableHead className="text-left font-bold text-gray-700 h-6 px-1">SKU</TableHead>
+                                            <TableHead className="text-left font-bold text-gray-700 h-6 px-1">Código</TableHead>
                                             <TableHead className="text-left font-bold text-gray-700 h-6 px-1">Descripción</TableHead>
-                                            <TableHead className="text-right font-bold text-gray-700 h-6 px-1">Cant. Requerida</TableHead>
-                                            <TableHead className="text-right font-bold text-gray-700 h-6 px-1">Stock Actual</TableHead>
+                                            <TableHead className="text-right font-bold text-gray-700 h-6 px-1">Unidad</TableHead>
+                                            <TableHead className="text-left font-bold text-gray-700 h-6 px-1">Clasificación</TableHead>
+                                            <TableHead className="text-right font-bold text-gray-700 h-6 px-1">Cantidad</TableHead>
                                         </TableRow></TableHeader>
                                         <TableBody>
                                             {requiredMaterials.map(material => (
-                                                <TableRow key={material.sku} className={material.requiredQuantity > material.availableStock ? 'bg-red-50' : ''}>
+                                                <TableRow key={material.sku}>
                                                     <TableCell className="py-1 px-1">{material.sku}</TableCell>
                                                     <TableCell className="py-1 px-1">{material.name}</TableCell>
-                                                    <TableCell className="text-right py-1 px-1">{material.requiredQuantity.toFixed(2)} {material.unit}</TableCell>
-                                                    <TableCell className={`text-right font-medium py-1 px-1 ${material.requiredQuantity > material.availableStock ? 'text-red-600' : ''}`}>{material.availableStock.toFixed(2)} {material.unit}</TableCell>
+                                                    <TableCell className="text-right py-1 px-1">{material.unit}</TableCell>
+                                                    <TableCell className="py-1 px-1">{material.category}</TableCell>
+                                                    <TableCell className="text-right py-1 px-1">{material.requiredQuantity.toFixed(2)}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
@@ -309,9 +308,39 @@ export default function ProductionPage() {
                                 )}
                             </div>
 
+                             {/* DOTACION DE PERSONAL */}
+                            <div className="border border-gray-400 p-2 rounded-md">
+                                <h3 className="text-sm font-bold text-center mb-2 font-headline">DOTACIÓN DE PERSONAL</h3>
+                                 <Table className="w-full text-xs">
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="text-left font-bold text-gray-700 h-6 px-1">Rut/Sec</TableHead>
+                                            <TableHead className="text-left font-bold text-gray-700 h-6 px-1">Ap. Paterno</TableHead>
+                                            <TableHead className="text-left font-bold text-gray-700 h-6 px-1">Ap. Materno</TableHead>
+                                            <TableHead className="text-left font-bold text-gray-700 h-6 px-1">Nombres</TableHead>
+                                            <TableHead className="text-right font-bold text-gray-700 h-6 px-1">Hora Inicio</TableHead>
+                                            <TableHead className="text-right font-bold text-gray-700 h-6 px-1">Hora Término</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {[...Array(4)].map((_, i) => (
+                                             <TableRow key={i}>
+                                                <TableCell className="py-2 border-b"><div className="h-4"></div></TableCell>
+                                                <TableCell className="py-2 border-b"><div className="h-4"></div></TableCell>
+                                                <TableCell className="py-2 border-b"><div className="h-4"></div></TableCell>
+                                                <TableCell className="py-2 border-b"><div className="h-4"></div></TableCell>
+                                                <TableCell className="py-2 border-b"><div className="h-4"></div></TableCell>
+                                                <TableCell className="py-2 border-b"><div className="h-4"></div></TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                            
                             {/* MEZCLADO - AMASADO */}
-                             <div className="border border-gray-400 p-2 rounded-md">
-                                <h3 className="text-sm font-bold text-center mb-2 font-headline">MEZCLADO - AMASADO</h3>
+                             <div className="border border-gray-400 p-2 rounded-md mt-4">
+                                <h3 className="text-sm font-bold text-center mb-2 font-headline">REGISTRO DE CONTROL DE PROCESO</h3>
+                                <h4 className="font-semibold font-headline">MEZCLADO - AMASADO</h4>
                                 <div className="grid grid-cols-4 gap-x-4 gap-y-1">
                                     <div className="col-span-1"><p className="font-semibold">Insumo Hidratado:</p><div className="border-b h-4"></div></div>
                                     <div className="col-span-1"><p className="font-semibold">Hora y Fecha Inicio:</p><div className="border-b h-4"></div></div>
@@ -339,7 +368,7 @@ export default function ProductionPage() {
                             
                             {/* PORCIONADO / FORMADO */}
                             <div className="border border-gray-400 p-2 rounded-md">
-                                <h3 className="text-sm font-bold text-center mb-2 font-headline">PORCIONADO - OVILLADO - FORMADO - MOLDEADO</h3>
+                                <h4 className="font-semibold font-headline">PORCIONADO - OVILLADO - FORMADO - MOLDEADO</h4>
                                 <div className="grid grid-cols-4 gap-x-4 gap-y-1">
                                     <div><p className="font-semibold">Hora Inicio:</p><div className="border-b h-4"></div></div>
                                     <div><p className="font-semibold">Corte Crudo 1 (gr):</p><div className="border-b h-4"></div></div>
@@ -354,7 +383,7 @@ export default function ProductionPage() {
                             
                             {/* FERMENTADO */}
                              <div className="border border-gray-400 p-2 rounded-md">
-                                <h3 className="text-sm font-bold text-center mb-2 font-headline">FERMENTADO</h3>
+                                <h4 className="font-semibold font-headline">FERMENTADO</h4>
                                 <div className="grid grid-cols-4 gap-x-4 gap-y-1">
                                     <div><p className="font-semibold">Cámara:</p><div className="border-b h-4"></div></div>
                                     <div><p className="font-semibold">Hora Entrada:</p><div className="border-b h-4"></div></div>
@@ -366,7 +395,7 @@ export default function ProductionPage() {
 
                             {/* HORNEADO */}
                             <div className="border border-gray-400 p-2 rounded-md">
-                                <h3 className="text-sm font-bold text-center mb-2 font-headline">HORNEADO</h3>
+                                <h4 className="font-semibold font-headline">HORNEADO</h4>
                                 <div className="grid grid-cols-4 gap-x-4 gap-y-1">
                                      <div><p className="font-semibold">Horno:</p><div className="border-b h-4"></div></div>
                                      <div><p className="font-semibold">N° de Pisos:</p><div className="border-b h-4"></div></div>
@@ -379,7 +408,7 @@ export default function ProductionPage() {
 
                             {/* REGISTRO HORNEO (PCC2) */}
                             <div className="border border-gray-400 p-2 rounded-md">
-                                <h3 className="text-sm font-bold text-center mb-2 font-headline">REGISTRO HORNEO (PCC2)</h3>
+                                <h4 className="font-semibold font-headline">REGISTRO HORNEO (PCC2)</h4>
                                 <div className="grid grid-cols-3 gap-x-4 gap-y-1">
                                      <div><p className="font-semibold">T° Horno (°C):</p><div className="border-b h-4"></div></div>
                                      <div><p className="font-semibold">T° Centro Térmico (°C):</p><div className="border-b h-4"></div></div>
@@ -389,10 +418,19 @@ export default function ProductionPage() {
                                 <div className="mt-1"><p className="font-semibold">Observaciones:</p><div className="border-b h-4"></div></div>
                             </div>
 
-
-                            <div className="border-t-2 border-gray-200 pt-2 mt-4 text-center text-xs text-gray-500">
-                                <p>Documento generado el {new Date().toLocaleString('es-ES')}</p>
-                            </div>
+                            {/* FIRMAS */}
+                            <footer className="grid grid-cols-2 gap-4 mt-12 text-center">
+                                 <div>
+                                    <div className="border-t-2 border-gray-400 pt-2 w-48 mx-auto">
+                                        <p className="font-semibold text-gray-700">V.B. Supervisor</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="border-t-2 border-gray-400 pt-2 w-48 mx-auto">
+                                        <p className="font-semibold text-gray-700">V.B. Jefe de Turno</p>
+                                    </div>
+                                </div>
+                            </footer>
                         </div>
                     </div>
                 )}
