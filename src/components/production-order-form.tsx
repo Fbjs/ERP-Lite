@@ -22,7 +22,8 @@ export type ProductionOrderData = {
     charge: string,
     machine: string,
     turn: string,
-    operator: string,
+    operator: string;
+    status: 'En Progreso' | 'Completado' | 'En Cola';
     responsibles: {
         fractionation: string,
         production: string,
@@ -31,7 +32,7 @@ export type ProductionOrderData = {
 };
 
 type ProductionOrderFormProps = {
-  onSubmit: (data: ProductionOrderData) => void;
+  onSubmit: (data: ProductionOrderData & { status: Order['status'] }) => void;
   onCancel: () => void;
   initialData?: Order | null;
 };
@@ -40,6 +41,7 @@ const initialFormData: ProductionOrderData = {
     product: '',
     quantity: 0,
     stage: 'En Cola',
+    status: 'En Cola',
     charge: '',
     machine: '',
     turn: '',
@@ -52,14 +54,12 @@ const initialFormData: ProductionOrderData = {
 };
 
 export default function ProductionOrderForm({ onSubmit, onCancel, initialData }: ProductionOrderFormProps) {
-    const [formData, setFormData] = useState<ProductionOrderData>(initialData || initialFormData);
+    const [formData, setFormData] = useState<ProductionOrderData>(initialData ? { ...initialData } : initialFormData);
+    const [status, setStatus] = useState<Order['status']>(initialData?.status || 'En Cola');
     const [employees, setEmployees] = useState<{ id: string, name: string }[]>([]);
 
     useEffect(() => {
         // In a real app, this would be an API call.
-        // For now, we simulate fetching employees from the HR page's data.
-        // We need to import the initialEmployees from hr/page.tsx for this to work.
-        // As we can't import directly, we'll mock it for now.
         setEmployees([
             { id: 'EMP001', name: 'Juan Pérez' },
             { id: 'EMP002', name: 'Ana Gómez' },
@@ -69,8 +69,10 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
 
         if (initialData) {
             setFormData(initialData);
+            setStatus(initialData.status)
         } else {
             setFormData(initialFormData);
+            setStatus('En Cola');
         }
     }, [initialData]);
   
@@ -101,7 +103,7 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
     }, [requiredMaterials]);
 
 
-    const handleChange = (field: keyof Omit<ProductionOrderData, 'responsibles'>, value: string | number) => {
+    const handleChange = (field: keyof Omit<ProductionOrderData, 'responsibles' | 'status'>, value: string | number) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -117,19 +119,19 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({ ...formData, status });
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-        <ScrollArea className="h-[70vh]">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 font-body p-4">
-                {/* Columna Izquierda: Datos de la Orden */}
+    <form onSubmit={handleSubmit} className="flex flex-col h-full">
+        <ScrollArea className="flex-grow h-[calc(100vh-250px)]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 font-body p-6">
+                {/* Columna Izquierda: Datos de la Orden y Responsables */}
                 <div className="space-y-4">
                     <h3 className="font-headline text-lg border-b pb-2">Detalles de la Orden</h3>
                     <div className="space-y-2">
                         <Label htmlFor="product">Producto</Label>
-                        <Select value={formData.product} onValueChange={(value) => handleChange('product', value)}>
+                        <Select value={formData.product} onValueChange={(value) => handleChange('product', value)} required>
                             <SelectTrigger id="product">
                                 <SelectValue placeholder="Seleccionar de una receta..." />
                             </SelectTrigger>
@@ -150,8 +152,23 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
                             required
                         />
                     </div>
+                    {initialData && (
+                         <div className="space-y-2">
+                            <Label htmlFor="status">Estado</Label>
+                             <Select value={status} onValueChange={(value: Order['status']) => setStatus(value)}>
+                                <SelectTrigger id="status">
+                                    <SelectValue placeholder="Seleccionar estado" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="En Cola">En Cola</SelectItem>
+                                    <SelectItem value="En Progreso">En Progreso</SelectItem>
+                                    <SelectItem value="Completado">Completado</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                     <div className="space-y-2">
-                        <Label htmlFor="stage">Etapa Inicial</Label>
+                        <Label htmlFor="stage">Etapa Actual</Label>
                         <Input
                             id="stage"
                             value={formData.stage}
@@ -206,8 +223,8 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
                             <CardTitle className="font-headline text-lg">Checklist de Materiales</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {!selectedRecipe || formData.quantity === 0 ? (
-                                <div className="text-center text-muted-foreground py-8">
+                            {!selectedRecipe || !formData.quantity || formData.quantity === 0 ? (
+                                <div className="text-center text-muted-foreground py-8 h-full flex flex-col justify-center items-center">
                                     <p>Selecciona un producto y una cantidad para ver los materiales requeridos.</p>
                                 </div>
                             ) : (
@@ -217,8 +234,7 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
                                             <div>
                                                 <p className="font-medium">{material.name}</p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Requerido: {material.requiredQuantity.toFixed(2)} {material.unit} / 
-                                                    Disponible: {material.availableStock.toFixed(2)} {material.unit}
+                                                    Req: {material.requiredQuantity.toFixed(2)} {material.unit} / Disp: {material.availableStock.toFixed(2)} {material.unit}
                                                 </p>
                                             </div>
                                             <Badge variant={material.isAvailable ? 'default' : 'destructive'} className="flex gap-1 items-center">
@@ -241,7 +257,7 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
                 </div>
             </div>
         </ScrollArea>
-        <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
+        <DialogFooter className="sticky bottom-0 left-0 right-0 bg-background p-4 border-t z-10">
             <Button variant="outline" type="button" onClick={onCancel}>
             Cancelar
             </Button>
@@ -252,4 +268,3 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
     </form>
   );
 }
-

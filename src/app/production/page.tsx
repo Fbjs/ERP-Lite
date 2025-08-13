@@ -22,7 +22,6 @@ export type Order = {
     status: 'En Progreso' | 'Completado' | 'En Cola';
     stage: string;
     date: string;
-    // Fields for the detailed form
     charge: string,
     machine: string,
     turn: string,
@@ -82,7 +81,7 @@ export default function ProductionPage() {
         setFormModalOpen(true);
     };
 
-    const handleFormSubmit = (data: ProductionOrderData) => {
+    const handleFormSubmit = (data: ProductionOrderData & { status: Order['status']}) => {
         if (selectedOrder) {
             // Editing existing order
             const updatedOrder: Order = { ...selectedOrder, ...data };
@@ -104,7 +103,6 @@ export default function ProductionPage() {
             const newOrder: Order = {
                 id: `PROD${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
                 date: new Date().toISOString().split('T')[0],
-                status: 'En Cola', // Default status
                 ...data,
             };
             setOrders(prev => [newOrder, ...prev]);
@@ -220,8 +218,8 @@ export default function ProductionPage() {
             }
             setFormModalOpen(isOpen);
       }}>
-        <DialogContent className="sm:max-w-4xl">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-4xl p-0">
+          <DialogHeader className="p-6 pb-0">
             <DialogTitle className="font-headline">{selectedOrder ? 'Editar Orden de Producción' : 'Crear Nueva Orden de Producción'}</DialogTitle>
             <DialogDescription className="font-body">
               {selectedOrder ? `Editando la orden ${selectedOrder.id}` : 'Completa los detalles para crear una nueva orden.'}
