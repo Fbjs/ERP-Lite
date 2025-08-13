@@ -1,3 +1,4 @@
+
 "use client";
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
@@ -8,40 +9,43 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useMemo } from 'react';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import ProductionOrderForm from '@/components/production-order-form';
+import ProductionOrderForm, { ProductionOrderData } from '@/components/production-order-form';
 import { useToast } from '@/hooks/use-toast';
-import { initialRecipes, Recipe } from '@/app/recipes/page';
+import { initialRecipes } from '@/app/recipes/page';
 import { initialInventoryItems } from '@/app/inventory/page';
 import Logo from '@/components/logo';
-import { Input } from '@/components/ui/input';
 
-
-type Order = {
+export type Order = {
     id: string;
     product: string;
     quantity: number;
     status: 'En Progreso' | 'Completado' | 'En Cola';
     stage: string;
     date: string;
+    // Fields for the detailed form
+    charge: string,
+    machine: string,
+    turn: string,
+    operator: string,
+    responsibles: {
+        fractionation: string,
+        production: string,
+        cooking: string,
+    }
 };
 
 export const initialOrders: Order[] = [
-  { id: 'PROD021', product: 'Pain au Levain', quantity: 200, status: 'En Progreso', stage: 'Horneando', date: '2023-10-28' },
-  { id: 'PROD022', product: 'Baguette Tradition', quantity: 500, status: 'Completado', stage: 'Empaquetado', date: '2023-10-28' },
-  { id: 'PROD023', product: 'Croissant au Beurre', quantity: 1000, status: 'En Cola', stage: 'Mezclando', date: '2023-10-29' },
-  { id: 'PROD024', product: 'Ciabatta', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28' },
+  { id: 'PROD021', product: 'Pain au Levain', quantity: 200, status: 'En Progreso', stage: 'Horneando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' } },
+  { id: 'PROD022', product: 'Baguette Tradition', quantity: 500, status: 'Completado', stage: 'Empaquetado', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' } },
+  { id: 'PROD023', product: 'Croissant au Beurre', quantity: 1000, status: 'En Cola', stage: 'Mezclando', date: '2023-10-29', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' } },
+  { id: 'PROD024', product: 'Ciabatta', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' } },
 ];
 
 export default function ProductionPage() {
     const [orders, setOrders] = useState<Order[]>(initialOrders);
-    const [isNewOrderModalOpen, setNewOrderModalOpen] = useState(false);
+    const [isFormModalOpen, setFormModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
-    const [isUpdateStatusModalOpen, setUpdateStatusModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-    const [updatedStatus, setUpdatedStatus] = useState<Order['status']>('En Cola');
-    const [updatedStage, setUpdatedStage] = useState('');
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
 
@@ -73,60 +77,45 @@ export default function ProductionPage() {
         setDetailsModalOpen(true);
     };
 
-    const handleOpenUpdateStatus = (order: Order) => {
+    const handleOpenForm = (order: Order | null) => {
         setSelectedOrder(order);
-        setUpdatedStatus(order.status);
-        setUpdatedStage(order.stage);
-        setUpdateStatusModalOpen(true);
+        setFormModalOpen(true);
     };
 
-    const handleCreateOrder = (newOrderData: Omit<Order, 'id' | 'status' | 'date'>) => {
-      const newOrder: Order = {
-        ...newOrderData,
-        id: `PROD${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
-        status: 'En Cola',
-        date: new Date().toISOString().split('T')[0],
-      };
-      setOrders(prev => [newOrder, ...prev]);
-      setNewOrderModalOpen(false);
-      toast({
-          title: "Orden Creada",
-          description: `La orden de producción para ${newOrder.quantity}x ${newOrder.product} ha sido creada.`,
-      });
-    }
+    const handleFormSubmit = (data: ProductionOrderData) => {
+        if (selectedOrder) {
+            // Editing existing order
+            const updatedOrder: Order = { ...selectedOrder, ...data };
+            setOrders(orders.map(o => o.id === selectedOrder.id ? updatedOrder : o));
+            toast({
+                title: "Orden Actualizada",
+                description: `La orden de producción ${selectedOrder.id} ha sido actualizada.`,
+            });
 
-    const handleUpdateOrder = () => {
-        if (!selectedOrder) return;
-        
-        const originalStatus = selectedOrder.status;
-        const newStatus = updatedStatus;
-
-        setOrders(orders.map(o => o.id === selectedOrder.id ? { ...o, status: updatedStatus, stage: updatedStage } : o));
-        
-        toast({
-            title: "Orden Actualizada",
-            description: `La orden ${selectedOrder.id} ha sido actualizada.`,
-        });
-
-        if (newStatus === 'Completado' && originalStatus !== 'Completado') {
-            const recipe = initialRecipes.find(r => r.name === selectedOrder.product);
-            if(recipe) {
+             if (updatedOrder.status === 'Completado' && selectedOrder.status !== 'Completado') {
                 toast({
                     title: "Simulación de Inventario",
-                    description: `El stock del producto terminado '${selectedOrder.product}' y sus materias primas ha sido actualizado.`,
-                });
-            } else {
-                 toast({
-                    variant: "destructive",
-                    title: "Receta no encontrada",
-                    description: `No se encontró una receta para '${selectedOrder.product}'. El inventario no fue ajustado.`,
+                    description: `El stock del producto terminado '${updatedOrder.product}' y sus materias primas ha sido actualizado.`,
                 });
             }
-        }
 
-        setUpdateStatusModalOpen(false);
+        } else {
+            // Creating new order
+            const newOrder: Order = {
+                id: `PROD${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+                date: new Date().toISOString().split('T')[0],
+                status: 'En Cola', // Default status
+                ...data,
+            };
+            setOrders(prev => [newOrder, ...prev]);
+            toast({
+                title: "Orden Creada",
+                description: `La orden para ${newOrder.quantity}x ${newOrder.product} ha sido creada.`,
+            });
+        }
+        setFormModalOpen(false);
         setSelectedOrder(null);
-    }
+    };
 
     const handleDownloadPdf = async () => {
         const input = detailsModalContentRef.current;
@@ -172,7 +161,7 @@ export default function ProductionPage() {
                     <CardTitle className="font-headline">Órdenes de Producción</CardTitle>
                     <CardDescription className="font-body">Rastrea y gestiona las órdenes de producción.</CardDescription>
                 </div>
-                <Button onClick={() => setNewOrderModalOpen(true)}>
+                <Button onClick={() => handleOpenForm(null)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Nueva Orden
                 </Button>
@@ -212,8 +201,8 @@ export default function ProductionPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Detalles</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleOpenUpdateStatus(order)}>Actualizar Estado</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Ficha</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleOpenForm(order)}>Editar Orden</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -224,18 +213,24 @@ export default function ProductionPage() {
         </CardContent>
       </Card>
 
-      {/* Modal Nueva Orden */}
-      <Dialog open={isNewOrderModalOpen} onOpenChange={setNewOrderModalOpen}>
-        <DialogContent className="sm:max-w-2xl">
+      {/* Modal Nueva/Editar Orden */}
+      <Dialog open={isFormModalOpen} onOpenChange={(isOpen) => {
+            if (!isOpen) {
+                setSelectedOrder(null);
+            }
+            setFormModalOpen(isOpen);
+      }}>
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">Crear Nueva Orden de Producción</DialogTitle>
+            <DialogTitle className="font-headline">{selectedOrder ? 'Editar Orden de Producción' : 'Crear Nueva Orden de Producción'}</DialogTitle>
             <DialogDescription className="font-body">
-              Completa los detalles para crear una nueva orden.
+              {selectedOrder ? `Editando la orden ${selectedOrder.id}` : 'Completa los detalles para crear una nueva orden.'}
             </DialogDescription>
           </DialogHeader>
           <ProductionOrderForm
-            onSubmit={handleCreateOrder}
-            onCancel={() => setNewOrderModalOpen(false)}
+            onSubmit={handleFormSubmit}
+            onCancel={() => { setFormModalOpen(false); setSelectedOrder(null); }}
+            initialData={selectedOrder}
             />
         </DialogContent>
       </Dialog>
@@ -443,41 +438,6 @@ export default function ProductionPage() {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-
-      {/* Modal Actualizar Estado */}
-      <Dialog open={isUpdateStatusModalOpen} onOpenChange={setUpdateStatusModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="font-headline">Actualizar Orden: {selectedOrder?.id}</DialogTitle>
-             <DialogDescription className="font-body">
-              Modifica el estado y la etapa actual de la orden de producción.
-            </DialogDescription>
-          </DialogHeader>
-            <div className="grid gap-4 py-4 font-body">
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="status" className="text-right">Estado</Label>
-                    <Select value={updatedStatus} onValueChange={(value) => setUpdatedStatus(value as Order['status'])}>
-                        <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Selecciona un estado" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="En Cola">En Cola</SelectItem>
-                            <SelectItem value="En Progreso">En Progreso</SelectItem>
-                            <SelectItem value="Completado">Completado</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="stage" className="text-right">Etapa</Label>
-                    <Input id="stage" value={updatedStage} onChange={(e) => setUpdatedStage(e.target.value)} className="col-span-3"/>
-                </div>
-            </div>
-           <DialogFooter>
-                <Button variant="outline" onClick={() => setUpdateStatusModalOpen(false)}>Cancelar</Button>
-                <Button onClick={handleUpdateOrder}>Guardar Cambios</Button>
-            </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </AppLayout>
   );
 }

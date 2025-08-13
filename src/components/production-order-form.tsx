@@ -1,84 +1,255 @@
+
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { initialRecipes } from '@/app/recipes/page';
+import { initialInventoryItems } from '@/app/inventory/page';
+import { initialOrders, Order } from '@/app/production/page'; // Assuming employees are here for now
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ScrollArea } from './ui/scroll-area';
 
-
-type OrderData = {
+export type ProductionOrderData = {
     product: string;
     quantity: number;
     stage: string;
+    charge: string,
+    machine: string,
+    turn: string,
+    operator: string,
+    responsibles: {
+        fractionation: string,
+        production: string,
+        cooking: string,
+    }
 };
 
 type ProductionOrderFormProps = {
-  onSubmit: (data: OrderData) => void;
+  onSubmit: (data: ProductionOrderData) => void;
   onCancel: () => void;
-  initialData?: Partial<OrderData>;
+  initialData?: Order | null;
 };
 
-export default function ProductionOrderForm({ onSubmit, onCancel, initialData = {} }: ProductionOrderFormProps) {
-  const [product, setProduct] = useState(initialData.product || '');
-  const [quantity, setQuantity] = useState(initialData.quantity || 0);
-  const [stage, setStage] = useState(initialData.stage || 'Mezclando');
+const initialFormData: ProductionOrderData = {
+    product: '',
+    quantity: 0,
+    stage: 'En Cola',
+    charge: '',
+    machine: '',
+    turn: '',
+    operator: '',
+    responsibles: {
+        fractionation: '',
+        production: '',
+        cooking: '',
+    }
+};
+
+export default function ProductionOrderForm({ onSubmit, onCancel, initialData }: ProductionOrderFormProps) {
+    const [formData, setFormData] = useState<ProductionOrderData>(initialData || initialFormData);
+    const [employees, setEmployees] = useState<{ id: string, name: string }[]>([]);
+
+    useEffect(() => {
+        // In a real app, this would be an API call.
+        // For now, we simulate fetching employees from the HR page's data.
+        // We need to import the initialEmployees from hr/page.tsx for this to work.
+        // As we can't import directly, we'll mock it for now.
+        setEmployees([
+            { id: 'EMP001', name: 'Juan Pérez' },
+            { id: 'EMP002', name: 'Ana Gómez' },
+            { id: 'EMP003', name: 'Luis Martínez' },
+            { id: 'EMP004', name: 'María Rodríguez' },
+        ]);
+
+        if (initialData) {
+            setFormData(initialData);
+        } else {
+            setFormData(initialFormData);
+        }
+    }, [initialData]);
+  
+    const selectedRecipe = useMemo(() => {
+        if (!formData.product) return null;
+        return initialRecipes.find(r => r.name === formData.product) || null;
+    }, [formData.product]);
+
+    const requiredMaterials = useMemo(() => {
+        if (!selectedRecipe || !formData.quantity) return [];
+        
+        return selectedRecipe.ingredients.map(ingredient => {
+            const inventoryItem = initialInventoryItems.find(item => item.name.toLowerCase() === ingredient.name.toLowerCase());
+            const requiredQuantity = ingredient.quantity * formData.quantity;
+            const isAvailable = inventoryItem ? inventoryItem.stock >= requiredQuantity : false;
+            return {
+                name: ingredient.name,
+                requiredQuantity: requiredQuantity,
+                unit: ingredient.unit,
+                availableStock: inventoryItem?.stock || 0,
+                isAvailable: isAvailable
+            };
+        });
+    }, [selectedRecipe, formData.quantity]);
+    
+    const allMaterialsAvailable = useMemo(() => {
+        return requiredMaterials.every(m => m.isAvailable);
+    }, [requiredMaterials]);
+
+
+    const handleChange = (field: keyof Omit<ProductionOrderData, 'responsibles'>, value: string | number) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleResponsibleChange = (field: keyof ProductionOrderData['responsibles'], value: string) => {
+        setFormData(prev => ({
+            ...prev,
+            responsibles: {
+                ...prev.responsibles,
+                [field]: value
+            }
+        }));
+    };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ product, quantity, stage });
+    onSubmit(formData);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 py-4 font-body max-h-[70vh] overflow-y-auto p-2">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="product" className="text-right">
-          Producto
-        </Label>
-         <Select value={product} onValueChange={setProduct}>
-            <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Seleccionar de una receta..." />
-            </SelectTrigger>
-            <SelectContent>
-                {initialRecipes.map(recipe => (
-                    <SelectItem key={recipe.id} value={recipe.name}>{recipe.name}</SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="quantity" className="text-right">
-          Cantidad
-        </Label>
-        <Input
-          id="quantity"
-          type="number"
-          value={quantity || ''}
-          onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
-          className="col-span-3"
-          required
-        />
-      </div>
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="stage" className="text-right">
-          Etapa Inicial
-        </Label>
-        <Input
-          id="stage"
-          value={stage}
-          onChange={(e) => setStage(e.target.value)}
-          className="col-span-3"
-          required
-        />
-      </div>
-      <DialogFooter className="sticky bottom-0 bg-background py-4">
-        <Button variant="outline" type="button" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button type="submit">Crear Orden</Button>
+    <form onSubmit={handleSubmit}>
+        <ScrollArea className="h-[70vh]">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 font-body p-4">
+                {/* Columna Izquierda: Datos de la Orden */}
+                <div className="space-y-4">
+                    <h3 className="font-headline text-lg border-b pb-2">Detalles de la Orden</h3>
+                    <div className="space-y-2">
+                        <Label htmlFor="product">Producto</Label>
+                        <Select value={formData.product} onValueChange={(value) => handleChange('product', value)}>
+                            <SelectTrigger id="product">
+                                <SelectValue placeholder="Seleccionar de una receta..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {initialRecipes.map(recipe => (
+                                    <SelectItem key={recipe.id} value={recipe.name}>{recipe.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="quantity">Cantidad a Producir</Label>
+                        <Input
+                            id="quantity"
+                            type="number"
+                            value={formData.quantity || ''}
+                            onChange={(e) => handleChange('quantity', parseInt(e.target.value, 10) || 0)}
+                            required
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="stage">Etapa Inicial</Label>
+                        <Input
+                            id="stage"
+                            value={formData.stage}
+                            onChange={(e) => handleChange('stage', e.target.value)}
+                            required
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="turn">Turno</Label>
+                        <Input id="turn" value={formData.turn} onChange={(e) => handleChange('turn', e.target.value)} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="machine">Máquina</Label>
+                        <Input id="machine" value={formData.machine} onChange={(e) => handleChange('machine', e.target.value)} />
+                    </div>
+
+                    <h3 className="font-headline text-lg border-b pb-2 pt-4">Responsables</h3>
+                    <div className="space-y-2">
+                        <Label htmlFor="operator">Operador Principal</Label>
+                        <Select value={formData.operator} onValueChange={(value) => handleChange('operator', value)}>
+                             <SelectTrigger id="operator"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                             <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="fractionation">Responsable Fraccionamiento</Label>
+                         <Select value={formData.responsibles.fractionation} onValueChange={(value) => handleResponsibleChange('fractionation', value)}>
+                             <SelectTrigger id="fractionation"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                             <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="production">Responsable Producción</Label>
+                         <Select value={formData.responsibles.production} onValueChange={(value) => handleResponsibleChange('production', value)}>
+                             <SelectTrigger id="production"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                             <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="cooking">Responsable Cocción</Label>
+                        <Select value={formData.responsibles.cooking} onValueChange={(value) => handleResponsibleChange('cooking', value)}>
+                             <SelectTrigger id="cooking"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                             <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                </div>
+
+                {/* Columna Derecha: Checklist de Materiales */}
+                <div className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg">Checklist de Materiales</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {!selectedRecipe || formData.quantity === 0 ? (
+                                <div className="text-center text-muted-foreground py-8">
+                                    <p>Selecciona un producto y una cantidad para ver los materiales requeridos.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {requiredMaterials.map(material => (
+                                        <div key={material.name} className="flex justify-between items-center text-sm">
+                                            <div>
+                                                <p className="font-medium">{material.name}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Requerido: {material.requiredQuantity.toFixed(2)} {material.unit} / 
+                                                    Disponible: {material.availableStock.toFixed(2)} {material.unit}
+                                                </p>
+                                            </div>
+                                            <Badge variant={material.isAvailable ? 'default' : 'destructive'} className="flex gap-1 items-center">
+                                                 {material.isAvailable ? <CheckCircle2 className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
+                                                {material.isAvailable ? 'Disponible' : 'Insuficiente'}
+                                            </Badge>
+                                        </div>
+                                    ))}
+                                    <div className="pt-4 text-center text-sm font-bold">
+                                        {allMaterialsAvailable ? (
+                                            <p className="text-green-600">Todos los materiales están disponibles.</p>
+                                        ) : (
+                                            <p className="text-red-600">Faltan materiales. Revisa el inventario.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </ScrollArea>
+        <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
+            <Button variant="outline" type="button" onClick={onCancel}>
+            Cancelar
+            </Button>
+            <Button type="submit" disabled={!allMaterialsAvailable && requiredMaterials.length > 0}>
+                {initialData ? 'Guardar Cambios' : 'Crear Orden'}
+            </Button>
       </DialogFooter>
     </form>
   );
 }
+
