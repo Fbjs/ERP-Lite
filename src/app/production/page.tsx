@@ -242,7 +242,7 @@ export default function ProductionPage() {
 
       {/* Modal Ver Detalles */}
         <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
-            <DialogContent className="sm:max-w-3xl">
+            <DialogContent className="sm:max-w-4xl">
                 <DialogHeader>
                     <DialogTitle className="font-headline">Detalle de Orden: {selectedOrder?.id}</DialogTitle>
                     <DialogDescription className="font-body">
@@ -251,66 +251,96 @@ export default function ProductionPage() {
                 </DialogHeader>
                 {selectedOrder && (
                     <div className="max-h-[75vh] overflow-y-auto p-1">
-                        <div ref={detailsModalContentRef} className="p-6 bg-white text-black font-body">
-                            <header className="flex justify-between items-start mb-10 border-b-2 border-gray-800 pb-4">
+                        <div ref={detailsModalContentRef} className="p-6 bg-white text-black font-body text-xs">
+                            <header className="flex justify-between items-start mb-6 border-b-2 border-gray-800 pb-4">
                                 <div className="flex items-center gap-3">
                                     <Logo className="w-28 text-orange-600" />
                                     <div>
-                                        <h1 className="text-2xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
-                                        <p className="text-sm text-gray-500">Avenida Principal 123, Santiago, Chile</p>
+                                        <h1 className="text-xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
+                                        <p className="text-xs text-gray-500">Avenida Principal 123, Santiago, Chile</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <h2 className="text-3xl font-headline font-bold uppercase text-gray-700">Orden de Producción</h2>
+                                    <h2 className="text-2xl font-headline font-bold uppercase text-gray-700">Orden de Producción</h2>
                                     <p className="text-sm text-gray-600 font-semibold">Nº: {selectedOrder.id}</p>
                                 </div>
                             </header>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-4 mb-6">
-                                <div>
-                                    <p className="font-semibold text-gray-600">Producto:</p>
-                                    <p>{selectedOrder.product}</p>
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-gray-600">Cantidad a Producir:</p>
-                                    <p>{selectedOrder.quantity} unidades</p>
-                                </div>
-                                <div>
-                                    <p className="font-semibold text-gray-600">Estado / Etapa:</p>
-                                    <p>{selectedOrder.status} / {selectedOrder.stage}</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-2 mb-4">
+                                <div><p className="font-semibold text-gray-600">Producto:</p><p>{selectedOrder.product}</p></div>
+                                <div><p className="font-semibold text-gray-600">Cantidad a Producir:</p><p>{selectedOrder.quantity} unidades</p></div>
+                                <div><p className="font-semibold text-gray-600">Estado / Etapa:</p><p>{selectedOrder.status} / {selectedOrder.stage}</p></div>
+                            </div>
+
+                            <div className="mt-4">
+                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Control de Turnos y Responsables</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 text-xs">
+                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Turno(s):</p><div className="border-b h-4"></div></div>
+                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Resp. Fraccionamiento:</p><div className="border-b h-4"></div></div>
+                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Resp. Producción:</p><div className="border-b h-4"></div></div>
+                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Resp. Cocción:</p><div className="border-b h-4"></div></div>
                                 </div>
                             </div>
                             
-                            <div className="mt-6">
-                                <h3 className="text-xl font-bold text-gray-800 font-headline mb-3 border-b pb-2">Materiales Requeridos</h3>
+                            <div className="mt-4">
+                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Materiales Requeridos (Checklist de Fraccionamiento)</h3>
                                 {selectedOrderRecipe ? (
-                                    <Table className="w-full text-sm">
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="text-left font-bold text-gray-700">SKU</TableHead>
-                                                <TableHead className="text-left font-bold text-gray-700">Descripción</TableHead>
-                                                <TableHead className="text-right font-bold text-gray-700">Cantidad Requerida</TableHead>
-                                                <TableHead className="text-right font-bold text-gray-700">Stock Actual</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
+                                    <Table className="w-full text-xs">
+                                        <TableHeader><TableRow>
+                                            <TableHead className="text-left font-bold text-gray-700 h-8">SKU</TableHead>
+                                            <TableHead className="text-left font-bold text-gray-700 h-8">Descripción</TableHead>
+                                            <TableHead className="text-right font-bold text-gray-700 h-8">Cant. Requerida</TableHead>
+                                            <TableHead className="text-right font-bold text-gray-700 h-8">Stock Actual</TableHead>
+                                            <TableHead className="text-center font-bold text-gray-700 h-8 w-16">Check</TableHead>
+                                        </TableRow></TableHeader>
                                         <TableBody>
                                             {requiredMaterials.map(material => (
                                                 <TableRow key={material.sku} className={material.requiredQuantity > material.availableStock ? 'bg-red-50' : ''}>
-                                                    <TableCell>{material.sku}</TableCell>
-                                                    <TableCell>{material.name} <Badge variant="outline" className="ml-2">{material.category}</Badge></TableCell>
-                                                    <TableCell className="text-right">{material.requiredQuantity.toFixed(2)} {material.unit}</TableCell>
-                                                    <TableCell className={`text-right font-medium ${material.requiredQuantity > material.availableStock ? 'text-red-600' : ''}`}>
-                                                        {material.availableStock.toFixed(2)} {material.unit}
-                                                    </TableCell>
+                                                    <TableCell className="py-1">{material.sku}</TableCell>
+                                                    <TableCell className="py-1">{material.name} <Badge variant="outline" className="ml-2 scale-75">{material.category}</Badge></TableCell>
+                                                    <TableCell className="text-right py-1">{material.requiredQuantity.toFixed(2)} {material.unit}</TableCell>
+                                                    <TableCell className={`text-right font-medium py-1 ${material.requiredQuantity > material.availableStock ? 'text-red-600' : ''}`}>{material.availableStock.toFixed(2)} {material.unit}</TableCell>
+                                                    <TableCell className="text-center py-1"><div className="w-4 h-4 border border-gray-400 mx-auto"></div></TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
                                     </Table>
                                 ) : (
-                                    <p className="text-center text-gray-500 py-4">No se encontró una receta para este producto. No se pueden calcular los materiales.</p>
+                                    <p className="text-center text-gray-500 py-4">No se encontró una receta para este producto.</p>
                                 )}
                             </div>
 
-                            <div className="border-t-2 border-gray-200 pt-4 mt-8 text-center text-xs text-gray-500">
+                            <div className="mt-4">
+                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Control de Mezclado y Amasado</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
+                                     <div className="space-y-1"><p className="font-semibold text-gray-600">Insumo hidratado:</p><div className="border-b h-4"></div></div>
+                                     <div className="space-y-1"><p className="font-semibold text-gray-600">Fecha/Hora Inicio:</p><div className="border-b h-4"></div></div>
+                                     <div className="space-y-1"><p className="font-semibold text-gray-600">Fecha/Hora Término:</p><div className="border-b h-4"></div></div>
+                                     <div className="space-y-1"><p className="font-semibold text-gray-600">Agua (kg):</p><div className="border-b h-4"></div></div>
+                                     <div className="space-y-1"><p className="font-semibold text-gray-600">Temp. Agua:</p><div className="border-b h-4"></div></div>
+                                </div>
+                            </div>
+
+                             <div className="mt-4">
+                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Variables de Control (Muestra)</h3>
+                                <Table className="w-full text-xs">
+                                     <TableHeader><TableRow>
+                                        <TableHead className="text-left font-bold text-gray-700 h-8">Variable</TableHead>
+                                        <TableHead className="text-left font-bold text-gray-700 h-8">Valor Registrado</TableHead>
+                                    </TableRow></TableHeader>
+                                     <TableBody>
+                                        <TableRow><TableCell className="font-semibold py-1">Cantidad Agua:</TableCell><TableCell className="py-1 border-b"></TableCell></TableRow>
+                                        <TableRow><TableCell className="font-semibold py-1">Temperatura (°C):</TableCell><TableCell className="py-1 border-b"></TableCell></TableRow>
+                                        <TableRow><TableCell className="font-semibold py-1">Temperatura (°F):</TableCell><TableCell className="py-1 border-b"></TableCell></TableRow>
+                                        <TableRow><TableCell className="font-semibold py-1">Cantidad Kilos (Masa):</TableCell><TableCell className="py-1 border-b"></TableCell></TableRow>
+                                    </TableBody>
+                                </Table>
+                            </div>
+                             <div className="mt-4">
+                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Observaciones</h3>
+                                <div className="border-b h-12"></div>
+                             </div>
+
+                            <div className="border-t-2 border-gray-200 pt-2 mt-4 text-center text-xs text-gray-500">
                                 <p>Documento generado el {new Date().toLocaleString('es-ES')}</p>
                             </div>
                         </div>
