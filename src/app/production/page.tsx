@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { initialRecipes, Recipe } from '@/app/recipes/page';
 import { initialInventoryItems } from '@/app/inventory/page';
 import Logo from '@/components/logo';
+import { Input } from '@/components/ui/input';
 
 
 type Order = {
