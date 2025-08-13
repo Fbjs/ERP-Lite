@@ -121,7 +121,7 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
                 }
             }));
         } else {
-            setFormData(prev => ({ ...prev, [field]: value }));
+             setFormData(prev => ({ ...prev, [field]: value } as any));
         }
     };
     
@@ -176,24 +176,23 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
         <ScrollArea className="flex-grow h-[calc(100vh-250px)]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 font-body p-6">
                 
-                {/* Columna Izquierda */}
+                {/* Columna Izquierda: Definición y Recursos */}
                 <div className="space-y-4">
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline text-lg">Detalles de la Orden</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {/* ... campos de detalles ... */}
                             <div className="space-y-2">
                                 <Label htmlFor="product">Producto</Label>
-                                <Select value={formData.product} onValueChange={(value) => handleChange('formData', 'product', value)} required>
+                                <Select value={formData.product} onValueChange={(value) => handleSelectChange('product', value)} required>
                                     <SelectTrigger id="product"><SelectValue placeholder="Seleccionar de una receta..." /></SelectTrigger>
                                     <SelectContent>{initialRecipes.map(recipe => <SelectItem key={recipe.id} value={recipe.name}>{recipe.name}</SelectItem>)}</SelectContent>
                                 </Select>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="quantity">Cantidad a Producir</Label>
-                                <Input id="quantity" type="number" value={formData.quantity || ''} onChange={(e) => handleChange('formData', 'quantity', parseInt(e.target.value, 10) || 0)} required />
+                                <Input id="quantity" type="number" value={formData.quantity || ''} onChange={(e) => handleSelectChange('quantity', parseInt(e.target.value, 10) || 0)} required />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="status">Estado</Label>
@@ -208,87 +207,19 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="stage">Etapa Actual</Label>
-                                <Input id="stage" value={formData.stage} onChange={(e) => handleChange('formData', 'stage', e.target.value)} required />
+                                <Input id="stage" value={formData.stage} onChange={(e) => handleSelectChange('stage', e.target.value)} required />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="turn">Turno</Label>
-                                <Input id="turn" value={formData.turn} onChange={(e) => handleChange('formData', 'turn', e.target.value)} />
+                                <Input id="turn" value={formData.turn} onChange={(e) => handleSelectChange('turn', e.target.value)} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="machine">Máquina Principal</Label>
-                                <Input id="machine" value={formData.machine} onChange={(e) => handleChange('formData', 'machine', e.target.value)} />
+                                <Input id="machine" value={formData.machine} onChange={(e) => handleSelectChange('machine', e.target.value)} />
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline text-lg">Responsables</CardTitle>
-                        </CardHeader>
-                         <CardContent className="space-y-4">
-                            {/* ... campos de responsables ... */}
-                             <div className="space-y-2">
-                                <Label htmlFor="operator">Operador Principal</Label>
-                                <Select value={formData.operator} onValueChange={(value) => handleChange('formData', 'operator', value)}>
-                                    <SelectTrigger id="operator"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                                    <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="fractionation">Responsable Fraccionamiento</Label>
-                                <Select value={formData.responsibles.fractionation} onValueChange={(value) => handleResponsibleChange('fractionation', value)}>
-                                    <SelectTrigger id="fractionation"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                                    <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
-                                </Select>
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="production">Responsable Producción</Label>
-                                <Select value={formData.responsibles.production} onValueChange={(value) => handleResponsibleChange('production', value)}>
-                                    <SelectTrigger id="production"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                                    <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
-                                </Select>
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="cooking">Responsable Cocción</Label>
-                                <Select value={formData.responsibles.cooking} onValueChange={(value) => handleResponsibleChange('cooking', value)}>
-                                    <SelectTrigger id="cooking"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                                    <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
-                                </Select>
-                            </div>
-                         </CardContent>
-                    </Card>
-                    
-                    <Card>
-                        <CardHeader>
-                             <CardTitle className="font-headline text-lg">Dotación de Personal</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                            {formData.staff.map((staffMember, index) => (
-                                <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                                    <Select
-                                        value={staffMember.name}
-                                        onValueChange={(value) => handleStaffChange(index, 'name', value)}
-                                    >
-                                        <SelectTrigger className="col-span-5">
-                                            <SelectValue placeholder="Seleccionar empleado" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                    <Input value={staffMember.rut} className="col-span-3" disabled placeholder="RUT"/>
-                                    <Input type="time" value={staffMember.startTime} onChange={e => handleStaffChange(index, 'startTime', e.target.value)} className="col-span-2" />
-                                    <Input type="time" value={staffMember.endTime} onChange={e => handleStaffChange(index, 'endTime', e.target.value)} className="col-span-2" />
-                                    <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveStaff(index)} className="col-span-12 -mt-1"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                                </div>
-                            ))}
-                            <Button type="button" variant="outline" className="w-full" onClick={handleAddStaff}><PlusCircle className="mr-2"/>Añadir Personal</Button>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Columna Derecha */}
-                <div className="space-y-4">
                     <Card>
                         <CardHeader>
                             <CardTitle className="font-headline text-lg">Checklist de Materiales</CardTitle>
@@ -329,7 +260,69 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
                             )}
                         </CardContent>
                     </Card>
-                    
+
+                    <Card>
+                        <CardHeader>
+                             <CardTitle className="font-headline text-lg">Responsables y Dotación</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="operator">Operador Principal</Label>
+                                <Select value={formData.operator} onValueChange={(value) => handleChange('formData', 'operator', value)}>
+                                    <SelectTrigger id="operator"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                                    <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="fractionation">Responsable Fraccionamiento</Label>
+                                <Select value={formData.responsibles.fractionation} onValueChange={(value) => handleResponsibleChange('fractionation', value)}>
+                                    <SelectTrigger id="fractionation"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                                    <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
+                                </Select>
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="production">Responsable Producción</Label>
+                                <Select value={formData.responsibles.production} onValueChange={(value) => handleResponsibleChange('production', value)}>
+                                    <SelectTrigger id="production"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                                    <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
+                                </Select>
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="cooking">Responsable Cocción</Label>
+                                <Select value={formData.responsibles.cooking} onValueChange={(value) => handleResponsibleChange('cooking', value)}>
+                                    <SelectTrigger id="cooking"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                                    <SelectContent>{employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}</SelectContent>
+                                </Select>
+                            </div>
+                             <div className="border-t pt-4 mt-4 space-y-2">
+                                <Label>Personal Involucrado</Label>
+                                {formData.staff.map((staffMember, index) => (
+                                    <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                                        <Select
+                                            value={staffMember.name}
+                                            onValueChange={(value) => handleStaffChange(index, 'name', value)}
+                                        >
+                                            <SelectTrigger className="col-span-5">
+                                                <SelectValue placeholder="Empleado" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {employees.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                        <Input value={staffMember.rut} className="col-span-3" disabled placeholder="RUT"/>
+                                        <Input type="time" value={staffMember.startTime} onChange={e => handleStaffChange(index, 'startTime', e.target.value)} className="col-span-2" />
+                                        <Input type="time" value={staffMember.endTime} onChange={e => handleStaffChange(index, 'endTime', e.target.value)} className="col-span-2" />
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveStaff(index)} className="col-span-12 -mt-1"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                    </div>
+                                ))}
+                                <Button type="button" variant="outline" className="w-full" onClick={handleAddStaff}><PlusCircle className="mr-2"/>Añadir Personal</Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Columna Derecha: Control de Proceso */}
+                <div className="space-y-4">
                      <Card>
                         <CardHeader><CardTitle className="font-headline text-lg">Control de Proceso: Amasado</CardTitle></CardHeader>
                         <CardContent className="space-y-2">
@@ -401,7 +394,6 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
                             <Textarea placeholder="Observaciones finales..." value={formData.bakingRecord.observations} onChange={e => handleChange('bakingRecord', 'observations', e.target.value)} />
                         </CardContent>
                     </Card>
-
                 </div>
             </div>
         </ScrollArea>
