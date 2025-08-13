@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, LayoutDashboard, NotebookText, Factory, ShoppingCart, BrainCircuit, Users, BookCopy, Truck, Warehouse } from 'lucide-react';
+import { LogOut, LayoutDashboard, NotebookText, Factory, ShoppingCart, BrainCircuit, Users, BookCopy, Truck, Warehouse, Settings, Building2, ShieldCheck, Contact, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from '@/components/logo';
@@ -30,6 +30,19 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
         { href: '/hr', label: 'Recursos Humanos', icon: Users, roles: ['Admin'] },
         { href: '/accounting', label: 'Contabilidad', icon: BookCopy, roles: ['Admin', 'Contabilidad'] },
         { href: '/forecast', label: 'Pronóstico IA', icon: BrainCircuit, roles: ['Admin'] },
+        { 
+            href: '/admin', 
+            label: 'Administración', 
+            icon: Settings, 
+            roles: ['Admin'],
+            subItems: [
+                { href: '/admin/companies', label: 'Empresas', icon: Building2, roles: ['Admin'] },
+                { href: '/admin/profiles', label: 'Perfiles', icon: ShieldCheck, roles: ['Admin'] },
+                { href: '/admin/users', label: 'Usuarios', icon: Users, roles: ['Admin'] },
+                { href: '/admin/suppliers', label: 'Proveedores', icon: ShoppingBag, roles: ['Admin'] },
+                { href: '/admin/customers', label: 'Clientes', icon: Contact, roles: ['Admin'] },
+            ]
+        },
     ];
 
     const menuItems = allMenuItems.filter(item => item.roles.includes(currentUserRole));
@@ -37,17 +50,17 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
 
     return (
         <SidebarProvider>
-            <Sidebar>
-                <SidebarHeader className="p-4 border-b flex justify-center items-center group-data-[collapsible=icon]:p-2">
-                    <Link href="/dashboard" className="flex items-center gap-2 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center">
+            <Sidebar onMouseLeave={() => {}} onMouseEnter={() => {}}>
+                <SidebarHeader className="p-4 border-b flex justify-center items-center group-data-[collapsible=icon]:p-0">
+                    <Link href="/dashboard" className="flex items-center gap-2 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-14 group-data-[collapsible=icon]:p-2">
                         <Logo className="w-28 group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-auto" />
                     </Link>
                 </SidebarHeader>
                 <SidebarContent className="p-2">
                     <SidebarMenu>
                         {menuItems.map((item) => (
-                            <SidebarMenuItem key={item.href}>
-                                <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
+                             <SidebarMenuItem key={item.href}>
+                                <SidebarMenuButton asChild isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))} tooltip={item.label}>
                                     <Link href={item.href}>
                                         <item.icon className="w-5 h-5" />
                                         <span className="font-body">{item.label}</span>
