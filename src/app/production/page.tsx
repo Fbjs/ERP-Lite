@@ -15,6 +15,63 @@ import { initialRecipes } from '@/app/recipes/page';
 import { initialInventoryItems } from '@/app/inventory/page';
 import Logo from '@/components/logo';
 
+export type ProcessControl = {
+    hydratedInput: string;
+    mixStartDate: string;
+    mixEndDate: string;
+    waterKg: number;
+    waterTemp: number;
+    motherMassKg: number;
+    motherMassTemp: number;
+    doughMixer: string;
+    mixStartTime: string;
+    slowSpeedMin: number;
+    fastSpeedMin: number;
+    mixFinishTime: string;
+    brothTemp: number;
+    doughTemp: number;
+    mixObservations: string;
+};
+
+export type PortioningControl = {
+    startTime: string;
+    rawCut1Gr: number;
+    rawCut2Gr: number;
+    leftoverDoughGr: number;
+    endTime: string;
+    numCarts: number;
+    roomTemp: number;
+    observations: string;
+};
+
+export type FermentationControl = {
+    chamber: string;
+    entryTime: string;
+    exitTime: string;
+    totalTimeMin: number;
+    chamberTemp: number;
+    chamberRh: number;
+};
+
+export type BakingControl = {
+    oven: string;
+    numFloors: number;
+    loadStartTime: string;
+    unloadEndTime: string;
+    bakingTime: number;
+    ovenTemp: number;
+    observations: string;
+};
+
+export type BakingRecord = {
+    ovenTemp: number;
+    thermalCenterTemp: number;
+    correctiveAction: string;
+    verification: string;
+    observations: string;
+};
+
+
 export type Order = {
     id: string;
     product: string;
@@ -30,14 +87,83 @@ export type Order = {
         fractionation: string,
         production: string,
         cooking: string,
-    }
+    },
+    staff: {
+        rut: string;
+        name: string;
+        startTime: string;
+        endTime: string;
+    }[];
+    processControl: ProcessControl;
+    portioningControl: PortioningControl;
+    fermentationControl: FermentationControl;
+    bakingControl: BakingControl;
+    bakingRecord: BakingRecord;
 };
 
+
+const emptyProcessControl: ProcessControl = {
+    hydratedInput: '',
+    mixStartDate: '',
+    mixEndDate: '',
+    waterKg: 0,
+    waterTemp: 0,
+    motherMassKg: 0,
+    motherMassTemp: 0,
+    doughMixer: '',
+    mixStartTime: '',
+    slowSpeedMin: 0,
+    fastSpeedMin: 0,
+    mixFinishTime: '',
+    brothTemp: 0,
+    doughTemp: 0,
+    mixObservations: ''
+};
+
+const emptyPortioningControl: PortioningControl = {
+    startTime: '',
+    rawCut1Gr: 0,
+    rawCut2Gr: 0,
+    leftoverDoughGr: 0,
+    endTime: '',
+    numCarts: 0,
+    roomTemp: 0,
+    observations: ''
+};
+
+const emptyFermentationControl: FermentationControl = {
+    chamber: '',
+    entryTime: '',
+    exitTime: '',
+    totalTimeMin: 0,
+    chamberTemp: 0,
+    chamberRh: 0
+};
+
+const emptyBakingControl: BakingControl = {
+    oven: '',
+    numFloors: 0,
+    loadStartTime: '',
+    unloadEndTime: '',
+    bakingTime: 0,
+    ovenTemp: 0,
+    observations: ''
+};
+
+const emptyBakingRecord: BakingRecord = {
+    ovenTemp: 0,
+    thermalCenterTemp: 0,
+    correctiveAction: '',
+    verification: '',
+    observations: ''
+};
+
+
 export const initialOrders: Order[] = [
-  { id: 'PROD021', product: 'Pain au Levain', quantity: 200, status: 'En Progreso', stage: 'Horneando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' } },
-  { id: 'PROD022', product: 'Baguette Tradition', quantity: 500, status: 'Completado', stage: 'Empaquetado', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' } },
-  { id: 'PROD023', product: 'Croissant au Beurre', quantity: 1000, status: 'En Cola', stage: 'Mezclando', date: '2023-10-29', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' } },
-  { id: 'PROD024', product: 'Ciabatta', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' } },
+  { id: 'PROD021', product: 'Pain au Levain', quantity: 200, status: 'En Progreso', stage: 'Horneando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord },
+  { id: 'PROD022', product: 'Baguette Tradition', quantity: 500, status: 'Completado', stage: 'Empaquetado', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord },
+  { id: 'PROD023', product: 'Croissant au Beurre', quantity: 1000, status: 'En Cola', stage: 'Mezclando', date: '2023-10-29', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord },
+  { id: 'PROD024', product: 'Ciabatta', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord },
 ];
 
 export default function ProductionPage() {
