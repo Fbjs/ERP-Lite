@@ -9,12 +9,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ProductionOrderForm from '@/components/production-order-form';
 import { useToast } from '@/hooks/use-toast';
 import { initialRecipes, Recipe } from '@/app/recipes/page';
-import { InventoryItem, initialInventoryItems } from '@/app/inventory/page';
+import { initialInventoryItems } from '@/app/inventory/page';
 import Logo from '@/components/logo';
 
 
@@ -226,7 +225,7 @@ export default function ProductionPage() {
 
       {/* Modal Nueva Orden */}
       <Dialog open={isNewOrderModalOpen} onOpenChange={setNewOrderModalOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-headline">Crear Nueva Orden de Producción</DialogTitle>
             <DialogDescription className="font-body">
@@ -251,7 +250,7 @@ export default function ProductionPage() {
                 </DialogHeader>
                 {selectedOrder && (
                     <div className="max-h-[75vh] overflow-y-auto p-1">
-                        <div ref={detailsModalContentRef} className="p-6 bg-white text-black font-body text-xs space-y-2">
+                        <div ref={detailsModalContentRef} className="p-6 bg-white text-black font-body text-xs space-y-2" style={{ width: '8.5in', minHeight: '11in'}}>
                             <header className="flex justify-between items-start mb-4 border-b-2 border-gray-800 pb-2">
                                 <div className="flex items-center gap-3">
                                     <Logo className="w-28 text-orange-600" />

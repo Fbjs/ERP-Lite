@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { initialRecipes } from '@/app/recipes/page';
+
 
 type OrderData = {
     product: string;
@@ -29,18 +32,21 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData = 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 py-4 font-body">
+    <form onSubmit={handleSubmit} className="grid gap-4 py-4 font-body max-h-[70vh] overflow-y-auto p-2">
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="product" className="text-right">
           Producto
         </Label>
-        <Input
-          id="product"
-          value={product}
-          onChange={(e) => setProduct(e.target.value)}
-          className="col-span-3"
-          required
-        />
+         <Select value={product} onValueChange={setProduct}>
+            <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Seleccionar de una receta..." />
+            </SelectTrigger>
+            <SelectContent>
+                {initialRecipes.map(recipe => (
+                    <SelectItem key={recipe.id} value={recipe.name}>{recipe.name}</SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="quantity" className="text-right">
@@ -67,7 +73,7 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData = 
           required
         />
       </div>
-      <DialogFooter>
+      <DialogFooter className="sticky bottom-0 bg-background py-4">
         <Button variant="outline" type="button" onClick={onCancel}>
           Cancelar
         </Button>
