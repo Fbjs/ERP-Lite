@@ -7,7 +7,7 @@ import { MoreHorizontal, PlusCircle, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -43,6 +43,28 @@ export default function ProductionPage() {
     const [updatedStage, setUpdatedStage] = useState('');
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
+
+    const selectedOrderRecipe = useMemo(() => {
+        if (!selectedOrder) return null;
+        return initialRecipes.find(r => r.name === selectedOrder.product) || null;
+    }, [selectedOrder]);
+
+    const requiredMaterials = useMemo(() => {
+        if (!selectedOrder || !selectedOrderRecipe) return [];
+        
+        return selectedOrderRecipe.ingredients.map(ingredient => {
+            const inventoryItem = initialInventoryItems.find(item => item.name.toLowerCase() === ingredient.name.toLowerCase());
+            return {
+                sku: inventoryItem?.sku || 'N/A',
+                name: ingredient.name,
+                requiredQuantity: ingredient.quantity * selectedOrder.quantity,
+                unit: ingredient.unit,
+                category: inventoryItem?.category || 'N/A',
+                availableStock: inventoryItem?.stock || 0,
+            };
+        });
+
+    }, [selectedOrder, selectedOrderRecipe]);
 
 
     const handleOpenDetails = (order: Order) => {
@@ -178,7 +200,7 @@ export default function ProductionPage() {
                     <Badge variant={order.status === 'Completado' ? 'default' : order.status === 'En Progreso' ? 'secondary' : 'outline'}>{order.status}</Badge>
                   </TableCell>
                   <TableCell data-label="Etapa">{order.stage}</TableCell>
-                  <TableCell data-label="Fecha">{order.date}</TableCell>
+                  <TableCell data-label="Fecha">{new Date(order.date).toLocaleDateString('es-CL')}</TableCell>
                    <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -218,59 +240,81 @@ export default function ProductionPage() {
       </Dialog>
 
       {/* Modal Ver Detalles */}
-      <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="font-headline">Detalles de la Orden</DialogTitle>
-          </DialogHeader>
-          {selectedOrder && (
-            <div className="max-h-[75vh] overflow-y-auto p-1">
-                <div ref={detailsModalContentRef} className="p-6 bg-white text-black">
-                    <div className="border-b-2 border-gray-200 pb-4 mb-4">
-                        <h2 className="text-2xl font-bold text-gray-800 font-headline">Orden de Producción: {selectedOrder.id}</h2>
-                        <p className="text-sm text-gray-500 font-body">Vollkorn ERP</p>
+        <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
+            <DialogContent className="sm:max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle className="font-headline">Detalle de Orden: {selectedOrder?.id}</DialogTitle>
+                    <DialogDescription className="font-body">
+                        Creada el {selectedOrder ? new Date(selectedOrder.date).toLocaleString('es-CL', { dateStyle: 'long', timeStyle: 'short' }) : ''}
+                    </DialogDescription>
+                </DialogHeader>
+                {selectedOrder && (
+                    <div className="max-h-[75vh] overflow-y-auto p-1">
+                        <div ref={detailsModalContentRef} className="p-6 bg-white text-black font-body">
+                            <div className="border-b-2 border-gray-200 pb-4 mb-4">
+                                <h2 className="text-2xl font-bold text-gray-800 font-headline">Orden de Producción: {selectedOrder.id}</h2>
+                                <p className="text-sm text-gray-500">Vollkorn ERP</p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-4 mb-6">
+                                <div>
+                                    <p className="font-semibold text-gray-600">Producto:</p>
+                                    <p>{selectedOrder.product}</p>
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-gray-600">Cantidad a Producir:</p>
+                                    <p>{selectedOrder.quantity} unidades</p>
+                                </div>
+                                <div>
+                                    <p className="font-semibold text-gray-600">Estado / Etapa:</p>
+                                    <p>{selectedOrder.status} / {selectedOrder.stage}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="mt-6">
+                                <h3 className="text-xl font-bold text-gray-800 font-headline mb-3 border-b pb-2">Materiales Requeridos</h3>
+                                {selectedOrderRecipe ? (
+                                    <Table className="w-full text-sm">
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="text-left font-bold text-gray-700">SKU</TableHead>
+                                                <TableHead className="text-left font-bold text-gray-700">Descripción</TableHead>
+                                                <TableHead className="text-right font-bold text-gray-700">Cantidad Requerida</TableHead>
+                                                <TableHead className="text-right font-bold text-gray-700">Stock Actual</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {requiredMaterials.map(material => (
+                                                <TableRow key={material.sku} className={material.requiredQuantity > material.availableStock ? 'bg-red-50' : ''}>
+                                                    <TableCell>{material.sku}</TableCell>
+                                                    <TableCell>{material.name} <Badge variant="outline" className="ml-2">{material.category}</Badge></TableCell>
+                                                    <TableCell className="text-right">{material.requiredQuantity.toFixed(2)} {material.unit}</TableCell>
+                                                    <TableCell className={`text-right font-medium ${material.requiredQuantity > material.availableStock ? 'text-red-600' : ''}`}>
+                                                        {material.availableStock.toFixed(2)} {material.unit}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                ) : (
+                                    <p className="text-center text-gray-500 py-4">No se encontró una receta para este producto. No se pueden calcular los materiales.</p>
+                                )}
+                            </div>
+
+                            <div className="border-t-2 border-gray-200 pt-4 mt-8 text-center text-xs text-gray-500">
+                                <p>Documento generado el {new Date().toLocaleString('es-ES')}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 font-body mb-6">
-                        <div>
-                            <p className="font-semibold text-gray-600">Producto:</p>
-                            <p>{selectedOrder.product}</p>
-                        </div>
-                        <div>
-                            <p className="font-semibold text-gray-600">Cantidad:</p>
-                            <p>{selectedOrder.quantity} unidades</p>
-                        </div>
-                        <div>
-                            <p className="font-semibold text-gray-600">Fecha de Emisión:</p>
-                            <p>{new Date(selectedOrder.date).toLocaleDateString('es-ES')}</p>
-                        </div>
-                        <div>
-                            <p className="font-semibold text-gray-600">Estado Actual:</p>
-                            <p>
-                                <Badge variant={selectedOrder.status === 'Completado' ? 'default' : selectedOrder.status === 'En Progreso' ? 'secondary' : 'outline'}>
-                                    {selectedOrder.status}
-                                </Badge>
-                            </p>
-                        </div>
-                        <div className="sm:col-span-2">
-                            <p className="font-semibold text-gray-600">Etapa de Producción:</p>
-                            <p>{selectedOrder.stage}</p>
-                        </div>
-                    </div>
-                    <div className="border-t-2 border-gray-200 pt-4 mt-4 text-center text-xs text-gray-500">
-                        <p>Documento generado el {new Date().toLocaleDateString('es-ES')} a las {new Date().toLocaleTimeString('es-ES')}</p>
-                    </div>
-                </div>
-            </div>
-          )}
-           <DialogFooter>
-                <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Cerrar</Button>
-                <Button onClick={handleDownloadPdf}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Descargar PDF
-                </Button>
-            </DialogFooter>
-        </DialogContent>
-      </Dialog>
+                )}
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Cerrar</Button>
+                    <Button onClick={handleDownloadPdf}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Descargar PDF
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
 
       {/* Modal Actualizar Estado */}
       <Dialog open={isUpdateStatusModalOpen} onOpenChange={setUpdateStatusModalOpen}>
