@@ -38,9 +38,9 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
     return (
         <SidebarProvider>
             <Sidebar>
-                <SidebarHeader className="p-4 border-b flex justify-center items-center group-data-[collapsible=icon]:p-0">
-                    <Link href="/dashboard" className="flex items-center gap-2 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2">
-                        <Logo className="w-28 group-data-[collapsible=icon]:w-full" />
+                <SidebarHeader className="p-4 border-b flex justify-center items-center group-data-[collapsible=icon]:p-2">
+                    <Link href="/dashboard" className="flex items-center gap-2 group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center">
+                        <Logo className="w-28 group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-auto" />
                     </Link>
                 </SidebarHeader>
                 <SidebarContent className="p-2">
