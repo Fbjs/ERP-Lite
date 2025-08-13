@@ -81,7 +81,7 @@ export default function ProductionPage() {
         setFormModalOpen(true);
     };
 
-    const handleFormSubmit = (data: ProductionOrderData & { status: Order['status']}) => {
+    const handleFormSubmit = (data: ProductionOrderData) => {
         if (selectedOrder) {
             // Editing existing order
             const updatedOrder: Order = { ...selectedOrder, ...data };
