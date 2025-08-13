@@ -321,6 +321,19 @@ export default function ProductionPage() {
                             </div>
 
                              <div className="mt-4">
+                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Control de Amasado</h3>
+                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
+                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Amasadora:</p><div className="border-b h-4"></div></div>
+                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Hora Inicio:</p><div className="border-b h-4"></div></div>
+                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Hora Término:</p><div className="border-b h-4"></div></div>
+                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Velocidad:</p><div className="border-b h-4"></div></div>
+                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Temp. Caldo (°C):</p><div className="border-b h-4"></div></div>
+                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Temp. Masa (°C):</p><div className="border-b h-4"></div></div>
+                                    <div className="col-span-full space-y-1"><p className="font-semibold text-gray-600">Observaciones:</p><div className="border-b h-4"></div></div>
+                                </div>
+                            </div>
+
+                             <div className="mt-4">
                                 <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Variables de Control (Muestra)</h3>
                                 <Table className="w-full text-xs">
                                      <TableHeader><TableRow>
@@ -336,7 +349,7 @@ export default function ProductionPage() {
                                 </Table>
                             </div>
                              <div className="mt-4">
-                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Observaciones</h3>
+                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Observaciones Generales</h3>
                                 <div className="border-b h-12"></div>
                              </div>
 
