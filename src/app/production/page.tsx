@@ -15,6 +15,7 @@ import ProductionOrderForm from '@/components/production-order-form';
 import { useToast } from '@/hooks/use-toast';
 import { initialRecipes, Recipe } from '@/app/recipes/page';
 import { InventoryItem, initialInventoryItems } from '@/app/inventory/page';
+import Logo from '@/components/logo';
 
 
 type Order = {
@@ -251,10 +252,19 @@ export default function ProductionPage() {
                 {selectedOrder && (
                     <div className="max-h-[75vh] overflow-y-auto p-1">
                         <div ref={detailsModalContentRef} className="p-6 bg-white text-black font-body">
-                            <div className="border-b-2 border-gray-200 pb-4 mb-4">
-                                <h2 className="text-2xl font-bold text-gray-800 font-headline">Orden de Producción: {selectedOrder.id}</h2>
-                                <p className="text-sm text-gray-500">Vollkorn ERP</p>
-                            </div>
+                            <header className="flex justify-between items-start mb-10 border-b-2 border-gray-800 pb-4">
+                                <div className="flex items-center gap-3">
+                                    <Logo className="w-28 text-orange-600" />
+                                    <div>
+                                        <h1 className="text-2xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
+                                        <p className="text-sm text-gray-500">Avenida Principal 123, Santiago, Chile</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <h2 className="text-3xl font-headline font-bold uppercase text-gray-700">Orden de Producción</h2>
+                                    <p className="text-sm text-gray-600 font-semibold">Nº: {selectedOrder.id}</p>
+                                </div>
+                            </header>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-4 mb-6">
                                 <div>
                                     <p className="font-semibold text-gray-600">Producto:</p>
