@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail, Wheat, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -20,6 +20,7 @@ import { DateRange } from 'react-day-picker';
 import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import Logo from '@/components/logo';
 
 
 type Invoice = {
@@ -180,7 +181,7 @@ function AccountingPageContent() {
       <div ref={reportContentRef} className="fixed -left-[9999px] top-0 bg-white text-black p-8 font-body" style={{ width: '8.5in', minHeight: '11in'}}>
           <header className="flex justify-between items-center mb-8 border-b-2 border-gray-800 pb-4">
               <div className="flex items-center gap-3">
-                  <Wheat className="w-12 h-12 text-orange-600" />
+                  <Logo className="w-28 text-orange-600" />
                   <div>
                       <h1 className="text-3xl font-bold font-headline text-gray-800">Reporte de Facturación</h1>
                       <p className="text-sm text-gray-500">Panificadora Vollkorn</p>
@@ -441,7 +442,7 @@ function AccountingPageContent() {
                 <div ref={detailsModalContentRef} className="p-8 bg-white text-black font-body">
                     <header className="flex justify-between items-start mb-10 border-b pb-6">
                         <div className="flex items-center gap-3">
-                            <Wheat className="w-12 h-12 text-orange-600" />
+                            <Logo className="w-28 text-orange-600" />
                             <div>
                                 <h1 className="text-2xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
                                 <p className="text-sm text-gray-500">Avenida Principal 123, Santiago, Chile</p>
@@ -561,4 +562,3 @@ export default function Page() {
     </Suspense>
   );
 }
-

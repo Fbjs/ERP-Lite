@@ -3,9 +3,11 @@
 import type { ReactNode } from 'react';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Wheat, LayoutDashboard, NotebookText, Factory, ShoppingCart, BrainCircuit, Users, BookCopy, Truck, Warehouse } from 'lucide-react';
+import { LogOut, LayoutDashboard, NotebookText, Factory, ShoppingCart, BrainCircuit, Users, BookCopy, Truck, Warehouse } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Logo from '@/components/logo';
+
 
 type UserRole = 'Admin' | 'Producción' | 'Ventas' | 'Logística' | 'Contabilidad';
 
@@ -36,10 +38,9 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
     return (
         <SidebarProvider>
             <Sidebar>
-                <SidebarHeader className="p-4 border-b">
+                <SidebarHeader className="p-4 border-b flex justify-center items-center">
                     <Link href="/dashboard" className="flex items-center gap-2">
-                        <Wheat className="w-8 h-8 text-primary" />
-                        <h1 className="text-2xl font-headline font-semibold text-foreground group-data-[collapsible=icon]:hidden">Vollkorn</h1>
+                        <Logo className="w-28 group-data-[collapsible=icon]:w-10" />
                     </Link>
                 </SidebarHeader>
                 <SidebarContent className="p-2">

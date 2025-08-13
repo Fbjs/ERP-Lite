@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Wheat } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -13,6 +13,7 @@ import ShipmentForm from '@/components/shipment-form';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Logo from '@/components/logo';
 
 
 type Shipment = {
@@ -212,7 +213,7 @@ export default function LogisticsPage() {
                 <div ref={detailsModalContentRef} className="p-8 bg-white text-black font-body">
                     <header className="flex justify-between items-start mb-10 border-b-2 border-gray-800 pb-4">
                         <div className="flex items-center gap-3">
-                            <Wheat className="w-12 h-12 text-orange-600" />
+                            <Logo className="w-28 text-orange-600" />
                             <div>
                                 <h1 className="text-2xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
                                 <p className="text-sm text-gray-500">Avenida Principal 123, Santiago, Chile</p>

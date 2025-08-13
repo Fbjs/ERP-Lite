@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Wheat } from 'lucide-react';
+import Logo from '@/components/logo';
 
 export default function LoginPage() {
   return (
@@ -11,8 +11,7 @@ export default function LoginPage() {
       <Card className="mx-auto max-w-sm w-full shadow-2xl">
         <CardHeader className="space-y-1 text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
-                <Wheat className="w-10 h-10 text-primary" />
-                <h1 className="text-4xl font-headline font-bold text-foreground">Vollkorn</h1>
+                <Logo className="w-32" />
             </div>
           <CardTitle className="text-2xl font-headline">Bienvenido de Vuelta</CardTitle>
           <CardDescription className="font-body">Ingresa tus credenciales para acceder a tu ERP</CardDescription>
