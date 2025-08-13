@@ -11,11 +11,24 @@ El sistema se basa en tecnologías modernas y está alojado en la nube, lo que p
 ## 🔹 Tecnologías utilizadas
 
 * **Backend:** Laravel (PHP)
-* **Frontend:** Vue.js (SPA o Inertia.js)
+* **Frontend:** Next.js (React) + TypeScript + Tailwind CSS
 * **Base de datos:** MySQL
 * **Infraestructura:** Web (Cloud, acceso desde cualquier navegador)
 * **Compatible con:** dispositivos móviles (responsive design)
 * **Multiempresa y multirrol**
+
+---
+
+## 🌐 Plataforma
+
+* Interfaz intuitiva y moderna, desarrollada con Next.js y Tailwind CSS
+* Tipado seguro y robusto gracias a TypeScript
+* Multiempresa y multiusuario
+* Dashboards por área (producción, ventas, RRHH, etc.)
+* Exportación de reportes en Excel y PDF
+* Escalable para futuras integraciones (POS, rutas, e-commerce)
+* Renderizado híbrido (SSR y CSR) para mejor performance y SEO
+* Accesibilidad total desde cualquier dispositivo conectado a Internet
 
 ---
 
@@ -62,16 +75,6 @@ El sistema se basa en tecnologías modernas y está alojado en la nube, lo que p
 * Control de accesos por módulo y función
 * Sistema multirrol (RRHH, bodega, ventas, administración, etc.)
 * Auditoría de acciones de usuarios
-
----
-
-## 🌐 Plataforma
-
-* Interfaz intuitiva y moderna, con diseño responsive
-* Multiempresa y multiusuario
-* Dashboards por área (producción, ventas, RRHH, etc.)
-* Exportación de reportes en Excel y PDF
-* Escalable para futuras integraciones (POS, rutas, e-commerce)
 
 ---
 
