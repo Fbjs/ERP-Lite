@@ -12,7 +12,7 @@ import type { User } from '@/app/admin/users/page';
 type UserFormData = Omit<User, 'id'>;
 
 type UserFormProps = {
-  user?: User;
+  user?: User | null; // Allow null
   profiles: string[];
   onSubmit: (data: UserFormData) => void;
   onCancel: () => void;
@@ -26,19 +26,12 @@ const defaultFormData: UserFormData = {
 };
 
 export default function UserForm({ user, profiles, onSubmit, onCancel }: UserFormProps) {
-    const [formData, setFormData] = useState<UserFormData>(defaultFormData);
+    const [formData, setFormData] = useState<UserFormData>(user || defaultFormData);
     const [password, setPassword] = useState('');
 
     useEffect(() => {
-        if (user) {
-            setFormData({
-                name: user.name,
-                email: user.email,
-                profile: user.profile,
-                status: user.status,
-            });
-        } else {
-            setFormData(defaultFormData);
+        setFormData(user || defaultFormData);
+        if (!user) {
             setPassword('');
         }
     }, [user]);
