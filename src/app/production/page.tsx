@@ -251,8 +251,8 @@ export default function ProductionPage() {
                 </DialogHeader>
                 {selectedOrder && (
                     <div className="max-h-[75vh] overflow-y-auto p-1">
-                        <div ref={detailsModalContentRef} className="p-6 bg-white text-black font-body text-xs">
-                            <header className="flex justify-between items-start mb-6 border-b-2 border-gray-800 pb-4">
+                        <div ref={detailsModalContentRef} className="p-6 bg-white text-black font-body text-xs space-y-2">
+                            <header className="flex justify-between items-start mb-4 border-b-2 border-gray-800 pb-2">
                                 <div className="flex items-center gap-3">
                                     <Logo className="w-28 text-orange-600" />
                                     <div>
@@ -265,41 +265,41 @@ export default function ProductionPage() {
                                     <p className="text-sm text-gray-600 font-semibold">Nº: {selectedOrder.id}</p>
                                 </div>
                             </header>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-2 mb-4">
-                                <div><p className="font-semibold text-gray-600">Producto:</p><p>{selectedOrder.product}</p></div>
-                                <div><p className="font-semibold text-gray-600">Cantidad a Producir:</p><p>{selectedOrder.quantity} unidades</p></div>
-                                <div><p className="font-semibold text-gray-600">Estado / Etapa:</p><p>{selectedOrder.status} / {selectedOrder.stage}</p></div>
-                            </div>
 
-                            <div className="mt-4">
-                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Control de Turnos y Responsables</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 text-xs">
-                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Turno(s):</p><div className="border-b h-4"></div></div>
-                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Resp. Fraccionamiento:</p><div className="border-b h-4"></div></div>
-                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Resp. Producción:</p><div className="border-b h-4"></div></div>
-                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Resp. Cocción:</p><div className="border-b h-4"></div></div>
+                            {/* TURNOS Y RESPONSABLES */}
+                            <div className="border border-gray-400 p-2 rounded-md">
+                                <h3 className="text-sm font-bold text-center mb-2 font-headline">TURNOS</h3>
+                                <div className="grid grid-cols-4 gap-2 text-center">
+                                    <div><div className="border p-1">7-10</div></div>
+                                    <div><div className="border p-1">10-12</div></div>
+                                    <div><div className="border p-1">12-15</div></div>
+                                    <div><div className="border p-1">15-18</div></div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-x-4 mt-2 border-t pt-2">
+                                    <div className="space-y-1"><p className="font-semibold">Resp. Fraccionamiento:</p><div className="border-b h-4"></div></div>
+                                    <div className="space-y-1"><p className="font-semibold">Resp. Producción:</p><div className="border-b h-4"></div></div>
+                                    <div className="space-y-1"><p className="font-semibold">Resp. Cocción:</p><div className="border-b h-4"></div></div>
                                 </div>
                             </div>
                             
-                            <div className="mt-4">
-                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Materiales Requeridos (Checklist de Fraccionamiento)</h3>
+                             {/* MATERIALES REQUERIDOS */}
+                            <div className="border border-gray-400 p-2 rounded-md">
+                                <h3 className="text-sm font-bold text-center mb-2 font-headline">Materiales Requeridos</h3>
                                 {selectedOrderRecipe ? (
                                     <Table className="w-full text-xs">
                                         <TableHeader><TableRow>
-                                            <TableHead className="text-left font-bold text-gray-700 h-8">SKU</TableHead>
-                                            <TableHead className="text-left font-bold text-gray-700 h-8">Descripción</TableHead>
-                                            <TableHead className="text-right font-bold text-gray-700 h-8">Cant. Requerida</TableHead>
-                                            <TableHead className="text-right font-bold text-gray-700 h-8">Stock Actual</TableHead>
-                                            <TableHead className="text-center font-bold text-gray-700 h-8 w-16">Check</TableHead>
+                                            <TableHead className="text-left font-bold text-gray-700 h-6 px-1">SKU</TableHead>
+                                            <TableHead className="text-left font-bold text-gray-700 h-6 px-1">Descripción</TableHead>
+                                            <TableHead className="text-right font-bold text-gray-700 h-6 px-1">Cant. Requerida</TableHead>
+                                            <TableHead className="text-right font-bold text-gray-700 h-6 px-1">Stock Actual</TableHead>
                                         </TableRow></TableHeader>
                                         <TableBody>
                                             {requiredMaterials.map(material => (
                                                 <TableRow key={material.sku} className={material.requiredQuantity > material.availableStock ? 'bg-red-50' : ''}>
-                                                    <TableCell className="py-1">{material.sku}</TableCell>
-                                                    <TableCell className="py-1">{material.name} <Badge variant="outline" className="ml-2 scale-75">{material.category}</Badge></TableCell>
-                                                    <TableCell className="text-right py-1">{material.requiredQuantity.toFixed(2)} {material.unit}</TableCell>
-                                                    <TableCell className={`text-right font-medium py-1 ${material.requiredQuantity > material.availableStock ? 'text-red-600' : ''}`}>{material.availableStock.toFixed(2)} {material.unit}</TableCell>
-                                                    <TableCell className="text-center py-1"><div className="w-4 h-4 border border-gray-400 mx-auto"></div></TableCell>
+                                                    <TableCell className="py-1 px-1">{material.sku}</TableCell>
+                                                    <TableCell className="py-1 px-1">{material.name}</TableCell>
+                                                    <TableCell className="text-right py-1 px-1">{material.requiredQuantity.toFixed(2)} {material.unit}</TableCell>
+                                                    <TableCell className={`text-right font-medium py-1 px-1 ${material.requiredQuantity > material.availableStock ? 'text-red-600' : ''}`}>{material.availableStock.toFixed(2)} {material.unit}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
@@ -309,49 +309,86 @@ export default function ProductionPage() {
                                 )}
                             </div>
 
-                            <div className="mt-4">
-                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Control de Mezclado y Amasado</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
-                                     <div className="space-y-1"><p className="font-semibold text-gray-600">Insumo hidratado:</p><div className="border-b h-4"></div></div>
-                                     <div className="space-y-1"><p className="font-semibold text-gray-600">Fecha/Hora Inicio:</p><div className="border-b h-4"></div></div>
-                                     <div className="space-y-1"><p className="font-semibold text-gray-600">Fecha/Hora Término:</p><div className="border-b h-4"></div></div>
-                                     <div className="space-y-1"><p className="font-semibold text-gray-600">Agua (kg):</p><div className="border-b h-4"></div></div>
-                                     <div className="space-y-1"><p className="font-semibold text-gray-600">Temp. Agua:</p><div className="border-b h-4"></div></div>
+                            {/* MEZCLADO - AMASADO */}
+                             <div className="border border-gray-400 p-2 rounded-md">
+                                <h3 className="text-sm font-bold text-center mb-2 font-headline">MEZCLADO - AMASADO</h3>
+                                <div className="grid grid-cols-4 gap-x-4 gap-y-1">
+                                    <div className="col-span-1"><p className="font-semibold">Insumo Hidratado:</p><div className="border-b h-4"></div></div>
+                                    <div className="col-span-1"><p className="font-semibold">Hora y Fecha Inicio:</p><div className="border-b h-4"></div></div>
+                                    <div className="col-span-1"><p className="font-semibold">Hora de Término:</p><div className="border-b h-4"></div></div>
+                                    <div className="col-span-1"><p className="font-semibold">Agua (Kg):</p><div className="border-b h-4"></div></div>
+                                </div>
+                                <div className="grid grid-cols-4 gap-x-4 gap-y-1 mt-1">
+                                    <div className="col-span-1"><p className="font-semibold">T° Agua (°C):</p><div className="border-b h-4"></div></div>
+                                    <div className="col-span-3 grid grid-cols-2 gap-x-4">
+                                        <div className="space-y-1"><p className="font-semibold">Masa Madre:</p><div className="border-b h-4"></div></div>
+                                        <div className="space-y-1"><p className="font-semibold">T° Masa Madre (°C):</p><div className="border-b h-4"></div></div>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-5 gap-x-2 gap-y-1 mt-2 border-t pt-1">
+                                     <div className="col-span-1"><p className="font-semibold">Amasadora:</p><div className="border-b h-4"></div></div>
+                                     <div className="col-span-1"><p className="font-semibold">Hora Inicio:</p><div className="border-b h-4"></div></div>
+                                     <div className="col-span-1"><p className="font-semibold">Vel. Lenta (min):</p><div className="border-b h-4"></div></div>
+                                     <div className="col-span-1"><p className="font-semibold">Vel. Rápida (min):</p><div className="border-b h-4"></div></div>
+                                     <div className="col-span-1"><p className="font-semibold">Hora Término:</p><div className="border-b h-4"></div></div>
+                                     <div className="col-span-1"><p className="font-semibold">T° Caldo (°C):</p><div className="border-b h-4"></div></div>
+                                     <div className="col-span-1"><p className="font-semibold">T° Masa (°C):</p><div className="border-b h-4"></div></div>
+                                </div>
+                                <div className="mt-1"><p className="font-semibold">Observaciones:</p><div className="border-b h-4"></div></div>
+                            </div>
+                            
+                            {/* PORCIONADO / FORMADO */}
+                            <div className="border border-gray-400 p-2 rounded-md">
+                                <h3 className="text-sm font-bold text-center mb-2 font-headline">PORCIONADO - OVILLADO - FORMADO - MOLDEADO</h3>
+                                <div className="grid grid-cols-4 gap-x-4 gap-y-1">
+                                    <div><p className="font-semibold">Hora Inicio:</p><div className="border-b h-4"></div></div>
+                                    <div><p className="font-semibold">Corte Crudo 1 (gr):</p><div className="border-b h-4"></div></div>
+                                    <div><p className="font-semibold">Corte Crudo 2 (gr):</p><div className="border-b h-4"></div></div>
+                                    <div><p className="font-semibold">Masa Sobrante (gr):</p><div className="border-b h-4"></div></div>
+                                    <div><p className="font-semibold">Hora Término:</p><div className="border-b h-4"></div></div>
+                                    <div><p className="font-semibold">N° de Carros:</p><div className="border-b h-4"></div></div>
+                                    <div><p className="font-semibold">T° Sala (°C):</p><div className="border-b h-4"></div></div>
+                                </div>
+                                <div className="mt-1"><p className="font-semibold">Observaciones:</p><div className="border-b h-4"></div></div>
+                            </div>
+                            
+                            {/* FERMENTADO */}
+                             <div className="border border-gray-400 p-2 rounded-md">
+                                <h3 className="text-sm font-bold text-center mb-2 font-headline">FERMENTADO</h3>
+                                <div className="grid grid-cols-4 gap-x-4 gap-y-1">
+                                    <div><p className="font-semibold">Cámara:</p><div className="border-b h-4"></div></div>
+                                    <div><p className="font-semibold">Hora Entrada:</p><div className="border-b h-4"></div></div>
+                                    <div><p className="font-semibold">Hora Salida:</p><div className="border-b h-4"></div></div>
+                                    <div><p className="font-semibold">Tiempo Total (Min):</p><div className="border-b h-4"></div></div>
+                                    <div className="col-span-2"><p className="font-semibold">Cámara T°C / HR (%):</p><div className="border-b h-4"></div></div>
                                 </div>
                             </div>
 
-                             <div className="mt-4">
-                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Control de Amasado</h3>
-                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2">
-                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Amasadora:</p><div className="border-b h-4"></div></div>
-                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Hora Inicio:</p><div className="border-b h-4"></div></div>
-                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Hora Término:</p><div className="border-b h-4"></div></div>
-                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Velocidad:</p><div className="border-b h-4"></div></div>
-                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Temp. Caldo (°C):</p><div className="border-b h-4"></div></div>
-                                    <div className="space-y-1"><p className="font-semibold text-gray-600">Temp. Masa (°C):</p><div className="border-b h-4"></div></div>
-                                    <div className="col-span-full space-y-1"><p className="font-semibold text-gray-600">Observaciones:</p><div className="border-b h-4"></div></div>
+                            {/* HORNEADO */}
+                            <div className="border border-gray-400 p-2 rounded-md">
+                                <h3 className="text-sm font-bold text-center mb-2 font-headline">HORNEADO</h3>
+                                <div className="grid grid-cols-4 gap-x-4 gap-y-1">
+                                     <div><p className="font-semibold">Horno:</p><div className="border-b h-4"></div></div>
+                                     <div><p className="font-semibold">N° de Pisos:</p><div className="border-b h-4"></div></div>
+                                     <div><p className="font-semibold">Hora Inicio Carga:</p><div className="border-b h-4"></div></div>
+                                     <div><p className="font-semibold">Hora Término Descarga:</p><div className="border-b h-4"></div></div>
+                                     <div className="col-span-2"><p className="font-semibold">Tiempo Cocción / T° Horno:</p><div className="border-b h-4"></div></div>
                                 </div>
+                                <div className="mt-1"><p className="font-semibold">Observaciones:</p><div className="border-b h-4"></div></div>
                             </div>
 
-                             <div className="mt-4">
-                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Variables de Control (Muestra)</h3>
-                                <Table className="w-full text-xs">
-                                     <TableHeader><TableRow>
-                                        <TableHead className="text-left font-bold text-gray-700 h-8">Variable</TableHead>
-                                        <TableHead className="text-left font-bold text-gray-700 h-8">Valor Registrado</TableHead>
-                                    </TableRow></TableHeader>
-                                     <TableBody>
-                                        <TableRow><TableCell className="font-semibold py-1">Cantidad Agua:</TableCell><TableCell className="py-1 border-b"></TableCell></TableRow>
-                                        <TableRow><TableCell className="font-semibold py-1">Temperatura (°C):</TableCell><TableCell className="py-1 border-b"></TableCell></TableRow>
-                                        <TableRow><TableCell className="font-semibold py-1">Temperatura (°F):</TableCell><TableCell className="py-1 border-b"></TableCell></TableRow>
-                                        <TableRow><TableCell className="font-semibold py-1">Cantidad Kilos (Masa):</TableCell><TableCell className="py-1 border-b"></TableCell></TableRow>
-                                    </TableBody>
-                                </Table>
+                            {/* REGISTRO HORNEO (PCC2) */}
+                            <div className="border border-gray-400 p-2 rounded-md">
+                                <h3 className="text-sm font-bold text-center mb-2 font-headline">REGISTRO HORNEO (PCC2)</h3>
+                                <div className="grid grid-cols-3 gap-x-4 gap-y-1">
+                                     <div><p className="font-semibold">T° Horno (°C):</p><div className="border-b h-4"></div></div>
+                                     <div><p className="font-semibold">T° Centro Térmico (°C):</p><div className="border-b h-4"></div></div>
+                                     <div><p className="font-semibold">Acción Correctiva:</p><div className="border-b h-4"></div></div>
+                                </div>
+                                <div className="mt-1"><p className="font-semibold">Verificación:</p><div className="border-b h-4"></div></div>
+                                <div className="mt-1"><p className="font-semibold">Observaciones:</p><div className="border-b h-4"></div></div>
                             </div>
-                             <div className="mt-4">
-                                <h3 className="text-base font-bold text-gray-800 font-headline mb-2 border-b pb-1">Observaciones Generales</h3>
-                                <div className="border-b h-12"></div>
-                             </div>
+
 
                             <div className="border-t-2 border-gray-200 pt-2 mt-4 text-center text-xs text-gray-500">
                                 <p>Documento generado el {new Date().toLocaleString('es-ES')}</p>
