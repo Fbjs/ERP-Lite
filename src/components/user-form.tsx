@@ -18,13 +18,15 @@ type UserFormProps = {
   onCancel: () => void;
 };
 
+const defaultFormData: UserFormData = {
+    name: '',
+    email: '',
+    profile: '',
+    status: 'Activo',
+};
+
 export default function UserForm({ user, profiles, onSubmit, onCancel }: UserFormProps) {
-    const [formData, setFormData] = useState<UserFormData>({
-        name: '',
-        email: '',
-        profile: '',
-        status: 'Activo',
-    });
+    const [formData, setFormData] = useState<UserFormData>(defaultFormData);
     const [password, setPassword] = useState('');
 
     useEffect(() => {
@@ -35,6 +37,9 @@ export default function UserForm({ user, profiles, onSubmit, onCancel }: UserFor
                 profile: user.profile,
                 status: user.status,
             });
+        } else {
+            setFormData(defaultFormData);
+            setPassword('');
         }
     }, [user]);
 
