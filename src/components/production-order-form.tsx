@@ -9,7 +9,7 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { initialRecipes } from '@/app/recipes/page';
 import { initialInventoryItems } from '@/app/inventory/page';
-import { Order, ProcessControl, PortioningControl, FermentationControl, BakingControl, BakingRecord } from '@/app/production/page'; 
+import { Order, ProcessControl, PortioningControl, FermentationControl, BakingControl, BakingRecord, Waste } from '@/app/production/page'; 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { AlertCircle, CheckCircle2, PlusCircle, Trash2 } from 'lucide-react';
@@ -62,6 +62,7 @@ const initialFormData: ProductionOrderData = {
     fermentationControl: emptyFermentationControl,
     bakingControl: emptyBakingControl,
     bakingRecord: emptyBakingRecord,
+    waste: [],
 };
 
 export default function ProductionOrderForm({ onSubmit, onCancel, initialData }: ProductionOrderFormProps) {
@@ -151,6 +152,26 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
         setFormData(prev => ({ ...prev, staff: newStaff }));
     };
 
+    const handleAddWaste = () => {
+        setFormData(prev => ({
+            ...prev,
+            waste: [...prev.waste, { type: 'Otro', quantity: 0, reason: '' }]
+        }));
+    };
+
+    const handleRemoveWaste = (index: number) => {
+        setFormData(prev => ({
+            ...prev,
+            waste: prev.waste.filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleWasteChange = (index: number, field: keyof Waste, value: string | number) => {
+        const newWaste = [...formData.waste];
+        (newWaste[index] as any)[field] = value;
+        setFormData(prev => ({ ...prev, waste: newWaste }));
+    };
+
 
     const handleSelectChange = (field: keyof ProductionOrderData, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -176,7 +197,7 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
         <ScrollArea className="flex-grow h-[calc(100vh-250px)]">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 font-body p-6">
                 
-                {/* Columna Izquierda: Definición y Recursos */}
+                {/* Columna Izquierda: Recursos y Asignación */}
                 <div className="space-y-4">
                     <Card>
                         <CardHeader>
@@ -394,6 +415,52 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
                             <Textarea placeholder="Observaciones finales..." value={formData.bakingRecord.observations} onChange={e => handleChange('bakingRecord', 'observations', e.target.value)} />
                         </CardContent>
                     </Card>
+                    
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="font-headline text-lg">Control de Mermas</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {formData.waste.map((wasteItem, index) => (
+                                <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                                    <Select
+                                        value={wasteItem.type}
+                                        onValueChange={(value: Waste['type']) => handleWasteChange(index, 'type', value)}
+                                    >
+                                        <SelectTrigger className="col-span-4">
+                                            <SelectValue placeholder="Tipo de Merma" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Por Forma">Por Forma</SelectItem>
+                                            <SelectItem value="Por Calidad">Por Calidad</SelectItem>
+                                            <SelectItem value="Otro">Otro</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <Input
+                                        type="number"
+                                        placeholder="Cant."
+                                        value={wasteItem.quantity || ''}
+                                        onChange={e => handleWasteChange(index, 'quantity', Number(e.target.value))}
+                                        className="col-span-2"
+                                    />
+                                    <Input
+                                        placeholder="Razón"
+                                        value={wasteItem.reason}
+                                        onChange={e => handleWasteChange(index, 'reason', e.target.value)}
+                                        className="col-span-5"
+                                    />
+                                    <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveWaste(index)} className="col-span-1">
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                </div>
+                            ))}
+                            <Button type="button" variant="outline" className="w-full" onClick={handleAddWaste}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Añadir Registro de Merma
+                            </Button>
+                        </CardContent>
+                    </Card>
+
                 </div>
             </div>
         </ScrollArea>

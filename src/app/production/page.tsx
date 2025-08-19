@@ -71,6 +71,11 @@ export type BakingRecord = {
     observations: string;
 };
 
+export type Waste = {
+    type: 'Por Forma' | 'Por Calidad' | 'Otro';
+    quantity: number;
+    reason: string;
+};
 
 export type Order = {
     id: string;
@@ -99,6 +104,7 @@ export type Order = {
     fermentationControl: FermentationControl;
     bakingControl: BakingControl;
     bakingRecord: BakingRecord;
+    waste: Waste[];
 };
 
 
@@ -160,10 +166,10 @@ const emptyBakingRecord: BakingRecord = {
 
 
 export const initialOrders: Order[] = [
-  { id: 'PROD021', product: 'Pain au Levain', quantity: 200, status: 'En Progreso', stage: 'Horneando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord },
-  { id: 'PROD022', product: 'Baguette Tradition', quantity: 500, status: 'Completado', stage: 'Empaquetado', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord },
-  { id: 'PROD023', product: 'Croissant au Beurre', quantity: 1000, status: 'En Cola', stage: 'Mezclando', date: '2023-10-29', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord },
-  { id: 'PROD024', product: 'Ciabatta', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord },
+  { id: 'PROD021', product: 'Pain au Levain', quantity: 200, status: 'En Progreso', stage: 'Horneando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
+  { id: 'PROD022', product: 'Baguette Tradition', quantity: 500, status: 'Completado', stage: 'Empaquetado', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [{ type: 'Por Forma', quantity: 10, reason: 'Mal formado' }] },
+  { id: 'PROD023', product: 'Croissant au Beurre', quantity: 1000, status: 'En Cola', stage: 'Mezclando', date: '2023-10-29', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
+  { id: 'PROD024', product: 'Ciabatta', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
 ];
 
 export default function ProductionPage() {
@@ -536,6 +542,28 @@ export default function ProductionPage() {
                                 <div className="mt-1"><p className="font-semibold">Verificación:</p><div className="border-b h-4"></div></div>
                                 <div className="mt-1"><p className="font-semibold">Observaciones:</p><div className="border-b h-4"></div></div>
                             </div>
+                             {/* CONTROL DE MERMAS */}
+                            {selectedOrder.waste.length > 0 && (
+                                <div className="border border-gray-400 p-2 rounded-md">
+                                    <h3 className="text-sm font-bold text-center mb-2 font-headline">CONTROL DE MERMAS</h3>
+                                    <Table className="w-full text-xs">
+                                        <TableHeader><TableRow>
+                                            <TableHead className="text-left font-bold text-gray-700 h-6 px-1">Tipo</TableHead>
+                                            <TableHead className="text-right font-bold text-gray-700 h-6 px-1">Cantidad</TableHead>
+                                            <TableHead className="text-left font-bold text-gray-700 h-6 px-1">Razón</TableHead>
+                                        </TableRow></TableHeader>
+                                        <TableBody>
+                                            {selectedOrder.waste.map((w, i) => (
+                                                <TableRow key={i}>
+                                                    <TableCell className="py-1 px-1">{w.type}</TableCell>
+                                                    <TableCell className="text-right py-1 px-1">{w.quantity}</TableCell>
+                                                    <TableCell className="py-1 px-1">{w.reason}</TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                            )}
 
                             {/* FIRMAS */}
                             <footer className="grid grid-cols-2 gap-4 mt-12 text-center">
