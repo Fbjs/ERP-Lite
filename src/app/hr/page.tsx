@@ -3,7 +3,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef } from 'react';
@@ -16,6 +16,7 @@ import { generateHrDocument } from '@/ai/flows/generate-hr-document';
 import { GenerateHrDocumentOutput } from '@/ai/schemas/hr-document-schemas';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type Document = {
     name: string;
@@ -37,13 +38,14 @@ type Employee = {
     healthInsurance: string;
     pensionFund: string;
     documents: Document[];
+    photoUrl?: string;
 };
 
 const initialEmployees: Employee[] = [
-  { id: 'EMP001', name: 'Juan Pérez', rut: '12.345.678-9', position: 'Panadero Jefe', role: 'Producción', contractType: 'Indefinido', startDate: '2022-01-15', salary: 850000, status: 'Activo', phone: '+56987654321', address: 'Av. Siempre Viva 742', healthInsurance: 'Fonasa', pensionFund: 'Modelo', documents: [{name: 'Contrato.pdf', url: '#'}] },
-  { id: 'EMP002', name: 'Ana Gómez', rut: '23.456.789-0', position: 'Auxiliar de Pastelería', role: 'Producción', contractType: 'Plazo Fijo', startDate: '2023-03-01', salary: 600000, status: 'Activo', phone: '+56912345678', address: 'Calle Falsa 123', healthInsurance: 'Consalud', pensionFund: 'Habitat', documents: [] },
-  { id: 'EMP003', name: 'Luis Martínez', rut: '11.222.333-4', position: 'Conductor Despacho', role: 'Logística', contractType: 'Indefinido', startDate: '2021-08-20', salary: 750000, status: 'Vacaciones', phone: '+56955554444', address: 'Pasaje Corto 45', healthInsurance: 'Cruz Blanca', pensionFund: 'Capital', documents: [] },
-  { id: 'EMP004', name: 'María Rodríguez', rut: '15.678.901-2', position: 'Administrativa', role: 'Admin', contractType: 'Indefinido', startDate: '2020-05-10', salary: 950000, status: 'Activo', phone: '+56999998888', address: 'El Roble 1010', healthInsurance: 'Fonasa', pensionFund: 'PlanVital', documents: [] },
+  { id: 'EMP001', name: 'Juan Pérez', rut: '12.345.678-9', position: 'Panadero Jefe', role: 'Producción', contractType: 'Indefinido', startDate: '2022-01-15', salary: 850000, status: 'Activo', phone: '+56987654321', address: 'Av. Siempre Viva 742', healthInsurance: 'Fonasa', pensionFund: 'Modelo', documents: [{name: 'Contrato.pdf', url: '#'}], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=JP' },
+  { id: 'EMP002', name: 'Ana Gómez', rut: '23.456.789-0', position: 'Auxiliar de Pastelería', role: 'Producción', contractType: 'Plazo Fijo', startDate: '2023-03-01', salary: 600000, status: 'Activo', phone: '+56912345678', address: 'Calle Falsa 123', healthInsurance: 'Consalud', pensionFund: 'Habitat', documents: [], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=AG' },
+  { id: 'EMP003', name: 'Luis Martínez', rut: '11.222.333-4', position: 'Conductor Despacho', role: 'Logística', contractType: 'Indefinido', startDate: '2021-08-20', salary: 750000, status: 'Vacaciones', phone: '+56955554444', address: 'Pasaje Corto 45', healthInsurance: 'Cruz Blanca', pensionFund: 'Capital', documents: [], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=LM' },
+  { id: 'EMP004', name: 'María Rodríguez', rut: '15.678.901-2', position: 'Administrativa', role: 'Admin', contractType: 'Indefinido', startDate: '2020-05-10', salary: 950000, status: 'Activo', phone: '+56999998888', address: 'El Roble 1010', healthInsurance: 'Fonasa', pensionFund: 'PlanVital', documents: [], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=MR' },
 ];
 
 export default function HRPage() {
@@ -52,6 +54,7 @@ export default function HRPage() {
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isGenerateDocModalOpen, setGenerateDocModalOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+    const [uploadedPhoto, setUploadedPhoto] = useState<File | null>(null);
     
     const [docType, setDocType] = useState('');
     const [generatedDoc, setGeneratedDoc] = useState<GenerateHrDocumentOutput | null>(null);
@@ -66,6 +69,7 @@ export default function HRPage() {
             id: `EMP${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
             status: 'Activo',
             documents: [],
+            photoUrl: `https://placehold.co/100x100/D2AD5B/131011/png?text=${newEmployeeData.name.split(' ').map(n => n[0]).join('')}`
         };
         setEmployees(prev => [newEmployee, ...prev]);
         setNewEmployeeModalOpen(false);
@@ -77,6 +81,7 @@ export default function HRPage() {
 
     const handleOpenDetails = (employee: Employee) => {
         setSelectedEmployee(employee);
+        setUploadedPhoto(null);
         setDetailsModalOpen(true);
     }
     
@@ -125,6 +130,24 @@ export default function HRPage() {
             title: "Copiado",
             description: "El contenido del documento se ha copiado al portapapeles.",
         });
+    };
+
+    const handleUpdatePhoto = () => {
+        if (!uploadedPhoto || !selectedEmployee) return;
+
+        const updatedPhotoUrl = URL.createObjectURL(uploadedPhoto);
+
+        const updatedEmployees = employees.map(emp => 
+            emp.id === selectedEmployee.id ? { ...emp, photoUrl: updatedPhotoUrl } : emp
+        );
+        setEmployees(updatedEmployees);
+        setSelectedEmployee(prev => prev ? { ...prev, photoUrl: updatedPhotoUrl } : null);
+
+        toast({
+            title: 'Foto Actualizada',
+            description: `Se ha actualizado la foto de ${selectedEmployee.name}.`
+        });
+        setUploadedPhoto(null);
     };
 
     const handleDownloadPdf = async () => {
@@ -256,7 +279,13 @@ export default function HRPage() {
                 <TableBody>
                   {employees.map((employee) => (
                     <TableRow key={employee.id}>
-                      <TableCell data-label="Nombre" className="font-medium">{employee.name}</TableCell>
+                      <TableCell data-label="Nombre" className="font-medium flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                            <AvatarImage src={employee.photoUrl} alt={employee.name} />
+                            <AvatarFallback>{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        {employee.name}
+                      </TableCell>
                       <TableCell data-label="RUT">{employee.rut}</TableCell>
                       <TableCell data-label="Cargo">{employee.position}</TableCell>
                       <TableCell data-label="Rol"><Badge variant="secondary">{employee.role}</Badge></TableCell>
@@ -313,54 +342,71 @@ export default function HRPage() {
           </DialogHeader>
           {selectedEmployee && (
             <div className="max-h-[75vh] overflow-y-auto p-1">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-body mb-6">
-                    <div className="space-y-1">
-                        <p className="font-semibold text-muted-foreground text-sm">Nombre Completo</p>
-                        <p>{selectedEmployee.name}</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div className="md:col-span-1 flex flex-col items-center gap-4 pt-4">
+                        <Avatar className="h-32 w-32 border-4 border-primary">
+                            <AvatarImage src={uploadedPhoto ? URL.createObjectURL(uploadedPhoto) : selectedEmployee.photoUrl} alt={selectedEmployee.name} />
+                            <AvatarFallback className="text-4xl">{selectedEmployee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div className="grid w-full max-w-sm items-center gap-1.5">
+                            <Label htmlFor="photo-upload">Cambiar Fotografía</Label>
+                            <div className="flex gap-2">
+                                <Input id="photo-upload" type="file" accept="image/*" onChange={(e) => setUploadedPhoto(e.target.files ? e.target.files[0] : null)} />
+                                <Button onClick={handleUpdatePhoto} size="icon" disabled={!uploadedPhoto}>
+                                    <Camera className="h-4 w-4"/>
+                                </Button>
+                            </div>
+                        </div>
                     </div>
-                     <div className="space-y-1">
-                        <p className="font-semibold text-muted-foreground text-sm">RUT</p>
-                        <p>{selectedEmployee.rut}</p>
-                    </div>
-                     <div className="space-y-1">
-                        <p className="font-semibold text-muted-foreground text-sm">Teléfono</p>
-                        <p>{selectedEmployee.phone}</p>
-                    </div>
-                     <div className="space-y-1 col-span-1 md:col-span-2">
-                        <p className="font-semibold text-muted-foreground text-sm">Dirección</p>
-                        <p>{selectedEmployee.address}</p>
-                    </div>
-                     <div className="space-y-1">
-                        <p className="font-semibold text-muted-foreground text-sm">Cargo</p>
-                        <p>{selectedEmployee.position}</p>
-                    </div>
-                    <div className="space-y-1">
-                        <p className="font-semibold text-muted-foreground text-sm">Tipo Contrato</p>
-                        <p>{selectedEmployee.contractType}</p>
-                    </div>
-                     <div className="space-y-1">
-                        <p className="font-semibold text-muted-foreground text-sm">Rol</p>
-                        <p>{selectedEmployee.role}</p>
-                    </div>
-                    <div className="space-y-1">
-                        <p className="font-semibold text-muted-foreground text-sm">Fecha Ingreso</p>
-                        <p>{new Date(selectedEmployee.startDate).toLocaleDateString('es-ES')}</p>
-                    </div>
-                    <div className="space-y-1">
-                        <p className="font-semibold text-muted-foreground text-sm">Sueldo Bruto</p>
-                        <p>${selectedEmployee.salary.toLocaleString('es-CL')}</p>
-                    </div>
-                    <div className="space-y-1">
-                        <p className="font-semibold text-muted-foreground text-sm">Previsión Salud</p>
-                        <p>{selectedEmployee.healthInsurance}</p>
-                    </div>
-                     <div className="space-y-1">
-                        <p className="font-semibold text-muted-foreground text-sm">AFP</p>
-                        <p>{selectedEmployee.pensionFund}</p>
-                    </div>
-                     <div className="space-y-1">
-                        <p className="font-semibold text-muted-foreground text-sm">Estado</p>
-                        <Badge variant={selectedEmployee.status === 'Activo' ? 'default' : 'secondary'}>{selectedEmployee.status}</Badge>
+                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 font-body pt-4 border-t md:border-t-0 md:border-l pl-6">
+                        <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">Nombre Completo</p>
+                            <p>{selectedEmployee.name}</p>
+                        </div>
+                         <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">RUT</p>
+                            <p>{selectedEmployee.rut}</p>
+                        </div>
+                         <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">Teléfono</p>
+                            <p>{selectedEmployee.phone}</p>
+                        </div>
+                         <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">Dirección</p>
+                            <p>{selectedEmployee.address}</p>
+                        </div>
+                         <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">Cargo</p>
+                            <p>{selectedEmployee.position}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">Tipo Contrato</p>
+                            <p>{selectedEmployee.contractType}</p>
+                        </div>
+                         <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">Rol</p>
+                            <p>{selectedEmployee.role}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">Fecha Ingreso</p>
+                            <p>{new Date(selectedEmployee.startDate).toLocaleDateString('es-ES')}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">Sueldo Bruto</p>
+                            <p>${selectedEmployee.salary.toLocaleString('es-CL')}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">Previsión Salud</p>
+                            <p>{selectedEmployee.healthInsurance}</p>
+                        </div>
+                         <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">AFP</p>
+                            <p>{selectedEmployee.pensionFund}</p>
+                        </div>
+                         <div className="space-y-1">
+                            <p className="font-semibold text-muted-foreground text-sm">Estado</p>
+                            <Badge variant={selectedEmployee.status === 'Activo' ? 'default' : 'secondary'}>{selectedEmployee.status}</Badge>
+                        </div>
                     </div>
                 </div>
 

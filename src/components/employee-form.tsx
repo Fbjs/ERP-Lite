@@ -19,10 +19,11 @@ type EmployeeData = {
     address: string;
     healthInsurance: string;
     pensionFund: string;
+    photoUrl?: string;
 };
 
 type EmployeeFormProps = {
-  onSubmit: (data: EmployeeData) => void;
+  onSubmit: (data: Omit<EmployeeData, 'photoUrl'>) => void;
   onCancel: () => void;
   initialData?: Partial<EmployeeData>;
 };
