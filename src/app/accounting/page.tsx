@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -22,30 +22,33 @@ import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/logo';
 import Link from 'next/link';
+import CreditNoteForm, { CreditNoteFormData } from '@/components/credit-note-form';
 
 
-type Invoice = {
+type Document = {
   id: string;
+  type: 'Factura' | 'Nota de Crédito';
   client: string;
   date: string;
   total: number;
-  status: 'Pagada' | 'Pendiente' | 'Vencida';
+  status: 'Pagada' | 'Pendiente' | 'Vencida' | 'Anulada' | 'Aplicada';
   items: string;
 };
 
-const initialInvoices: Invoice[] = [
-  { id: 'F001', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', items: '100 x Pan de Masa Madre, 50 x Baguettes' },
-  { id: 'F002', client: 'Cafe Central', date: '2025-07-20', total: 1200.50, status: 'Pendiente', items: '200 x Croissants, 150 x Ciabattas' },
-  { id: 'F003', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', items: '50 x Pain au Levain, 50 x Baguette Tradition' },
-  { id: 'F004', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320.75, status: 'Vencida', items: '300 x Pan de Centeno' },
+const initialDocuments: Document[] = [
+  { id: 'F001', type: 'Factura', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', items: '100 x Pan de Masa Madre, 50 x Baguettes' },
+  { id: 'F002', type: 'Factura', client: 'Cafe Central', date: '2025-07-20', total: 1200.50, status: 'Pendiente', items: '200 x Croissants, 150 x Ciabattas' },
+  { id: 'F003', type: 'Factura', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', items: '50 x Pain au Levain, 50 x Baguette Tradition' },
+  { id: 'F004', type: 'Factura', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320.75, status: 'Vencida', items: '300 x Pan de Centeno' },
 ];
 
 function AccountingPageContent() {
-    const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+    const [documents, setDocuments] = useState<Document[]>(initialDocuments);
     const [isNewInvoiceModalOpen, setNewInvoiceModalOpen] = useState(false);
+    const [isNewCreditNoteModalOpen, setNewCreditNoteModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isSendEmailModalOpen, setSendEmailModalOpen] = useState(false);
-    const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+    const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
     const [emailToSend, setEmailToSend] = useState('');
     const searchParams = useSearchParams();
     const { toast } = useToast();
@@ -57,26 +60,33 @@ function AccountingPageContent() {
         to: new Date(2025, 6, 29)
     });
 
-    const filteredInvoices = useMemo(() => {
-        if (!dateRange?.from) return invoices; // Return all if no start date
+    const filteredDocuments = useMemo(() => {
+        if (!dateRange?.from) return documents;
         const fromDate = dateRange.from;
-        const toDate = dateRange.to || fromDate; // If no end date, use start date
+        const toDate = dateRange.to || fromDate;
 
-        return invoices.filter(invoice => {
-            const invoiceDate = new Date(invoice.date);
-            return invoiceDate >= fromDate && invoiceDate <= toDate;
+        return documents.filter(doc => {
+            const docDate = new Date(doc.date);
+            return docDate >= fromDate && docDate <= toDate;
         });
-    }, [invoices, dateRange]);
+    }, [documents, dateRange]);
 
 
     const summaryTotals = useMemo(() => {
+        const invoices = filteredDocuments.filter(d => d.type === 'Factura');
+        const creditNotes = filteredDocuments.filter(d => d.type === 'Nota de Crédito');
+        
+        const totalCreditNotes = creditNotes.reduce((acc, cn) => acc + cn.total, 0);
+
         return {
-            paid: filteredInvoices.filter(i => i.status === 'Pagada').reduce((acc, i) => acc + i.total, 0),
-            pending: filteredInvoices.filter(i => i.status === 'Pendiente').reduce((acc, i) => acc + i.total, 0),
-            overdue: filteredInvoices.filter(i => i.status === 'Vencida').reduce((acc, i) => acc + i.total, 0),
-            total: filteredInvoices.reduce((acc, i) => acc + i.total, 0),
+            paid: invoices.filter(i => i.status === 'Pagada').reduce((acc, i) => acc + i.total, 0),
+            pending: invoices.filter(i => i.status === 'Pendiente').reduce((acc, i) => acc + i.total, 0),
+            overdue: invoices.filter(i => i.status === 'Vencida').reduce((acc, i) => acc + i.total, 0),
+            totalInvoiced: invoices.reduce((acc, i) => acc + i.total, 0),
+            totalCredited: totalCreditNotes,
+            netTotal: invoices.reduce((acc, i) => acc + i.total, 0) - totalCreditNotes
         }
-    }, [filteredInvoices]);
+    }, [filteredDocuments]);
 
 
     useEffect(() => {
@@ -85,15 +95,16 @@ function AccountingPageContent() {
         const details = searchParams.get('details');
 
         if (client && amount && details) {
-            const newInvoice: Invoice = {
+            const newInvoice: Document = {
                 id: `F${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+                type: 'Factura',
                 client,
                 total: parseFloat(amount),
                 date: new Date().toISOString().split('T')[0],
                 status: 'Pendiente',
                 items: details,
             };
-            setInvoices(prev => [newInvoice, ...prev]);
+            setDocuments(prev => [newInvoice, ...prev]);
             toast({
                 title: "Factura Generada",
                 description: `Se ha creado la factura para ${client}.`,
@@ -104,15 +115,16 @@ function AccountingPageContent() {
     }, [searchParams, toast]);
 
     const handleCreateInvoice = (data: InvoiceFormData) => {
-        const newInvoice: Invoice = {
+        const newInvoice: Document = {
             id: `F${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+            type: 'Factura',
             client: data.client,
             total: data.amount,
             items: data.items,
             date: new Date().toISOString().split('T')[0],
             status: 'Pendiente',
         };
-        setInvoices(prev => [newInvoice, ...prev]);
+        setDocuments(prev => [newInvoice, ...prev]);
         setNewInvoiceModalOpen(false);
         toast({
             title: "Factura Creada",
@@ -120,22 +132,40 @@ function AccountingPageContent() {
         });
     };
 
-    const handleOpenDetails = (invoice: Invoice) => {
-        setSelectedInvoice(invoice);
+    const handleCreateCreditNote = (data: CreditNoteFormData) => {
+        const newCreditNote: Document = {
+            id: `NC${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+            type: 'Nota de Crédito',
+            client: data.client,
+            total: data.amount, // Amounts for credit notes should be positive in data, handled as negative in summaries
+            items: data.reason,
+            date: new Date().toISOString().split('T')[0],
+            status: 'Aplicada',
+        };
+        setDocuments(prev => [newCreditNote, ...prev]);
+        setNewCreditNoteModalOpen(false);
+        toast({
+            title: "Nota de Crédito Creada",
+            description: `Se ha creado una nota de crédito para ${data.client}.`
+        });
+    };
+
+    const handleOpenDetails = (doc: Document) => {
+        setSelectedDocument(doc);
         setDetailsModalOpen(true);
     };
 
-    const handleOpenSendEmail = (invoice: Invoice) => {
-        setSelectedInvoice(invoice);
+    const handleOpenSendEmail = (doc: Document) => {
+        setSelectedDocument(doc);
         setEmailToSend('');
         setSendEmailModalOpen(true);
     };
     
     const handleConfirmSendEmail = () => {
-        if (!emailToSend || !selectedInvoice) return;
+        if (!emailToSend || !selectedDocument) return;
         toast({
-            title: "Factura Enviada",
-            description: `La factura ${selectedInvoice.id} ha sido enviada a ${emailToSend}.`,
+            title: "Documento Enviado",
+            description: `El documento ${selectedDocument.id} ha sido enviado a ${emailToSend}.`,
         });
         setSendEmailModalOpen(false);
         setEmailToSend('');
@@ -184,7 +214,7 @@ function AccountingPageContent() {
               <div className="flex items-center gap-3">
                   <Logo className="w-28 text-orange-600" />
                   <div>
-                      <h1 className="text-3xl font-bold font-headline text-gray-800">Reporte de Facturación</h1>
+                      <h1 className="text-3xl font-bold font-headline text-gray-800">Reporte Contable</h1>
                       <p className="text-sm text-gray-500">Panificadora Vollkorn</p>
                   </div>
               </div>
@@ -195,11 +225,11 @@ function AccountingPageContent() {
           </header>
 
           <main>
-              <h2 className="text-xl font-headline font-semibold text-gray-700 mb-4">Detalle de Facturas</h2>
+              <h2 className="text-xl font-headline font-semibold text-gray-700 mb-4">Detalle de Documentos</h2>
               <Table className="w-full text-sm">
                   <TableHeader className="bg-gray-100">
                       <TableRow>
-                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Nº Factura</TableHead>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Nº Documento</TableHead>
                           <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Fecha</TableHead>
                           <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Cliente</TableHead>
                           <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Estado</TableHead>
@@ -207,17 +237,17 @@ function AccountingPageContent() {
                       </TableRow>
                   </TableHeader>
                   <TableBody>
-                      {filteredInvoices.map((invoice) => (
-                          <TableRow key={invoice.id} className="border-b border-gray-200">
-                              <TableCell className="p-3">{invoice.id}</TableCell>
-                              <TableCell className="p-3">{format(new Date(invoice.date), "P", { locale: es })}</TableCell>
-                              <TableCell className="p-3">{invoice.client}</TableCell>
-                              <TableCell className="p-3">{invoice.status}</TableCell>
-                              <TableCell className="text-right p-3">${invoice.total.toLocaleString('es-CL')}</TableCell>
+                      {filteredDocuments.map((doc) => (
+                          <TableRow key={doc.id} className="border-b border-gray-200">
+                              <TableCell className="p-3">{doc.id}</TableCell>
+                              <TableCell className="p-3">{format(new Date(doc.date), "P", { locale: es })}</TableCell>
+                              <TableCell className="p-3">{doc.client}</TableCell>
+                              <TableCell className="p-3">{doc.status}</TableCell>
+                              <TableCell className="text-right p-3">${doc.total.toLocaleString('es-CL')}</TableCell>
                           </TableRow>
                       ))}
-                      {filteredInvoices.length === 0 && (
-                        <TableRow><TableCell colSpan={5} className="text-center p-4">No se encontraron facturas en el período seleccionado.</TableCell></TableRow>
+                      {filteredDocuments.length === 0 && (
+                        <TableRow><TableCell colSpan={5} className="text-center p-4">No se encontraron documentos en el período seleccionado.</TableCell></TableRow>
                       )}
                   </TableBody>
               </Table>
@@ -228,20 +258,16 @@ function AccountingPageContent() {
                   <h2 className="text-xl font-headline font-semibold text-gray-700 mb-4">Resumen del Período</h2>
                   <div className="bg-gray-50 p-4 rounded-lg border">
                       <div className="flex justify-between items-center py-2 border-b">
-                          <span className="font-semibold text-gray-600">Total Pagado:</span>
-                          <span className="font-medium text-green-600">${summaryTotals.paid.toLocaleString('es-CL')}</span>
+                          <span className="font-semibold text-gray-600">Total Facturado:</span>
+                          <span className="font-medium text-gray-800">${summaryTotals.totalInvoiced.toLocaleString('es-CL')}</span>
                       </div>
                       <div className="flex justify-between items-center py-2 border-b">
-                          <span className="font-semibold text-gray-600">Total Pendiente:</span>
-                          <span className="font-medium text-yellow-500">${summaryTotals.pending.toLocaleString('es-CL')}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                          <span className="font-semibold text-gray-600">Total Vencido:</span>
-                          <span className="font-medium text-red-600">${summaryTotals.overdue.toLocaleString('es-CL')}</span>
+                          <span className="font-semibold text-gray-600">Total Notas de Crédito:</span>
+                          <span className="font-medium text-red-600">-${summaryTotals.totalCredited.toLocaleString('es-CL')}</span>
                       </div>
                       <div className="flex justify-between items-center pt-3 mt-2">
-                          <span className="font-headline font-bold text-lg text-gray-800">Total General Facturado:</span>
-                          <span className="font-headline font-bold text-xl text-gray-900">${summaryTotals.total.toLocaleString('es-CL')}</span>
+                          <span className="font-headline font-bold text-lg text-gray-800">Total Neto:</span>
+                          <span className="font-headline font-bold text-xl text-gray-900">${summaryTotals.netTotal.toLocaleString('es-CL')}</span>
                       </div>
                   </div>
               </div>
@@ -257,8 +283,8 @@ function AccountingPageContent() {
                 <CardHeader>
                     <div className="flex flex-wrap justify-between items-center gap-4">
                         <div>
-                            <CardTitle className="font-headline">Facturación y Cuentas</CardTitle>
-                            <CardDescription className="font-body">Gestiona facturas, cuentas por pagar y cobrar.</CardDescription>
+                            <CardTitle className="font-headline">Contabilidad y Finanzas</CardTitle>
+                            <CardDescription className="font-body">Gestiona facturas, notas de crédito, pagos y conciliaciones.</CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
                             <Popover>
@@ -299,7 +325,7 @@ function AccountingPageContent() {
                                 </PopoverContent>
                             </Popover>
                             <Button 
-                                onClick={() => handleDownloadPdf(reportContentRef, `reporte-facturacion-${format(dateRange?.from ?? new Date(), 'yyyy-MM-dd')}-a-${format(dateRange?.to ?? new Date(), 'yyyy-MM-dd')}.pdf`)} 
+                                onClick={() => handleDownloadPdf(reportContentRef, `reporte-contable-${format(dateRange?.from ?? new Date(), 'yyyy-MM-dd')}-a-${format(dateRange?.to ?? new Date(), 'yyyy-MM-dd')}.pdf`)} 
                                 disabled={!dateRange?.from || !dateRange?.to}
                             >
                                 <Download className="mr-2 h-4 w-4" />
@@ -308,8 +334,12 @@ function AccountingPageContent() {
                              <Button asChild variant="outline">
                                 <Link href="/accounting/reconciliation">
                                     <Landmark className="mr-2 h-4 w-4" />
-                                    Conciliación Bancaria
+                                    Conciliación
                                 </Link>
+                            </Button>
+                            <Button variant="secondary" onClick={() => setNewCreditNoteModalOpen(true)}>
+                                <FileMinus className="mr-2 h-4 w-4" />
+                                Nueva Nota de Crédito
                             </Button>
                             <Button onClick={() => setNewInvoiceModalOpen(true)}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -323,16 +353,16 @@ function AccountingPageContent() {
             {dateRange?.from && (
                 <div>
                     <h3 className="text-lg font-headline font-semibold mb-4">
-                        Resumen para el Período Seleccionado
+                        Resumen del Período
                     </h3>
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Total Facturado</CardTitle>
+                                <CardTitle className="text-sm font-medium">Total Facturado (Neto)</CardTitle>
                                 <DollarSign className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">${summaryTotals.total.toLocaleString('es-CL')}</div>
+                                <div className="text-2xl font-bold">${summaryTotals.netTotal.toLocaleString('es-CL')}</div>
                             </CardContent>
                         </Card>
                         <Card>
@@ -368,16 +398,16 @@ function AccountingPageContent() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle className="font-headline">Listado de Facturas</CardTitle>
+                    <CardTitle className="font-headline">Listado de Documentos</CardTitle>
                     <CardDescription className="font-body">
-                        {dateRange?.from ? 'Mostrando facturas para el período seleccionado.' : 'Mostrando todas las facturas.'}
+                        {dateRange?.from ? 'Mostrando facturas y notas de crédito para el período seleccionado.' : 'Mostrando todos los documentos.'}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                 <Table>
                     <TableHeader>
                     <TableRow>
-                        <TableHead>Factura No.</TableHead>
+                        <TableHead>Documento No.</TableHead>
                         <TableHead>Cliente</TableHead>
                         <TableHead>Fecha</TableHead>
                         <TableHead className="text-right">Total</TableHead>
@@ -388,15 +418,20 @@ function AccountingPageContent() {
                     </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {filteredInvoices.map((invoice) => (
-                        <TableRow key={invoice.id}>
-                        <TableCell className="font-medium">{invoice.id}</TableCell>
-                        <TableCell>{invoice.client}</TableCell>
-                        <TableCell>{new Date(invoice.date).toLocaleDateString('es-CL')}</TableCell>
-                        <TableCell className="text-right">${invoice.total.toLocaleString('es-CL')}</TableCell>
+                    {filteredDocuments.map((doc) => (
+                        <TableRow key={doc.id}>
+                        <TableCell className="font-medium">{doc.id}</TableCell>
+                        <TableCell>{doc.client}</TableCell>
+                        <TableCell>{new Date(doc.date).toLocaleDateString('es-CL')}</TableCell>
+                        <TableCell className={`text-right ${doc.type === 'Nota de Crédito' ? 'text-red-600' : ''}`}>
+                            {doc.type === 'Nota de Crédito' ? '-' : ''}${doc.total.toLocaleString('es-CL')}
+                        </TableCell>
                         <TableCell>
-                            <Badge variant={invoice.status === 'Pagada' ? 'default' : invoice.status === 'Pendiente' ? 'secondary' : 'destructive'}>
-                            {invoice.status}
+                            <Badge variant={
+                                doc.status === 'Pagada' || doc.status === 'Aplicada' ? 'default' : 
+                                doc.status === 'Pendiente' ? 'secondary' : 'destructive'
+                            }>
+                            {doc.status}
                             </Badge>
                         </TableCell>
                         <TableCell>
@@ -409,8 +444,8 @@ function AccountingPageContent() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => handleOpenDetails(invoice)}>Ver Detalle</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleOpenSendEmail(invoice)}>Enviar por Correo</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleOpenDetails(doc)}>Ver Detalle</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleOpenSendEmail(doc)}>Enviar por Correo</DropdownMenuItem>
                             </DropdownMenuContent>
                             </DropdownMenu>
                         </TableCell>
@@ -438,13 +473,30 @@ function AccountingPageContent() {
           </DialogContent>
       </Dialog>
       
+        {/* Modal Nueva Nota de Crédito */}
+        <Dialog open={isNewCreditNoteModalOpen} onOpenChange={setNewCreditNoteModalOpen}>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle className="font-headline">Crear Nota de Crédito</DialogTitle>
+                    <DialogDescription className="font-body">
+                        Completa los detalles para anular o corregir una factura.
+                    </DialogDescription>
+                </DialogHeader>
+                <CreditNoteForm
+                    onSubmit={handleCreateCreditNote}
+                    onCancel={() => setNewCreditNoteModalOpen(false)}
+                    invoices={documents.filter(d => d.type === 'Factura')}
+                />
+            </DialogContent>
+        </Dialog>
+
       {/* Modal Ver Detalles */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">Detalle de Factura: {selectedInvoice?.id}</DialogTitle>
+            <DialogTitle className="font-headline">Detalle de {selectedDocument?.type}: {selectedDocument?.id}</DialogTitle>
           </DialogHeader>
-          {selectedInvoice && (
+          {selectedDocument && (
             <div className="max-h-[75vh] overflow-y-auto p-1">
                 <div ref={detailsModalContentRef} className="p-8 bg-white text-black font-body">
                     <header className="flex justify-between items-start mb-10 border-b pb-6">
@@ -456,27 +508,27 @@ function AccountingPageContent() {
                             </div>
                         </div>
                         <div className="text-right">
-                            <h2 className="text-4xl font-headline font-bold uppercase text-gray-700">Factura</h2>
-                            <p className="text-sm text-gray-500">Nº: {selectedInvoice.id}</p>
+                            <h2 className="text-4xl font-headline font-bold uppercase text-gray-700">{selectedDocument.type}</h2>
+                            <p className="text-sm text-gray-500">Nº: {selectedDocument.id}</p>
                         </div>
                     </header>
 
                     <section className="grid grid-cols-2 gap-8 mb-10">
                         <div>
-                            <h3 className="font-headline text-lg font-semibold text-gray-600 mb-2 border-b pb-1">Facturar a:</h3>
-                            <p className="font-bold text-gray-800">{selectedInvoice.client}</p>
+                            <h3 className="font-headline text-lg font-semibold text-gray-600 mb-2 border-b pb-1">Datos del Cliente:</h3>
+                            <p className="font-bold text-gray-800">{selectedDocument.client}</p>
                         </div>
                         <div className="text-right">
                              <div className="mb-2">
                                 <span className="font-semibold text-gray-600">Fecha de Emisión: </span>
-                                <span>{new Date(selectedInvoice.date).toLocaleDateString('es-ES')}</span>
+                                <span>{new Date(selectedDocument.date).toLocaleDateString('es-ES')}</span>
                             </div>
                             <div>
                                 <span className="font-semibold text-gray-600">Estado: </span>
                                 <Badge 
-                                    className={`text-white ${selectedInvoice.status === 'Pagada' ? 'bg-green-600' : selectedInvoice.status === 'Pendiente' ? 'bg-yellow-500' : 'bg-red-600'}`}
+                                    className={`text-white ${selectedDocument.status === 'Pagada' || selectedDocument.status === 'Aplicada' ? 'bg-green-600' : selectedDocument.status === 'Pendiente' ? 'bg-yellow-500' : 'bg-red-600'}`}
                                 >
-                                    {selectedInvoice.status}
+                                    {selectedDocument.status}
                                 </Badge>
                             </div>
                         </div>
@@ -486,12 +538,12 @@ function AccountingPageContent() {
                         <Table className="w-full">
                             <TableHeader className="bg-gray-100">
                                 <TableRow>
-                                    <TableHead className="text-left font-bold text-gray-700 uppercase py-3 px-4">Descripción</TableHead>
+                                    <TableHead className="text-left font-bold text-gray-700 uppercase py-3 px-4">{selectedDocument.type === 'Factura' ? 'Descripción' : 'Motivo'}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 <TableRow className="border-b border-gray-200">
-                                    <TableCell className="py-3 px-4 whitespace-pre-wrap">{selectedInvoice.items}</TableCell>
+                                    <TableCell className="py-3 px-4 whitespace-pre-wrap">{selectedDocument.items}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
@@ -501,7 +553,9 @@ function AccountingPageContent() {
                        <div className="w-1/3">
                           <div className="flex justify-between items-center py-2 border-b-2 border-gray-800">
                               <span className="font-headline font-semibold text-lg text-gray-700">Total</span>
-                              <span className="font-headline font-bold text-xl text-gray-800">${selectedInvoice.total.toLocaleString('es-CL')}</span>
+                              <span className={`font-headline font-bold text-xl ${selectedDocument.type === 'Nota de Crédito' ? 'text-red-600' : 'text-gray-800'}`}>
+                                {selectedDocument.type === 'Nota de Crédito' ? '-' : ''}${selectedDocument.total.toLocaleString('es-CL')}
+                              </span>
                           </div>
                        </div>
                     </section>
@@ -515,7 +569,7 @@ function AccountingPageContent() {
           )}
            <DialogFooter className="mt-4">
                 <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Cerrar</Button>
-                <Button onClick={() => handleDownloadPdf(detailsModalContentRef, `factura-${selectedInvoice?.id}.pdf`)}>
+                <Button onClick={() => handleDownloadPdf(detailsModalContentRef, `${selectedDocument?.type.toLowerCase().replace(' ', '-')}-${selectedDocument?.id}.pdf`)}>
                     <Download className="mr-2 h-4 w-4" />
                     Descargar PDF
                 </Button>
@@ -527,9 +581,9 @@ function AccountingPageContent() {
       <Dialog open={isSendEmailModalOpen} onOpenChange={setSendEmailModalOpen}>
         <DialogContent className="sm:max-w-md">
             <DialogHeader>
-                <DialogTitle className="font-headline">Enviar Factura por Correo</DialogTitle>
+                <DialogTitle className="font-headline">Enviar Documento por Correo</DialogTitle>
                 <DialogDescription className="font-body">
-                    Ingresa el correo electrónico para enviar la factura {selectedInvoice?.id}.
+                    Ingresa el correo electrónico para enviar el documento {selectedDocument?.id}.
                 </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
