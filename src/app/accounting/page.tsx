@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -21,6 +21,7 @@ import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/logo';
+import Link from 'next/link';
 
 
 type Invoice = {
@@ -303,6 +304,12 @@ function AccountingPageContent() {
                             >
                                 <Download className="mr-2 h-4 w-4" />
                                 Generar Reporte
+                            </Button>
+                             <Button asChild variant="outline">
+                                <Link href="/accounting/reconciliation">
+                                    <Landmark className="mr-2 h-4 w-4" />
+                                    Conciliación Bancaria
+                                </Link>
                             </Button>
                             <Button onClick={() => setNewInvoiceModalOpen(true)}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
