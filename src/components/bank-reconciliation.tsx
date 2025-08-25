@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Upload, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
 
 type BankTransaction = {
     id: string;
@@ -152,7 +153,7 @@ export default function BankReconciliation() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Movimientos del Sistema</CardTitle>
+                        <CardTitle className="text-lg">Movimientos del Sistema (Pendientes)</CardTitle>
                     </CardHeader>
                      <CardContent>
                          <div className="h-96 overflow-y-auto border rounded-md">
@@ -226,6 +227,53 @@ export default function BankReconciliation() {
                     </Button>
                 </div>
             </div>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle>Historial de Conciliaciones</CardTitle>
+                    <CardDescription>
+                        Movimientos del sistema que ya han sido conciliados.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="h-96 overflow-y-auto border rounded-md">
+                        <Table>
+                            <TableHeader className="sticky top-0 bg-secondary">
+                                <TableRow>
+                                    <TableHead>Fecha</TableHead>
+                                    <TableHead>Descripción</TableHead>
+                                    <TableHead className="text-right">Monto</TableHead>
+                                    <TableHead className="text-center">Estado</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {systemTransactions.filter(tx => tx.isReconciled).map(tx => (
+                                    <TableRow key={tx.id} className="bg-green-50/50">
+                                        <TableCell>{tx.date}</TableCell>
+                                        <TableCell>{tx.description}</TableCell>
+                                        <TableCell className="text-right">
+                                            {tx.amount.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <Badge variant="default" className="bg-green-600 hover:bg-green-700">
+                                                <CheckCircle2 className="mr-2 h-4 w-4" />
+                                                Conciliado
+                                            </Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                                {systemTransactions.filter(tx => tx.isReconciled).length === 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                                            No hay movimientos conciliados aún.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </CardContent>
+            </Card>
 
         </div>
     );
