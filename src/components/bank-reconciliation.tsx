@@ -17,7 +17,6 @@ type BankTransaction = {
     description: string;
     debit: number;
     credit: number;
-    chargeAccount: string;
 };
 
 type SystemTransaction = {
@@ -31,20 +30,28 @@ type SystemTransaction = {
 };
 
 
-// Datos de ejemplo para simulación
+// Datos de ejemplo para simulación ampliados
 const initialBankTransactions: BankTransaction[] = [
-    { id: 'BANK001', date: '2025-07-15', description: 'Transferencia de Panaderia San Jose', debit: 0, credit: 450.00, chargeAccount: 'Cuentas por Cobrar' },
-    { id: 'BANK002', date: '2025-07-11', description: 'Pago a Harinas del Sur', debit: 800.00, credit: 0, chargeAccount: 'Cuentas por Pagar' },
-    { id: 'BANK003', date: '2025-07-10', description: 'Depósito de Supermercado del Sur', debit: 0, credit: 875.00, chargeAccount: 'Cuentas por Cobrar' },
-    { id: 'BANK004', date: '2025-07-21', description: 'Transferencia de Cafe Central', debit: 0, credit: 1200.50, chargeAccount: 'Cuentas por Cobrar' },
+    { id: 'BANK001', date: '2025-07-15', description: 'Transferencia de Panaderia San Jose', debit: 0, credit: 450.00 },
+    { id: 'BANK002', date: '2025-07-11', description: 'Pago a Harinas del Sur', debit: 800.00, credit: 0 },
+    { id: 'BANK003', date: '2025-07-10', description: 'Depósito de Supermercado del Sur', debit: 0, credit: 875.00 },
+    { id: 'BANK004', date: '2025-07-21', description: 'Transferencia de Cafe Central', debit: 0, credit: 1200.50 },
+    { id: 'BANK005', date: '2025-07-30', description: 'Pago Nómina de Sueldos', debit: 2500000, credit: 0 },
+    { id: 'BANK006', date: '2025-07-31', description: 'Abono Intereses a Favor', debit: 0, credit: 50.25 },
+    { id: 'BANK007', date: '2025-07-31', description: 'Comisión por Mantención', debit: 15.00, credit: 0 },
+    { id: 'BANK008', date: '2025-07-29', description: 'Pago Servicio Eléctrico', debit: 120.00, credit: 0 },
 ];
 
 const initialSystemTransactions: SystemTransaction[] = [
-    { id: 'F001', date: '2025-07-15', description: 'Factura a Panaderia San Jose', debit: 0, credit: 450.00, chargeAccount: 'Ventas', isReconciled: false },
-    { id: 'F002', date: '2025-07-20', description: 'Factura a Cafe Central', debit: 0, credit: 1200.50, chargeAccount: 'Ventas', isReconciled: false },
-    { id: 'F003', date: '2025-07-10', description: 'Factura a Supermercado del Sur', debit: 0, credit: 875.00, chargeAccount: 'Ventas', isReconciled: false },
-    { id: 'G001', date: '2025-07-11', description: 'Gasto en Harinas del Sur', debit: 800.00, credit: 0, chargeAccount: 'Costos', isReconciled: false },
-    { id: 'F005', date: '2025-07-22', description: 'Factura a Hotel Grand Vista', debit: 0, credit: 500.00, chargeAccount: 'Ventas', isReconciled: false },
+    { id: 'F001', date: '2025-07-15', description: 'Factura a Panaderia San Jose', debit: 450.00, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
+    { id: 'F002', date: '2025-07-20', description: 'Factura a Cafe Central', debit: 1200.50, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
+    { id: 'F003', date: '2025-07-10', description: 'Factura a Supermercado del Sur', debit: 875.00, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
+    { id: 'G001', date: '2025-07-11', description: 'Pago Proveedor Harinas del Sur', debit: 0, credit: 800.00, chargeAccount: 'Proveedores', isReconciled: false },
+    { id: 'F005', date: '2025-07-22', description: 'Factura a Hotel Grand Vista', debit: 500.00, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
+    { id: 'REM01', date: '2025-07-30', description: 'Centralización Sueldos Julio', debit: 0, credit: 2500000, chargeAccount: 'Sueldos por Pagar', isReconciled: false },
+    { id: 'INT01', date: '2025-07-31', description: 'Reconocimiento Intereses Ganados', debit: 50.25, credit: 0, chargeAccount: 'Ingresos Financieros', isReconciled: false },
+    { id: 'G002', date: '2025-07-31', description: 'Gasto Mantención Cuenta', debit: 0, credit: 15.00, chargeAccount: 'Gastos Bancarios', isReconciled: false },
+    { id: 'G003', date: '2025-07-29', description: 'Provisión Gasto Luz', debit: 0, credit: 120.00, chargeAccount: 'Gasto en Luz', isReconciled: false },
 ];
 
 export default function BankReconciliation() {
@@ -72,11 +79,11 @@ export default function BankReconciliation() {
         const totalSystemDebit = selectedSystemTxs.reduce((sum, tx) => sum + tx.debit, 0);
         const totalSystemCredit = selectedSystemTxs.reduce((sum, tx) => sum + tx.credit, 0);
         
-        const netBank = totalBankCredit - totalBankDebit;
-        const netSystem = totalSystemCredit - totalSystemDebit;
+        // La lógica de conciliación cruza los movimientos: un débito en el banco es un crédito en el sistema y viceversa
+        const bankSideTotal = totalBankCredit - totalBankDebit;
+        const systemSideTotal = totalSystemDebit - totalSystemCredit;
 
-
-        if (netBank.toFixed(2) === netSystem.toFixed(2)) {
+        if (bankSideTotal.toFixed(2) === systemSideTotal.toFixed(2) && selectedBank.length > 0 && selectedSystem.length > 0) {
             setSystemTransactions(prev =>
                 prev.map(tx =>
                     selectedSystem.includes(tx.id) ? { ...tx, isReconciled: true } : tx
@@ -95,7 +102,7 @@ export default function BankReconciliation() {
             toast({
                 variant: 'destructive',
                 title: "Error de Conciliación",
-                description: `Los montos netos no coinciden. Banco: ${netBank.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}, Sistema: ${netSystem.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}`,
+                description: `Los montos no coinciden o la selección es inválida. Neto Banco: ${bankSideTotal.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}, Neto Sistema: ${systemSideTotal.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}`,
             });
         }
     };
@@ -104,8 +111,8 @@ export default function BankReconciliation() {
         const reconciled = systemTransactions.filter(tx => tx.isReconciled);
         const unreconciled = systemTransactions.filter(tx => !tx.isReconciled);
 
-        const reconciledAmount = reconciled.reduce((sum, tx) => sum + (tx.credit - tx.debit), 0);
-        const unreconciledAmount = unreconciled.reduce((sum, tx) => sum + (tx.credit - tx.debit), 0);
+        const reconciledAmount = reconciled.reduce((sum, tx) => sum + (tx.debit - tx.credit), 0);
+        const unreconciledAmount = unreconciled.reduce((sum, tx) => sum + (tx.debit - tx.credit), 0);
 
         return {
             reconciledCount: reconciled.length,
@@ -132,7 +139,7 @@ export default function BankReconciliation() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Movimientos Bancarios</CardTitle>
+                        <CardTitle className="text-lg">Movimientos Bancarios (Extracto)</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="h-96 overflow-y-auto border rounded-md">
@@ -158,7 +165,7 @@ export default function BankReconciliation() {
                                         </TableCell>
                                         <TableCell>
                                             <p>{tx.description}</p>
-                                            <p className="text-xs text-muted-foreground">{tx.date}</p>
+                                            <p className="text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString('es-CL')}</p>
                                         </TableCell>
                                         <TableCell className="text-right font-mono">{formatCurrency(tx.debit)}</TableCell>
                                         <TableCell className="text-right font-mono">{formatCurrency(tx.credit)}</TableCell>
@@ -174,7 +181,7 @@ export default function BankReconciliation() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="text-lg">Movimientos del Sistema (Pendientes)</CardTitle>
+                        <CardTitle className="text-lg">Movimientos del Sistema (Libro Mayor)</CardTitle>
                     </CardHeader>
                      <CardContent>
                          <div className="h-96 overflow-y-auto border rounded-md">
@@ -182,7 +189,7 @@ export default function BankReconciliation() {
                                 <TableHeader className="sticky top-0 bg-secondary">
                                     <TableRow>
                                         <TableHead className="w-[50px]"></TableHead>
-                                        <TableHead>Glosa</TableHead>
+                                        <TableHead>Glosa / Cta. Cargo</TableHead>
                                         <TableHead className="text-right">Debe</TableHead>
                                         <TableHead className="text-right">Haber</TableHead>
                                     </TableRow>
@@ -200,7 +207,7 @@ export default function BankReconciliation() {
                                             </TableCell>
                                             <TableCell>
                                                 <p>{tx.description}</p>
-                                                <p className="text-xs text-muted-foreground">{tx.date} / {tx.chargeAccount}</p>
+                                                <p className="text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString('es-CL')} / {tx.chargeAccount}</p>
                                             </TableCell>
                                             <TableCell className="text-right font-mono">{formatCurrency(tx.debit)}</TableCell>
                                             <TableCell className="text-right font-mono">{formatCurrency(tx.credit)}</TableCell>
@@ -216,7 +223,7 @@ export default function BankReconciliation() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card className="col-span-1 md:col-span-2">
                     <CardHeader>
-                        <CardTitle>Resumen de Conciliación</CardTitle>
+                        <CardTitle>Resumen de Saldos Contables</CardTitle>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 gap-4">
                         <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -273,7 +280,7 @@ export default function BankReconciliation() {
                             <TableBody>
                                 {systemTransactions.filter(tx => tx.isReconciled).map(tx => (
                                     <TableRow key={tx.id} className="bg-green-50/50">
-                                        <TableCell>{tx.date}</TableCell>
+                                        <TableCell>{new Date(tx.date).toLocaleDateString('es-CL')}</TableCell>
                                         <TableCell>{tx.description}</TableCell>
                                         <TableCell>{tx.chargeAccount}</TableCell>
                                         <TableCell className="text-right font-mono">{formatCurrency(tx.debit)}</TableCell>
