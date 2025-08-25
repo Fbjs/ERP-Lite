@@ -15,32 +15,36 @@ type BankTransaction = {
     id: string;
     date: string;
     description: string;
-    amount: number;
-    type: 'debit' | 'credit';
+    debit: number;
+    credit: number;
+    chargeAccount: string;
 };
 
 type SystemTransaction = {
     id: string;
     date: string;
     description: string;
-    amount: number;
+    debit: number;
+    credit: number;
+    chargeAccount: string;
     isReconciled: boolean;
 };
 
+
 // Datos de ejemplo para simulación
 const initialBankTransactions: BankTransaction[] = [
-    { id: 'BANK001', date: '2025-07-15', description: 'Transferencia de Panaderia San Jose', amount: 450.00, type: 'credit' },
-    { id: 'BANK002', date: '2025-07-11', description: 'Pago a Harinas del Sur', amount: -800.00, type: 'debit' },
-    { id: 'BANK003', date: '2025-07-10', description: 'Depósito de Supermercado del Sur', amount: 875.00, type: 'credit' },
-    { id: 'BANK004', date: '2025-07-21', description: 'Transferencia de Cafe Central', amount: 1200.50, type: 'credit' },
+    { id: 'BANK001', date: '2025-07-15', description: 'Transferencia de Panaderia San Jose', debit: 0, credit: 450.00, chargeAccount: 'Cuentas por Cobrar' },
+    { id: 'BANK002', date: '2025-07-11', description: 'Pago a Harinas del Sur', debit: 800.00, credit: 0, chargeAccount: 'Cuentas por Pagar' },
+    { id: 'BANK003', date: '2025-07-10', description: 'Depósito de Supermercado del Sur', debit: 0, credit: 875.00, chargeAccount: 'Cuentas por Cobrar' },
+    { id: 'BANK004', date: '2025-07-21', description: 'Transferencia de Cafe Central', debit: 0, credit: 1200.50, chargeAccount: 'Cuentas por Cobrar' },
 ];
 
 const initialSystemTransactions: SystemTransaction[] = [
-    { id: 'F001', date: '2025-07-15', description: 'Factura a Panaderia San Jose', amount: 450.00, isReconciled: false },
-    { id: 'F002', date: '2025-07-20', description: 'Factura a Cafe Central', amount: 1200.50, isReconciled: false },
-    { id: 'F003', date: '2025-07-10', description: 'Factura a Supermercado del Sur', amount: 875.00, isReconciled: false },
-    { id: 'G001', date: '2025-07-11', description: 'Gasto en Harinas del Sur', amount: -800.00, isReconciled: false },
-    { id: 'F005', date: '2025-07-22', description: 'Factura a Hotel Grand Vista', amount: 500.00, isReconciled: false },
+    { id: 'F001', date: '2025-07-15', description: 'Factura a Panaderia San Jose', debit: 0, credit: 450.00, chargeAccount: 'Ventas', isReconciled: false },
+    { id: 'F002', date: '2025-07-20', description: 'Factura a Cafe Central', debit: 0, credit: 1200.50, chargeAccount: 'Ventas', isReconciled: false },
+    { id: 'F003', date: '2025-07-10', description: 'Factura a Supermercado del Sur', debit: 0, credit: 875.00, chargeAccount: 'Ventas', isReconciled: false },
+    { id: 'G001', date: '2025-07-11', description: 'Gasto en Harinas del Sur', debit: 800.00, credit: 0, chargeAccount: 'Costos', isReconciled: false },
+    { id: 'F005', date: '2025-07-22', description: 'Factura a Hotel Grand Vista', debit: 0, credit: 500.00, chargeAccount: 'Ventas', isReconciled: false },
 ];
 
 export default function BankReconciliation() {
@@ -63,10 +67,16 @@ export default function BankReconciliation() {
         const selectedBankTxs = bankTransactions.filter(tx => selectedBank.includes(tx.id));
         const selectedSystemTxs = systemTransactions.filter(tx => selectedSystem.includes(tx.id));
 
-        const totalBank = selectedBankTxs.reduce((sum, tx) => sum + tx.amount, 0);
-        const totalSystem = selectedSystemTxs.reduce((sum, tx) => sum + tx.amount, 0);
+        const totalBankDebit = selectedBankTxs.reduce((sum, tx) => sum + tx.debit, 0);
+        const totalBankCredit = selectedBankTxs.reduce((sum, tx) => sum + tx.credit, 0);
+        const totalSystemDebit = selectedSystemTxs.reduce((sum, tx) => sum + tx.debit, 0);
+        const totalSystemCredit = selectedSystemTxs.reduce((sum, tx) => sum + tx.credit, 0);
+        
+        const netBank = totalBankCredit - totalBankDebit;
+        const netSystem = totalSystemCredit - totalSystemDebit;
 
-        if (totalBank.toFixed(2) === totalSystem.toFixed(2)) {
+
+        if (netBank.toFixed(2) === netSystem.toFixed(2)) {
             setSystemTransactions(prev =>
                 prev.map(tx =>
                     selectedSystem.includes(tx.id) ? { ...tx, isReconciled: true } : tx
@@ -85,7 +95,7 @@ export default function BankReconciliation() {
             toast({
                 variant: 'destructive',
                 title: "Error de Conciliación",
-                description: `Los montos no coinciden. Banco: ${totalBank.toFixed(2)}, Sistema: ${totalSystem.toFixed(2)}`,
+                description: `Los montos netos no coinciden. Banco: ${netBank.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}, Sistema: ${netSystem.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}`,
             });
         }
     };
@@ -94,13 +104,20 @@ export default function BankReconciliation() {
         const reconciled = systemTransactions.filter(tx => tx.isReconciled);
         const unreconciled = systemTransactions.filter(tx => !tx.isReconciled);
 
+        const reconciledAmount = reconciled.reduce((sum, tx) => sum + (tx.credit - tx.debit), 0);
+        const unreconciledAmount = unreconciled.reduce((sum, tx) => sum + (tx.credit - tx.debit), 0);
+
         return {
             reconciledCount: reconciled.length,
-            reconciledAmount: reconciled.reduce((sum, tx) => sum + tx.amount, 0),
+            reconciledAmount: reconciledAmount,
             unreconciledCount: unreconciled.length,
-            unreconciledAmount: unreconciled.reduce((sum, tx) => sum + tx.amount, 0),
+            unreconciledAmount: unreconciledAmount,
         };
     }, [systemTransactions]);
+    
+    const formatCurrency = (value: number) => {
+        return value === 0 ? '-' : value.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'});
+    }
 
     return (
         <div className="space-y-6">
@@ -123,9 +140,9 @@ export default function BankReconciliation() {
                             <TableHeader className="sticky top-0 bg-secondary">
                                 <TableRow>
                                     <TableHead className="w-[50px]"></TableHead>
-                                    <TableHead>Fecha</TableHead>
-                                    <TableHead>Descripción</TableHead>
-                                    <TableHead className="text-right">Monto</TableHead>
+                                    <TableHead>Glosa</TableHead>
+                                    <TableHead className="text-right">Debe</TableHead>
+                                    <TableHead className="text-right">Haber</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -139,13 +156,17 @@ export default function BankReconciliation() {
                                                 }}
                                             />
                                         </TableCell>
-                                        <TableCell>{tx.date}</TableCell>
-                                        <TableCell>{tx.description}</TableCell>
-                                        <TableCell className={`text-right ${tx.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
-                                            {tx.amount.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}
+                                        <TableCell>
+                                            <p>{tx.description}</p>
+                                            <p className="text-xs text-muted-foreground">{tx.date}</p>
                                         </TableCell>
+                                        <TableCell className="text-right font-mono">{formatCurrency(tx.debit)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatCurrency(tx.credit)}</TableCell>
                                     </TableRow>
                                 ))}
+                                 {bankTransactions.length === 0 && (
+                                     <TableRow><TableCell colSpan={4} className="text-center h-48 text-muted-foreground">Cargue un extracto bancario.</TableCell></TableRow>
+                                 )}
                             </TableBody>
                         </Table>
                          </div>
@@ -161,9 +182,9 @@ export default function BankReconciliation() {
                                 <TableHeader className="sticky top-0 bg-secondary">
                                     <TableRow>
                                         <TableHead className="w-[50px]"></TableHead>
-                                        <TableHead>Fecha</TableHead>
-                                        <TableHead>Descripción</TableHead>
-                                        <TableHead className="text-right">Monto</TableHead>
+                                        <TableHead>Glosa</TableHead>
+                                        <TableHead className="text-right">Debe</TableHead>
+                                        <TableHead className="text-right">Haber</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -177,11 +198,12 @@ export default function BankReconciliation() {
                                                     }}
                                                 />
                                             </TableCell>
-                                            <TableCell>{tx.date}</TableCell>
-                                            <TableCell>{tx.description}</TableCell>
-                                            <TableCell className="text-right">
-                                                {tx.amount.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}
+                                            <TableCell>
+                                                <p>{tx.description}</p>
+                                                <p className="text-xs text-muted-foreground">{tx.date} / {tx.chargeAccount}</p>
                                             </TableCell>
+                                            <TableCell className="text-right font-mono">{formatCurrency(tx.debit)}</TableCell>
+                                            <TableCell className="text-right font-mono">{formatCurrency(tx.credit)}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -200,7 +222,7 @@ export default function BankReconciliation() {
                         <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
                             <CheckCircle2 className="h-8 w-8 text-green-600" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Conciliado</p>
+                                <p className="text-sm text-muted-foreground">Saldo Conciliado</p>
                                 <p className="text-xl font-bold">{summary.reconciledAmount.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}</p>
                                 <p className="text-xs text-muted-foreground">({summary.reconciledCount} movimientos)</p>
                             </div>
@@ -208,7 +230,7 @@ export default function BankReconciliation() {
                         <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                              <AlertCircle className="h-8 w-8 text-yellow-600" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Pendiente</p>
+                                <p className="text-sm text-muted-foreground">Saldo Pendiente</p>
                                 <p className="text-xl font-bold">{summary.unreconciledAmount.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}</p>
                                 <p className="text-xs text-muted-foreground">({summary.unreconciledCount} movimientos)</p>
                             </div>
@@ -241,8 +263,10 @@ export default function BankReconciliation() {
                             <TableHeader className="sticky top-0 bg-secondary">
                                 <TableRow>
                                     <TableHead>Fecha</TableHead>
-                                    <TableHead>Descripción</TableHead>
-                                    <TableHead className="text-right">Monto</TableHead>
+                                    <TableHead>Glosa</TableHead>
+                                    <TableHead>Cta. Cargo</TableHead>
+                                    <TableHead className="text-right">Debe</TableHead>
+                                    <TableHead className="text-right">Haber</TableHead>
                                     <TableHead className="text-center">Estado</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -251,9 +275,9 @@ export default function BankReconciliation() {
                                     <TableRow key={tx.id} className="bg-green-50/50">
                                         <TableCell>{tx.date}</TableCell>
                                         <TableCell>{tx.description}</TableCell>
-                                        <TableCell className="text-right">
-                                            {tx.amount.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'})}
-                                        </TableCell>
+                                        <TableCell>{tx.chargeAccount}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatCurrency(tx.debit)}</TableCell>
+                                        <TableCell className="text-right font-mono">{formatCurrency(tx.credit)}</TableCell>
                                         <TableCell className="text-center">
                                             <Badge variant="default" className="bg-green-600 hover:bg-green-700">
                                                 <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -264,7 +288,7 @@ export default function BankReconciliation() {
                                 ))}
                                 {systemTransactions.filter(tx => tx.isReconciled).length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                                             No hay movimientos conciliados aún.
                                         </TableCell>
                                     </TableRow>
