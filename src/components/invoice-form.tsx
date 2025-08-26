@@ -15,6 +15,7 @@ export type InvoiceFormData = {
     salesperson: string;
     amount: number;
     items: string;
+    purchaseOrderNumber?: string;
 };
 
 type InvoiceFormProps = {
@@ -29,6 +30,7 @@ export default function InvoiceForm({ onSubmit, onCancel, customers }: InvoiceFo
   const [salesperson, setSalesperson] = useState('');
   const [amount, setAmount] = useState(0);
   const [items, setItems] = useState('');
+  const [purchaseOrderNumber, setPurchaseOrderNumber] = useState('');
 
   const [availableLocations, setAvailableLocations] = useState<DeliveryLocation[]>([]);
 
@@ -57,7 +59,7 @@ export default function InvoiceForm({ onSubmit, onCancel, customers }: InvoiceFo
         alert('Por favor, selecciona un cliente y un local de entrega.');
         return;
     }
-    onSubmit({ customerId, locationId, salesperson, amount, items });
+    onSubmit({ customerId, locationId, salesperson, amount, items, purchaseOrderNumber });
   };
 
   return (
@@ -111,6 +113,19 @@ export default function InvoiceForm({ onSubmit, onCancel, customers }: InvoiceFo
                 className="col-span-3"
                 required
                 disabled={!locationId}
+            />
+        </div>
+        
+       <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="purchaseOrderNumber" className="text-right">
+                Nº Orden Compra
+            </Label>
+            <Input
+                id="purchaseOrderNumber"
+                value={purchaseOrderNumber}
+                onChange={(e) => setPurchaseOrderNumber(e.target.value)}
+                className="col-span-3"
+                placeholder="(Opcional)"
             />
         </div>
 

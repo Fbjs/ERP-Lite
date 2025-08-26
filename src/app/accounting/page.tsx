@@ -36,12 +36,13 @@ type Document = {
   status: 'Pagada' | 'Pendiente' | 'Vencida' | 'Anulada' | 'Aplicada';
   items: string;
   createdBy: string;
+  purchaseOrderNumber?: string;
 };
 
 const initialDocuments: Document[] = [
-  { id: 'F001', type: 'Factura', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', items: '100 x Pan de Masa Madre, 50 x Baguettes. \nLocal: Local Principal (SJ-MAIPU) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez' },
+  { id: 'F001', type: 'Factura', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', items: '100 x Pan de Masa Madre, 50 x Baguettes. \nLocal: Local Principal (SJ-MAIPU) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez', purchaseOrderNumber: 'OC-2025-101' },
   { id: 'F002', type: 'Factura', client: 'Cafe Central', date: '2025-07-20', total: 1200.50, status: 'Pendiente', items: '200 x Croissants, 150 x Ciabattas. \nLocal: Providencia (CC-PROVI) \nVendedor: Vendedor 2', createdBy: 'Usuario Admin' },
-  { id: 'F003', type: 'Factura', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', items: '50 x Pain au Levain, 50 x Baguette Tradition. \nLocal: Sucursal La Cisterna (SDS-CIST) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez' },
+  { id: 'F003', type: 'Factura', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', items: '50 x Pain au Levain, 50 x Baguette Tradition. \nLocal: Sucursal La Cisterna (SDS-CIST) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez', purchaseOrderNumber: 'OC-2025-102' },
   { id: 'F004', type: 'Factura', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320.75, status: 'Vencida', items: '300 x Pan de Centeno', createdBy: 'Usuario Admin' },
 ];
 
@@ -131,7 +132,10 @@ function AccountingPageContent() {
         const customer = initialCustomers.find(c => c.id === data.customerId);
         const location = customer?.deliveryLocations.find(l => l.id === data.locationId);
         
-        const detailsString = `${data.items}\nLocal: ${location?.name} (${location?.code})\nVendedor: ${data.salesperson}`;
+        let detailsString = `${data.items}\nLocal: ${location?.name} (${location?.code})\nVendedor: ${data.salesperson}`;
+        if (data.purchaseOrderNumber) {
+            detailsString += `\nNº OC: ${data.purchaseOrderNumber}`;
+        }
 
         const newInvoice: Document = {
             id: `F${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
@@ -142,6 +146,7 @@ function AccountingPageContent() {
             date: new Date().toISOString().split('T')[0],
             status: 'Pendiente',
             createdBy: 'Usuario Admin', // Asignar creador
+            purchaseOrderNumber: data.purchaseOrderNumber,
         };
         setDocuments(prev => [newInvoice, ...prev]);
         setNewInvoiceModalOpen(false);
@@ -603,6 +608,7 @@ function AccountingPageContent() {
                         <div>
                             <h3 className="font-headline text-lg font-semibold text-gray-600 mb-2 border-b pb-1">Datos del Cliente:</h3>
                             <p className="font-bold text-gray-800">{selectedDocument.client}</p>
+                            {selectedDocument.purchaseOrderNumber && <p className="text-sm text-gray-600">Nº Orden de Compra: {selectedDocument.purchaseOrderNumber}</p>}
                         </div>
                         <div className="text-right">
                              <div className="mb-2">
