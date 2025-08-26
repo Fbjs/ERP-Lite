@@ -22,24 +22,29 @@ import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
+export type OrderItem = {
+  recipeId: string;
+  formatSku: string;
+  quantity: number;
+};
 
-type Order = {
+export type Order = {
   id: string;
   customer: string;
   amount: number;
   status: 'Completado' | 'Pendiente' | 'Enviado' | 'Cancelado' | 'En Preparación';
   date: string;
-  details: string;
+  items: OrderItem[];
 };
 
 
 export const initialOrders: Order[] = [
-  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', details: '100 x Pain au Levain (Unidad de 700g), 50 x Baguette Tradition (Unidad de 250g)' },
-  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', details: '200 x Croissant au Beurre (Unidad), 150 x Ciabatta (Unidad de 300g)' },
-  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', details: '50 x Pain au Levain (Unidad de 1400g), 50 x Baguette Tradition (Unidad de 250g)' },
-  { id: 'SALE884', customer: 'Panaderia Central', amount: 320750, status: 'Completado', date: '2025-07-26', details: '300 x Pan Rallado (Bolsa 500g)' },
-  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950000, status: 'Cancelado', date: '2025-07-25', details: '500 x Pan de Molde' },
-  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210000, status: 'En Preparación', date: '2025-07-29', details: '100 x Bagels' },
+  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-700', quantity: 100 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }] },
+  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', items: [{ recipeId: 'REC-003', formatSku: 'PROD-CR-U', quantity: 200 }, { recipeId: 'REC-004', formatSku: 'PROD-CB-300', quantity: 150 }] },
+  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-1400', quantity: 50 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }] },
+  { id: 'SALE884', customer: 'Panaderia Central', amount: 320750, status: 'Completado', date: '2025-07-26', items: [{ recipeId: 'REC-005', formatSku: 'PROD-PR-500', quantity: 300 }] },
+  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950000, status: 'Cancelado', date: '2025-07-25', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 500 }] },
+  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210000, status: 'En Preparación', date: '2025-07-29', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 100 }] },
 ];
 
 export default function SalesPage() {
@@ -80,18 +85,29 @@ export default function SalesPage() {
     }, [filteredOrders]);
 
 
+    const getOrderDetailsAsString = (items: OrderItem[]): string => {
+        return items.map(item => {
+            const recipe = recipes.find(r => r.id === item.recipeId);
+            if (recipe) {
+                const format = recipe.formats.find(f => f.sku === item.formatSku);
+                if (format) {
+                    return `${item.quantity} x ${recipe.name} (${format.name})`;
+                }
+            }
+            return 'Ítem no encontrado';
+        }).join(', ');
+    };
+
     const handleCreateOrder = (newOrderData: OrderFormData) => {
         
         let totalAmount = 0;
-        const detailsParts: string[] = [];
-
+        
         newOrderData.items.forEach(item => {
             const recipe = recipes.find(r => r.id === item.recipeId);
             if (recipe) {
                 const format = recipe.formats.find(f => f.sku === item.formatSku);
                 if (format) {
                     totalAmount += item.quantity * format.cost;
-                    detailsParts.push(`${item.quantity} x ${recipe.name} (${format.name})`);
                 }
             }
         });
@@ -101,7 +117,7 @@ export default function SalesPage() {
             status: 'Pendiente',
             date: new Date().toISOString().split('T')[0],
             customer: newOrderData.customer,
-            details: detailsParts.join(', '),
+            items: newOrderData.items,
             amount: totalAmount,
         };
         setOrders(prev => [newOrder, ...prev]);
@@ -333,7 +349,7 @@ export default function SalesPage() {
                             <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Orden</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleOpenUpdateStatus(order)}>Actualizar Estado</DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                               <Link href={`/accounting?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(order.details)}`}>
+                               <Link href={`/accounting?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(getOrderDetailsAsString(order.items))}`}>
                                     Generar Factura
                                 </Link>
                             </DropdownMenuItem>
@@ -384,7 +400,7 @@ export default function SalesPage() {
                         <div><p className="font-semibold text-gray-600">Cliente:</p><p>{selectedOrder.customer}</p></div>
                         <div><p className="font-semibold text-gray-600">Monto Total:</p><p>${selectedOrder.amount.toLocaleString('es-CL')}</p></div>
                         <div className="sm:col-span-2"><p className="font-semibold text-gray-600">Estado:</p><p>{selectedOrder.status}</p></div>
-                        <div className="sm:col-span-2"><p className="font-semibold text-gray-600">Detalles del Pedido:</p><p className="whitespace-pre-wrap">{selectedOrder.details}</p></div>
+                        <div className="sm:col-span-2"><p className="font-semibold text-gray-600">Detalles del Pedido:</p><p className="whitespace-pre-wrap">{getOrderDetailsAsString(selectedOrder.items)}</p></div>
                     </div>
                     <div className="border-t-2 border-gray-200 pt-4 mt-4 text-center text-xs text-gray-500">
                         <p>Documento generado el {new Date().toLocaleDateString('es-ES')}</p>

@@ -4,16 +4,18 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, FilePlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useMemo } from 'react';
 import ProductionOrderForm, { ProductionOrderData } from '@/components/production-order-form';
 import { useToast } from '@/hooks/use-toast';
-import { initialRecipes } from '@/app/recipes/page';
+import { initialRecipes, Recipe } from '@/app/recipes/page';
 import { initialInventoryItems } from '@/app/inventory/page';
 import Logo from '@/components/logo';
+import { initialOrders as allSalesOrders, OrderItem as SalesOrderItem } from '@/app/sales/page';
+
 
 export type ProcessControl = {
     hydratedInput: string;
@@ -172,10 +174,18 @@ export const initialOrders: Order[] = [
   { id: 'PROD024', product: 'Ciabatta', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
 ];
 
+type ProductionNeeds = {
+    recipe: Recipe;
+    totalDemand: number;
+    inventoryStock: number;
+    netToProduce: number;
+};
+
 export default function ProductionPage() {
     const [orders, setOrders] = useState<Order[]>(initialOrders);
     const [isFormModalOpen, setFormModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
+    const [isGenerateModalOpen, setGenerateModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
@@ -201,6 +211,37 @@ export default function ProductionPage() {
         });
 
     }, [selectedOrder, selectedOrderRecipe]);
+    
+    const productionNeeds = useMemo(() => {
+        const needs: { [key: string]: { recipe: Recipe, totalDemand: number } } = {};
+
+        const pendingSalesOrders = allSalesOrders.filter(
+            order => order.status === 'Pendiente' || order.status === 'En Preparación'
+        );
+
+        pendingSalesOrders.forEach(order => {
+            order.items.forEach(item => {
+                const recipe = initialRecipes.find(r => r.id === item.recipeId);
+                if (recipe) {
+                    if (!needs[recipe.id]) {
+                        needs[recipe.id] = { recipe, totalDemand: 0 };
+                    }
+                    needs[recipe.id].totalDemand += item.quantity;
+                }
+            });
+        });
+        
+        return Object.values(needs).map(need => {
+            const inventoryItems = initialInventoryItems.filter(
+                invItem => invItem.category === 'Producto Terminado' && 
+                           need.recipe.formats.some(f => f.sku === invItem.sku)
+            );
+            const inventoryStock = inventoryItems.reduce((acc, item) => acc + item.stock, 0);
+            const netToProduce = Math.max(0, need.totalDemand - inventoryStock);
+            return { ...need, inventoryStock, netToProduce };
+        });
+
+    }, [isGenerateModalOpen]); // Recalculate when modal opens
 
 
     const handleOpenDetails = (order: Order) => {
@@ -247,6 +288,43 @@ export default function ProductionPage() {
         setSelectedOrder(null);
     };
 
+    const handleCreateOrdersFromNeeds = () => {
+        const newOrders: Order[] = [];
+        productionNeeds.forEach(need => {
+            if (need.netToProduce > 0) {
+                const newOrder: Order = {
+                    id: `PROD${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+                    product: need.recipe.name,
+                    quantity: need.netToProduce,
+                    status: 'En Cola',
+                    stage: 'Pendiente',
+                    date: new Date().toISOString().split('T')[0],
+                    charge: '', machine: '', turn: '', operator: '',
+                    responsibles: { fractionation: '', production: '', cooking: '' },
+                    staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl,
+                    fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl,
+                    bakingRecord: emptyBakingRecord, waste: [],
+                };
+                newOrders.push(newOrder);
+            }
+        });
+
+        if (newOrders.length > 0) {
+            setOrders(prev => [...prev, ...newOrders]);
+            toast({
+                title: `${newOrders.length} Órdenes de Producción Creadas`,
+                description: 'Las órdenes se han añadido a la cola de producción.'
+            });
+        } else {
+             toast({
+                title: 'No se Requieren Órdenes Nuevas',
+                description: 'La demanda actual puede ser cubierta con el stock disponible.'
+            });
+        }
+        setGenerateModalOpen(false);
+    };
+
+
     const handleDownloadPdf = async () => {
         const input = detailsModalContentRef.current;
         if (input) {
@@ -291,10 +369,16 @@ export default function ProductionPage() {
                     <CardTitle className="font-headline">Órdenes de Producción</CardTitle>
                     <CardDescription className="font-body">Rastrea y gestiona las órdenes de producción.</CardDescription>
                 </div>
-                <Button onClick={() => handleOpenForm(null)}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nueva Orden
-                </Button>
+                 <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={() => setGenerateModalOpen(true)}>
+                        <FilePlus className="mr-2 h-4 w-4" />
+                        Generar desde Ventas
+                    </Button>
+                    <Button onClick={() => handleOpenForm(null)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Nueva Orden Manual
+                    </Button>
+                </div>
             </div>
         </CardHeader>
         <CardContent>
@@ -364,6 +448,51 @@ export default function ProductionPage() {
             />
         </DialogContent>
       </Dialog>
+
+       {/* Modal Generar desde Ventas */}
+      <Dialog open={isGenerateModalOpen} onOpenChange={setGenerateModalOpen}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-headline">Generar Órdenes desde Ventas</DialogTitle>
+            <DialogDescription className="font-body">
+                Revisa la demanda de los pedidos de venta pendientes y crea las órdenes de producción necesarias.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto p-1">
+              <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Producto</TableHead>
+                        <TableHead className="text-right">Demanda</TableHead>
+                        <TableHead className="text-right">Stock</TableHead>
+                        <TableHead className="text-right font-bold">A Producir</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {productionNeeds.length > 0 ? productionNeeds.map(need => (
+                        <TableRow key={need.recipe.id}>
+                            <TableCell className="font-medium">{need.recipe.name}</TableCell>
+                            <TableCell className="text-right">{need.totalDemand}</TableCell>
+                            <TableCell className="text-right">{need.inventoryStock}</TableCell>
+                            <TableCell className="text-right font-bold">{need.netToProduce}</TableCell>
+                        </TableRow>
+                    )) : (
+                        <TableRow>
+                            <TableCell colSpan={4} className="text-center h-24">No hay pedidos de venta pendientes.</TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setGenerateModalOpen(false)}>Cancelar</Button>
+            <Button onClick={handleCreateOrdersFromNeeds} disabled={productionNeeds.every(n => n.netToProduce === 0)}>
+                Crear Órdenes de Producción
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Modal Ver Detalles */}
         <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>

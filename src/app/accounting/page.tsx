@@ -35,16 +35,16 @@ type Document = {
   date: string;
   total: number;
   status: 'Pagada' | 'Pendiente' | 'Vencida' | 'Anulada' | 'Aplicada';
-  items: string;
+  details: string;
   createdBy: string;
   purchaseOrderNumber?: string;
 };
 
 const initialDocuments: Document[] = [
-  { id: 'F001', type: 'Factura', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', items: '100 x Pan de Masa Madre, 50 x Baguettes. \nLocal: Local Principal (SJ-MAIPU) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez', purchaseOrderNumber: 'OC-2025-101' },
-  { id: 'F002', type: 'Factura', client: 'Cafe Central', date: '2025-07-20', total: 1200.50, status: 'Pendiente', items: '200 x Croissants, 150 x Ciabattas. \nLocal: Providencia (CC-PROVI) \nVendedor: Vendedor 2', createdBy: 'Usuario Admin' },
-  { id: 'F003', type: 'Factura', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', items: '50 x Pain au Levain, 50 x Baguette Tradition. \nLocal: Sucursal La Cisterna (SDS-CIST) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez', purchaseOrderNumber: 'OC-2025-102' },
-  { id: 'F004', type: 'Factura', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320.75, status: 'Vencida', items: '300 x Pan de Centeno', createdBy: 'Usuario Admin' },
+  { id: 'F001', type: 'Factura', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', details: '100 x Pan de Masa Madre, 50 x Baguettes. \nLocal: Local Principal (SJ-MAIPU) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez', purchaseOrderNumber: 'OC-2025-101' },
+  { id: 'F002', type: 'Factura', client: 'Cafe Central', date: '2025-07-20', total: 1200.50, status: 'Pendiente', details: '200 x Croissants, 150 x Ciabattas. \nLocal: Providencia (CC-PROVI) \nVendedor: Vendedor 2', createdBy: 'Usuario Admin' },
+  { id: 'F003', type: 'Factura', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', details: '50 x Pain au Levain, 50 x Baguette Tradition. \nLocal: Sucursal La Cisterna (SDS-CIST) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez', purchaseOrderNumber: 'OC-2025-102' },
+  { id: 'F004', type: 'Factura', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320.75, status: 'Vencida', details: '300 x Pan de Centeno', createdBy: 'Usuario Admin' },
 ];
 
 function AccountingPageContent() {
@@ -116,7 +116,7 @@ function AccountingPageContent() {
                 total: parseFloat(amount),
                 date: new Date().toISOString().split('T')[0],
                 status: 'Pendiente',
-                items: details,
+                details: details,
                 createdBy: 'Usuario Admin', // Asignar creador
             };
             setDocuments(prev => [newInvoice, ...prev]);
@@ -143,7 +143,7 @@ function AccountingPageContent() {
             type: 'Factura',
             client: customer?.name || 'Cliente Desconocido',
             total: data.amount,
-            items: detailsString,
+            details: detailsString,
             date: new Date().toISOString().split('T')[0],
             status: 'Pendiente',
             createdBy: 'Usuario Admin', // Asignar creador
@@ -163,7 +163,7 @@ function AccountingPageContent() {
             type: 'Nota de Crédito',
             client: data.client,
             total: data.amount,
-            items: data.reason,
+            details: data.reason,
             date: new Date().toISOString().split('T')[0],
             status: 'Aplicada',
             createdBy: 'Usuario Admin', // Asignar creador
@@ -182,7 +182,7 @@ function AccountingPageContent() {
             type: 'Nota de Débito',
             client: data.client,
             total: data.amount,
-            items: data.reason,
+            details: data.reason,
             date: new Date().toISOString().split('T')[0],
             status: 'Pendiente',
             createdBy: 'Usuario Admin', // Asignar creador
@@ -648,7 +648,7 @@ function AccountingPageContent() {
                             </TableHeader>
                             <TableBody>
                                 <TableRow className="border-b border-gray-200">
-                                    <TableCell className="py-3 px-4 whitespace-pre-wrap">{selectedDocument.items}</TableCell>
+                                    <TableCell className="py-3 px-4 whitespace-pre-wrap">{selectedDocument.details}</TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
