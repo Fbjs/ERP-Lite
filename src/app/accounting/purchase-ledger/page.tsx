@@ -30,7 +30,7 @@ type PurchaseDocument = {
     total: number;
 };
 
-const initialPurchases: PurchaseDocument[] = [
+export const initialPurchases: PurchaseDocument[] = [
     { id: 1, date: '2025-07-05', docType: 'Factura Electrónica', folio: '78901', supplier: 'Harinas del Sur S.A.', rut: '77.890.123-4', net: 672269, tax: 127731, total: 800000 },
     { id: 2, date: '2025-07-12', docType: 'Factura Electrónica', folio: '11223', supplier: 'Distribuidora Lácteos del Maule', rut: '76.543.210-9', net: 420168, tax: 79832, total: 500000 },
     { id: 3, date: '2025-07-18', docType: 'Factura Electrónica', folio: '45678', supplier: 'Insumos de Panadería ProPan', rut: '78.111.222-3', net: 252101, tax: 47899, total: 300000 },

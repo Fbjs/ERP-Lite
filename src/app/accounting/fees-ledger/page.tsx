@@ -30,7 +30,7 @@ type FeeDocument = {
     net: number;
 };
 
-const initialFees: FeeDocument[] = [
+export const initialFees: FeeDocument[] = [
     { id: 1, date: '2025-07-31', docType: 'Boleta de Honorarios', folio: '501', issuer: 'Servicios de Diseño SPA', rut: '76.444.555-6', gross: 500000, retention: 66875, net: 433125 },
     { id: 2, date: '2025-07-31', docType: 'Boleta de Honorarios', folio: '88', issuer: 'Consultoría Legal Ltda.', rut: '77.123.123-1', gross: 1200000, retention: 160500, net: 1039500 },
 ];

@@ -32,7 +32,7 @@ type SaleDocument = {
     total: number;
 };
 
-const initialSales: SaleDocument[] = [
+export const initialSales: SaleDocument[] = [
     { id: 1, date: '2025-07-15', docType: 'Factura Electrónica', folio: '101', client: 'Panaderia San Jose', rut: '76.111.222-3', net: 378151, tax: 71849, total: 450000 },
     { id: 2, date: '2025-07-20', docType: 'Factura Electrónica', folio: '102', client: 'Cafe Central', rut: '77.222.333-4', net: 1008824, tax: 191676, total: 1200500 },
     { id: 3, date: '2025-07-10', docType: 'Factura Electrónica', folio: '103', client: 'Supermercado del Sur', rut: '78.333.444-5', net: 735294, tax: 139706, total: 875000 },
@@ -520,7 +520,3 @@ export default function SalesLedgerPage() {
         </AppLayout>
     )
 }
-
-    
-
-    
