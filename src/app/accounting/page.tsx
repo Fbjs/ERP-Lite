@@ -54,6 +54,7 @@ function AccountingPageContent() {
     const { toast } = useToast();
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const reportContentRef = useRef<HTMLDivElement>(null);
+    const [generationDate, setGenerationDate] = useState<Date | null>(null);
 
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: subMonths(new Date(2025, 6, 29), 1),
@@ -90,6 +91,8 @@ function AccountingPageContent() {
 
 
     useEffect(() => {
+        setGenerationDate(new Date());
+        
         const client = searchParams.get('client');
         const amount = searchParams.get('amount');
         const details = searchParams.get('details');
@@ -220,7 +223,7 @@ function AccountingPageContent() {
               </div>
               <div className="text-right text-sm">
                   <p><span className="font-semibold">Período:</span> {dateRange?.from ? format(dateRange.from, "P", { locale: es }) : ''} - {dateRange?.to ? format(dateRange.to, "P", { locale: es }) : 'Ahora'}</p>
-                  <p><span className="font-semibold">Fecha de Generación:</span> {format(new Date(), "P p", { locale: es })}</p>
+                  {generationDate && <p><span className="font-semibold">Fecha de Generación:</span> {format(generationDate, "P p", { locale: es })}</p>}
               </div>
           </header>
 
@@ -578,7 +581,7 @@ function AccountingPageContent() {
 
                     <footer className="text-center text-xs text-gray-400 border-t pt-4">
                         <p>Gracias por su compra. Documento generado por Vollkorn ERP.</p>
-                        <p>Generado el {new Date().toLocaleString('es-ES')}</p>
+                        {generationDate && <p>Generado el {format(generationDate, "Pp", { locale: es })}</p>}
                     </footer>
                 </div>
             </div>
