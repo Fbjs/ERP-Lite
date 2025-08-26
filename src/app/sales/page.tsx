@@ -34,12 +34,12 @@ type Order = {
 
 
 export const initialOrders: Order[] = [
-  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450.00, status: 'Completado', date: '2025-07-27', details: '100 x Pan de Masa Madre, 50 x Baguettes' },
-  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200.50, status: 'Pendiente', date: '2025-07-28', details: '200 x Croissants, 150 x Ciabattas' },
-  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875.00, status: 'Enviado', date: '2025-07-28', details: '50 x Pain au Levain, 50 x Baguette Tradition' },
-  { id: 'SALE884', customer: 'Panaderia Central', amount: 320.75, status: 'Completado', date: '2025-07-26', details: '300 x Pan de Centeno' },
-  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950.00, status: 'Cancelado', date: '2025-07-25', details: '500 x Pan de Molde' },
-  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210.00, status: 'En Preparación', date: '2025-07-29', details: '100 x Bagels' },
+  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', details: '100 x Pain au Levain (Unidad de 700g), 50 x Baguette Tradition (Unidad de 250g)' },
+  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', details: '200 x Croissant au Beurre (Unidad), 150 x Ciabatta (Unidad de 300g)' },
+  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', details: '50 x Pain au Levain (Unidad de 1400g), 50 x Baguette Tradition (Unidad de 250g)' },
+  { id: 'SALE884', customer: 'Panaderia Central', amount: 320750, status: 'Completado', date: '2025-07-26', details: '300 x Pan Rallado (Bolsa 500g)' },
+  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950000, status: 'Cancelado', date: '2025-07-25', details: '500 x Pan de Molde' },
+  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210000, status: 'En Preparación', date: '2025-07-29', details: '100 x Bagels' },
 ];
 
 export default function SalesPage() {
@@ -82,25 +82,27 @@ export default function SalesPage() {
 
     const handleCreateOrder = (newOrderData: OrderFormData) => {
         
-        const details = newOrderData.items
-            .map(item => {
-                const recipe = recipes.find(r => r.id === item.recipeId);
-                return `${item.quantity} x ${recipe ? recipe.name : 'Producto Desconocido'}`;
-            })
-            .join(', ');
+        let totalAmount = 0;
+        const detailsParts: string[] = [];
 
-        const amount = newOrderData.items.reduce((total, item) => {
+        newOrderData.items.forEach(item => {
             const recipe = recipes.find(r => r.id === item.recipeId);
-            return total + (item.quantity * (recipe?.cost || 0));
-        }, 0);
+            if (recipe) {
+                const format = recipe.formats.find(f => f.sku === item.formatSku);
+                if (format) {
+                    totalAmount += item.quantity * format.cost;
+                    detailsParts.push(`${item.quantity} x ${recipe.name} (${format.name})`);
+                }
+            }
+        });
 
         const newOrder: Order = {
             id: `SALE${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
             status: 'Pendiente',
             date: new Date().toISOString().split('T')[0],
             customer: newOrderData.customer,
-            details,
-            amount,
+            details: detailsParts.join(', '),
+            amount: totalAmount,
         };
         setOrders(prev => [newOrder, ...prev]);
         setNewOrderModalOpen(false);

@@ -1,3 +1,4 @@
+
 "use client";
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
@@ -16,21 +17,50 @@ export type Ingredient = {
     unit: string;
 };
 
-export type Recipe = {
+export type ProductFormat = {
   sku: string;
   name: string;
-  ingredients: Ingredient[];
-  format: string;
   cost: number;
+};
+
+export type Recipe = {
+  id: string; // Internal ID for the recipe
+  name: string; // Base product name
+  ingredients: Ingredient[];
+  formats: ProductFormat[];
   lastUpdated: string;
 };
 
 export const initialRecipes: Recipe[] = [
-  { sku: 'PROD-PL-01', name: 'Pain au Levain', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.7, unit: 'L'}, {name: 'Masa Madre', quantity: 0.2, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], format: 'Unidad de 700g', cost: 2.50, lastUpdated: '2023-10-26' },
-  { sku: 'PROD-BG-01', name: 'Baguette Tradition', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.01, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], format: 'Unidad de 250g', cost: 1.80, lastUpdated: '2023-10-25' },
-  { sku: 'PROD-CR-01', name: 'Croissant au Beurre', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Mantequilla', quantity: 0.5, unit: 'kg'}, {name: 'Azucar', quantity: 0.1, unit: 'kg'}, {name: 'Leche', quantity: 0.4, unit: 'L'}], format: 'Unidad', cost: 3.10, lastUpdated: '2023-10-27' },
-  { sku: 'PROD-CB-01', name: 'Ciabatta', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.005, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], format: 'Unidad de 300g', cost: 2.20, lastUpdated: '2023-10-24' },
-  { sku: 'PROD-PR-01', name: 'Pan Rallado', ingredients: [{name: 'Pan Sobrante', quantity: 1, unit: 'kg'}], format: 'Bolsa 500g', cost: 1.50, lastUpdated: '2023-10-28' },
+  { id: 'REC-001', name: 'Pain au Levain', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.7, unit: 'L'}, {name: 'Masa Madre', quantity: 0.2, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], 
+    formats: [
+        { sku: 'PROD-PL-700', name: 'Unidad de 700g', cost: 2500 },
+        { sku: 'PROD-PL-1400', name: 'Unidad de 1400g', cost: 4800 },
+    ], 
+    lastUpdated: '2023-10-26' 
+  },
+  { id: 'REC-002', name: 'Baguette Tradition', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.01, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], 
+    formats: [
+        { sku: 'PROD-BG-250', name: 'Unidad de 250g', cost: 1800 },
+    ],
+    lastUpdated: '2023-10-25' },
+  { id: 'REC-003', name: 'Croissant au Beurre', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Mantequilla', quantity: 0.5, unit: 'kg'}, {name: 'Azucar', quantity: 0.1, unit: 'kg'}, {name: 'Leche', quantity: 0.4, unit: 'L'}], 
+    formats: [
+        { sku: 'PROD-CR-U', name: 'Unidad', cost: 3100 },
+    ],
+    lastUpdated: '2023-10-27' },
+  { id: 'REC-004', name: 'Ciabatta', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.005, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], 
+    formats: [
+        { sku: 'PROD-CB-300', name: 'Unidad de 300g', cost: 2200 },
+    ],
+    lastUpdated: '2023-10-24' },
+  { id: 'REC-005', name: 'Pan Rallado', ingredients: [{name: 'Pan Sobrante', quantity: 1, unit: 'kg'}],
+    formats: [
+        { sku: 'PROD-PR-500', name: 'Bolsa 500g', cost: 1500 },
+        { sku: 'PROD-PR-1000', name: 'Bolsa 1kg', cost: 2800 },
+    ], 
+    lastUpdated: '2023-10-28' 
+  },
 ];
 
 export default function RecipesPage() {
@@ -41,9 +71,10 @@ export default function RecipesPage() {
   const detailsModalContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'lastUpdated'>) => {
+  const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
     const newRecipe: Recipe = {
       ...newRecipeData,
+      id: `REC-${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
       lastUpdated: new Date().toISOString().split('T')[0],
     };
     setRecipes(prev => [newRecipe, ...prev]);
@@ -54,16 +85,16 @@ export default function RecipesPage() {
     });
   };
   
-  const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'lastUpdated'>) => {
+  const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
       if (!selectedRecipe) return;
       
       const updatedRecipe: Recipe = {
           ...updatedRecipeData,
-          sku: selectedRecipe.sku,
+          id: selectedRecipe.id,
           lastUpdated: new Date().toISOString().split('T')[0],
       };
       
-      setRecipes(recipes.map(r => r.sku === selectedRecipe.sku ? updatedRecipe : r));
+      setRecipes(recipes.map(r => r.id === selectedRecipe.id ? updatedRecipe : r));
       setFormModalOpen(false);
       setSelectedRecipe(null);
       toast({
@@ -107,7 +138,7 @@ export default function RecipesPage() {
         const xOffset = (pdfWidth - pdfImageWidth) / 2;
 
         pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
-        pdf.save(`receta-${selectedRecipe?.sku}.pdf`);
+        pdf.save(`receta-${selectedRecipe?.id}.pdf`);
         toast({
             title: "PDF Descargado",
             description: `La receta ${selectedRecipe?.name} ha sido descargada.`,
@@ -121,8 +152,8 @@ export default function RecipesPage() {
         <CardHeader>
             <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
-                    <CardTitle className="font-headline">Recetas</CardTitle>
-                    <CardDescription className="font-body">Gestiona las recetas y costos de tus productos.</CardDescription>
+                    <CardTitle className="font-headline">Recetas y Productos</CardTitle>
+                    <CardDescription className="font-body">Gestiona las recetas base y los distintos formatos de venta de tus productos.</CardDescription>
                 </div>
                 <Button onClick={() => handleOpenForm(null)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -134,11 +165,9 @@ export default function RecipesPage() {
           <Table className="responsive-table">
             <TableHeader>
               <TableRow>
-                <TableHead>Cód. Producto (SKU)</TableHead>
                 <TableHead>Nombre del Producto</TableHead>
-                <TableHead>Formato</TableHead>
+                <TableHead>Formatos de Venta</TableHead>
                 <TableHead>Nº Ingredientes</TableHead>
-                <TableHead>Costo por Unidad</TableHead>
                 <TableHead>Última Actualización</TableHead>
                 <TableHead>
                   <span className="sr-only">Acciones</span>
@@ -147,12 +176,10 @@ export default function RecipesPage() {
             </TableHeader>
             <TableBody>
               {recipes.map((recipe) => (
-                <TableRow key={recipe.sku} className="hover:bg-muted/50">
-                  <TableCell data-label="SKU" className="font-medium">{recipe.sku}</TableCell>
-                  <TableCell data-label="Nombre">{recipe.name}</TableCell>
-                  <TableCell data-label="Formato">{recipe.format}</TableCell>
+                <TableRow key={recipe.id} className="hover:bg-muted/50">
+                  <TableCell data-label="Nombre" className="font-medium">{recipe.name}</TableCell>
+                  <TableCell data-label="Formatos">{recipe.formats.length}</TableCell>
                   <TableCell data-label="Nº Ingredientes">{recipe.ingredients.length}</TableCell>
-                  <TableCell data-label="Costo">${recipe.cost.toFixed(2)}</TableCell>
                   <TableCell data-label="Actualizado">{recipe.lastUpdated}</TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -179,11 +206,11 @@ export default function RecipesPage() {
 
       {/* Modal Nueva/Editar Receta */}
       <Dialog open={isFormModalOpen} onOpenChange={setFormModalOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle className="font-headline">{selectedRecipe ? 'Editar Receta' : 'Crear Nueva Receta'}</DialogTitle>
             <DialogDescription className="font-body">
-              {selectedRecipe ? 'Modifica los detalles de la receta.' : 'Define el producto y sus ingredientes.'}
+              {selectedRecipe ? 'Modifica los detalles de la receta y sus formatos de venta.' : 'Define el producto, sus ingredientes y los formatos de venta.'}
             </DialogDescription>
           </DialogHeader>
           <RecipeForm
@@ -196,59 +223,66 @@ export default function RecipesPage() {
       
       {/* Modal Ver Detalles */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-headline">{selectedRecipe?.name}</DialogTitle>
              <DialogDescription className="font-body">
-                Ficha de Receta - {selectedRecipe?.sku}
+                Ficha de Receta - {selectedRecipe?.id}
             </DialogDescription>
           </DialogHeader>
           {selectedRecipe && (
-             <div ref={detailsModalContentRef} className="max-h-[60vh] overflow-y-auto font-body p-1 bg-white text-black rounded-md">
+             <div ref={detailsModalContentRef} className="max-h-[70vh] overflow-y-auto font-body p-1 bg-white text-black rounded-md">
                 <div className="p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 mb-6">
+                    <div className="mb-6 text-center">
+                        <p className="font-semibold text-gray-600">Última Actualización:</p>
+                        <p>{selectedRecipe.lastUpdated}</p>
+                    </div>
+
+                    <div className="space-y-6">
                         <div>
-                            <p className="font-semibold text-gray-600">Nombre del Producto:</p>
-                            <p className="text-lg">{selectedRecipe.name}</p>
+                            <h3 className="font-headline text-xl mb-2 border-b pb-2">Formatos de Venta</h3>
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="text-black font-semibold">SKU</TableHead>
+                                        <TableHead className="text-black font-semibold">Nombre Formato</TableHead>
+                                        <TableHead className="text-right text-black font-semibold">Costo</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {selectedRecipe.formats.map((format) => (
+                                        <TableRow key={format.sku} className="border-gray-200">
+                                            <TableCell className="font-mono">{format.sku}</TableCell>
+                                            <TableCell className="font-medium">{format.name}</TableCell>
+                                            <TableCell className="text-right">${format.cost.toLocaleString('es-CL')}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </div>
+                        
                         <div>
-                            <p className="font-semibold text-gray-600">Código de Producto (SKU):</p>
-                            <p className="text-lg font-mono">{selectedRecipe.sku}</p>
-                        </div>
-                        <div>
-                            <p className="font-semibold text-gray-600">Formato de Entrega:</p>
-                            <p className="text-lg">{selectedRecipe.format}</p>
-                        </div>
-                        <div>
-                            <p className="font-semibold text-gray-600">Costo por Unidad:</p>
-                            <p className="text-lg">${selectedRecipe.cost.toFixed(2)}</p>
-                        </div>
-                        <div>
-                            <p className="font-semibold text-gray-600">Última Actualización:</p>
-                            <p>{selectedRecipe.lastUpdated}</p>
+                            <h3 className="font-headline text-xl mb-2 border-b pb-2">Ingredientes Base</h3>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="text-black font-semibold">Ingrediente</TableHead>
+                                        <TableHead className="text-right text-black font-semibold">Cantidad</TableHead>
+                                        <TableHead className="text-black font-semibold">Unidad</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {selectedRecipe.ingredients.map((ing, index) => (
+                                        <TableRow key={index} className="border-gray-200">
+                                            <TableCell className="font-medium">{ing.name}</TableCell>
+                                            <TableCell className="text-right">{ing.quantity}</TableCell>
+                                            <TableCell>{ing.unit}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </div>
                     </div>
-                    
-                    <h3 className="font-headline text-xl mb-4 border-b pb-2">Ingredientes</h3>
-                    
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="text-black font-semibold">Ingrediente</TableHead>
-                                <TableHead className="text-right text-black font-semibold">Cantidad</TableHead>
-                                <TableHead className="text-black font-semibold">Unidad</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {selectedRecipe.ingredients.map((ing, index) => (
-                                <TableRow key={index} className="border-gray-200">
-                                    <TableCell className="font-medium">{ing.name}</TableCell>
-                                    <TableCell className="text-right">{ing.quantity}</TableCell>
-                                    <TableCell>{ing.unit}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
                     
                     <div className="border-t-2 border-gray-200 pt-4 mt-6 text-center text-xs text-gray-500">
                         <p>Documento generado el {new Date().toLocaleDateString('es-ES')}</p>

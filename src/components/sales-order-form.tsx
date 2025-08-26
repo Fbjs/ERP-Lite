@@ -1,16 +1,18 @@
+
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Recipe } from '@/app/recipes/page';
+import { Recipe, ProductFormat } from '@/app/recipes/page';
 import { PlusCircle, Trash2 } from 'lucide-react';
 
 type OrderItem = {
     recipeId: string;
+    formatSku: string;
     quantity: number;
 };
 
@@ -27,20 +29,30 @@ type SalesOrderFormProps = {
 
 export default function SalesOrderForm({ onSubmit, onCancel, recipes }: SalesOrderFormProps) {
   const [customer, setCustomer] = useState('');
-  const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', quantity: 1 }]);
+  const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1 }]);
 
   const handleItemChange = (index: number, field: keyof OrderItem, value: string | number) => {
     const newItems = [...items];
-    if (field === 'quantity') {
-        newItems[index][field] = Number(value);
+    const oldItem = newItems[index];
+    
+    if (field === 'recipeId') {
+        // Reset formatSku when recipe changes
+        newItems[index] = { ...oldItem, recipeId: value as string, formatSku: '' };
+    } else if (field === 'quantity') {
+        newItems[index] = { ...oldItem, quantity: Number(value) };
     } else {
-        newItems[index][field] = value as string;
+        newItems[index] = { ...oldItem, [field]: value };
     }
     setItems(newItems);
   };
 
+  const getAvailableFormats = (recipeId: string): ProductFormat[] => {
+    const recipe = recipes.find(r => r.id === recipeId);
+    return recipe?.formats || [];
+  };
+
   const addItem = () => {
-    setItems([...items, { recipeId: '', quantity: 1 }]);
+    setItems([...items, { recipeId: '', formatSku: '', quantity: 1 }]);
   };
 
   const removeItem = (index: number) => {
@@ -71,15 +83,27 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes }: SalesOrd
       
         <div className="space-y-4">
             <Label>Productos</Label>
-            {items.map((item, index) => (
+            {items.map((item, index) => {
+                const availableFormats = getAvailableFormats(item.recipeId);
+                return (
                  <div key={index} className="grid grid-cols-12 gap-2 items-center">
                     <Select value={item.recipeId} onValueChange={(value) => handleItemChange(index, 'recipeId', value)}>
-                        <SelectTrigger className="col-span-7">
-                            <SelectValue placeholder="Selecciona un producto" />
+                        <SelectTrigger className="col-span-5">
+                            <SelectValue placeholder="Producto" />
                         </SelectTrigger>
                         <SelectContent>
                             {recipes.map(recipe => (
                                 <SelectItem key={recipe.id} value={recipe.id}>{recipe.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                     <Select value={item.formatSku} onValueChange={(value) => handleItemChange(index, 'formatSku', value)} disabled={!item.recipeId}>
+                        <SelectTrigger className="col-span-4">
+                            <SelectValue placeholder="Formato" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableFormats.map(format => (
+                                <SelectItem key={format.sku} value={format.sku}>{format.name}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -89,14 +113,15 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes }: SalesOrd
                         min="1"
                         value={item.quantity || ''}
                         onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                        className="col-span-4"
+                        className="col-span-2"
                         required
                     />
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} className="col-span-1 h-8 w-8" disabled={items.length <= 1}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                 </div>
-            ))}
+                )
+            })}
             <Button type="button" variant="outline" onClick={addItem} className="w-full">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Añadir Producto
