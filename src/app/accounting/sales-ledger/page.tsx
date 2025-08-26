@@ -15,7 +15,7 @@ import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/logo';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 type SaleDocument = {
@@ -45,6 +45,7 @@ const formatCurrency = (value: number) => {
 export default function SalesLedgerPage() {
     const { toast } = useToast();
     const reportContentRef = useRef<HTMLDivElement>(null);
+    const journalEntryContentRef = useRef<HTMLDivElement>(null);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: subMonths(new Date(2025, 6, 29), 1),
         to: new Date(2025, 6, 29)
@@ -71,9 +72,9 @@ export default function SalesLedgerPage() {
             return acc;
         }, { net: 0, tax: 0, total: 0 });
     }, [filteredSales]);
-
-    const handleDownloadPdf = async () => {
-        const input = reportContentRef.current;
+    
+    const handleDownloadPdf = async (contentRef: React.RefObject<HTMLDivElement>, fileName: string, orientation: 'p' | 'l' = 'l') => {
+        const input = contentRef.current;
         if (input) {
             const { default: jsPDF } = await import('jspdf');
             const { default: html2canvas } = await import('html2canvas');
@@ -81,7 +82,7 @@ export default function SalesLedgerPage() {
             const canvas = await html2canvas(input, { scale: 2, backgroundColor: '#ffffff' });
             const imgData = canvas.toDataURL('image/png');
             
-            const pdf = new jsPDF('l', 'px', 'a4'); // 'l' for landscape
+            const pdf = new jsPDF(orientation, 'px', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
             
@@ -100,11 +101,11 @@ export default function SalesLedgerPage() {
             const xOffset = (pdfWidth - pdfImageWidth) / 2;
 
             pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
-            pdf.save(`libro-ventas-${new Date().toISOString().split('T')[0]}.pdf`);
+            pdf.save(fileName);
             
             toast({
                 title: "PDF Descargado",
-                description: "El libro de ventas ha sido descargado.",
+                description: `El documento ${fileName} ha sido descargado.`,
             });
         }
     };
@@ -217,7 +218,7 @@ export default function SalesLedgerPage() {
                                     />
                                 </PopoverContent>
                             </Popover>
-                            <Button onClick={handleDownloadPdf}>
+                            <Button onClick={() => handleDownloadPdf(reportContentRef, `libro-ventas-${new Date().toISOString().split('T')[0]}.pdf`)}>
                                 <Download className="mr-2 h-4 w-4" />
                                 Descargar PDF
                             </Button>
@@ -290,42 +291,54 @@ export default function SalesLedgerPage() {
                         </DialogDescription>
                     </DialogHeader>
                     {selectedDocument && (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Cuenta Contable</TableHead>
-                                    <TableHead className="text-right">Debe</TableHead>
-                                    <TableHead className="text-right">Haber</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow>
-                                    <TableCell>Clientes</TableCell>
-                                    <TableCell className="text-right">${formatCurrency(selectedDocument.total)}</TableCell>
-                                    <TableCell className="text-right">-</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell className="pl-6">IVA Débito Fiscal</TableCell>
-                                    <TableCell className="text-right">-</TableCell>
-                                    <TableCell className="text-right">${formatCurrency(selectedDocument.tax)}</TableCell>
-                                </TableRow>
-                                 <TableRow>
-                                    <TableCell className="pl-6">Ventas</TableCell>
-                                    <TableCell className="text-right">-</TableCell>
-                                    <TableCell className="text-right">${formatCurrency(selectedDocument.net)}</TableCell>
-                                </TableRow>
-                            </TableBody>
-                            <TableFooter>
-                                <TableRow>
-                                    <TableCell className="font-bold">Totales</TableCell>
-                                    <TableCell className="text-right font-bold">${formatCurrency(selectedDocument.total)}</TableCell>
-                                    <TableCell className="text-right font-bold">${formatCurrency(selectedDocument.total)}</TableCell>
-                                </TableRow>
-                            </TableFooter>
-                        </Table>
+                         <div ref={journalEntryContentRef} className="p-4 bg-white text-black font-body">
+                            <div className="text-center mb-4">
+                                <h3 className="font-bold font-headline text-lg">Comprobante de Diario</h3>
+                                <p className="text-sm">Panificadora Vollkorn</p>
+                                <p className="text-xs text-gray-500">{format(new Date(selectedDocument.date), "'Glosa del' dd 'de' MMMM 'de' yyyy", { locale: es })}</p>
+                            </div>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="text-black">Cuenta Contable</TableHead>
+                                        <TableHead className="text-right text-black">Debe</TableHead>
+                                        <TableHead className="text-right text-black">Haber</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    <TableRow>
+                                        <TableCell>Clientes</TableCell>
+                                        <TableCell className="text-right">${formatCurrency(selectedDocument.total)}</TableCell>
+                                        <TableCell className="text-right">-</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell className="pl-6">IVA Débito Fiscal</TableCell>
+                                        <TableCell className="text-right">-</TableCell>
+                                        <TableCell className="text-right">${formatCurrency(selectedDocument.tax)}</TableCell>
+                                    </TableRow>
+                                    <TableRow>
+                                        <TableCell className="pl-6">Ventas</TableCell>
+                                        <TableCell className="text-right">-</TableCell>
+                                        <TableCell className="text-right">${formatCurrency(selectedDocument.net)}</TableCell>
+                                    </TableRow>
+                                </TableBody>
+                                <TableFooter>
+                                    <TableRow>
+                                        <TableCell className="font-bold">Totales</TableCell>
+                                        <TableCell className="text-right font-bold">${formatCurrency(selectedDocument.total)}</TableCell>
+                                        <TableCell className="text-right font-bold">${formatCurrency(selectedDocument.total)}</TableCell>
+                                    </TableRow>
+                                </TableFooter>
+                            </Table>
+                            <p className="text-xs text-gray-600 mt-4">Glosa: Centralización de venta según {selectedDocument.docType} N°{selectedDocument.folio}.</p>
+                        </div>
                     )}
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsJournalEntryModalOpen(false)}>Cerrar</Button>
+                        <Button onClick={() => handleDownloadPdf(journalEntryContentRef, `asiento-${selectedDocument?.folio}.pdf`, 'p')}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Descargar PDF
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
