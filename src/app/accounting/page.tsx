@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus, BookOpen } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -286,7 +286,7 @@ function AccountingPageContent() {
                             <CardTitle className="font-headline">Contabilidad y Finanzas</CardTitle>
                             <CardDescription className="font-body">Gestiona facturas, notas de crédito, pagos y conciliaciones.</CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center flex-wrap gap-2">
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -339,7 +339,7 @@ function AccountingPageContent() {
                             </Button>
                             <Button variant="secondary" onClick={() => setNewCreditNoteModalOpen(true)}>
                                 <FileMinus className="mr-2 h-4 w-4" />
-                                Nueva Nota de Crédito
+                                Nota de Crédito
                             </Button>
                             <Button onClick={() => setNewInvoiceModalOpen(true)}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -348,6 +348,22 @@ function AccountingPageContent() {
                         </div>
                     </div>
                 </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <Button asChild variant="outline" className="h-20 text-lg">
+                           <Link href="/accounting/sales-ledger">
+                            <BookOpen className="mr-4 h-6 w-6"/>
+                            Libro de Ventas
+                           </Link>
+                        </Button>
+                         <Button asChild variant="outline" className="h-20 text-lg">
+                           <Link href="/accounting/purchase-ledger">
+                            <BookOpen className="mr-4 h-6 w-6"/>
+                             Libro de Compras
+                           </Link>
+                        </Button>
+                    </div>
+                </CardContent>
             </Card>
 
             {dateRange?.from && (
