@@ -26,7 +26,7 @@ export type JournalEntry = {
     createdBy: string;
 };
 
-const initialJournalEntries: JournalEntry[] = [
+export const initialJournalEntries: JournalEntry[] = [
     {
         id: 'JE-001',
         date: new Date('2025-07-31'),
