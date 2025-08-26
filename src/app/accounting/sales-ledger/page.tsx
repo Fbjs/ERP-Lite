@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { Download, Calendar as CalendarIcon } from 'lucide-react';
+import { Download, Calendar as CalendarIcon, MoreHorizontal } from 'lucide-react';
 import { useState, useMemo, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -15,6 +15,8 @@ import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/logo';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 type SaleDocument = {
     id: number;
@@ -47,6 +49,8 @@ export default function SalesLedgerPage() {
         from: subMonths(new Date(2025, 6, 29), 1),
         to: new Date(2025, 6, 29)
     });
+    const [selectedDocument, setSelectedDocument] = useState<SaleDocument | null>(null);
+    const [isJournalEntryModalOpen, setIsJournalEntryModalOpen] = useState(false);
 
     const filteredSales = useMemo(() => {
         if (!dateRange?.from) return initialSales;
@@ -103,6 +107,11 @@ export default function SalesLedgerPage() {
                 description: "El libro de ventas ha sido descargado.",
             });
         }
+    };
+    
+    const handleShowJournalEntry = (doc: SaleDocument) => {
+        setSelectedDocument(doc);
+        setIsJournalEntryModalOpen(true);
     };
 
 
@@ -227,6 +236,7 @@ export default function SalesLedgerPage() {
                                 <TableHead className="text-right">Neto</TableHead>
                                 <TableHead className="text-right">IVA</TableHead>
                                 <TableHead className="text-right">Total</TableHead>
+                                <TableHead><span className="sr-only">Acciones</span></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -240,6 +250,21 @@ export default function SalesLedgerPage() {
                                     <TableCell className="text-right">${formatCurrency(doc.net)}</TableCell>
                                     <TableCell className="text-right">${formatCurrency(doc.tax)}</TableCell>
                                     <TableCell className="text-right">${formatCurrency(doc.total)}</TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                <DropdownMenuItem onClick={() => handleShowJournalEntry(doc)}>
+                                                    Ver Asiento Contable
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -249,13 +274,62 @@ export default function SalesLedgerPage() {
                                 <TableCell className="text-right font-bold">${formatCurrency(totals.net)}</TableCell>
                                 <TableCell className="text-right font-bold">${formatCurrency(totals.tax)}</TableCell>
                                 <TableCell className="text-right font-bold">${formatCurrency(totals.total)}</TableCell>
+                                <TableCell></TableCell>
                             </TableRow>
                         </TableFooter>
                     </Table>
                 </CardContent>
             </Card>
+
+            <Dialog open={isJournalEntryModalOpen} onOpenChange={setIsJournalEntryModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="font-headline">Asiento Contable</DialogTitle>
+                        <DialogDescription>
+                            Asiento para el documento {selectedDocument?.docType} {selectedDocument?.folio}
+                        </DialogDescription>
+                    </DialogHeader>
+                    {selectedDocument && (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Cuenta Contable</TableHead>
+                                    <TableHead className="text-right">Debe</TableHead>
+                                    <TableHead className="text-right">Haber</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell>Clientes</TableCell>
+                                    <TableCell className="text-right">${formatCurrency(selectedDocument.total)}</TableCell>
+                                    <TableCell className="text-right">-</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell className="pl-6">IVA Débito Fiscal</TableCell>
+                                    <TableCell className="text-right">-</TableCell>
+                                    <TableCell className="text-right">${formatCurrency(selectedDocument.tax)}</TableCell>
+                                </TableRow>
+                                 <TableRow>
+                                    <TableCell className="pl-6">Ventas</TableCell>
+                                    <TableCell className="text-right">-</TableCell>
+                                    <TableCell className="text-right">${formatCurrency(selectedDocument.net)}</TableCell>
+                                </TableRow>
+                            </TableBody>
+                            <TableFooter>
+                                <TableRow>
+                                    <TableCell className="font-bold">Totales</TableCell>
+                                    <TableCell className="text-right font-bold">${formatCurrency(selectedDocument.total)}</TableCell>
+                                    <TableCell className="text-right font-bold">${formatCurrency(selectedDocument.total)}</TableCell>
+                                </TableRow>
+                            </TableFooter>
+                        </Table>
+                    )}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsJournalEntryModalOpen(false)}>Cerrar</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
         </AppLayout>
     )
 }
-
-    
