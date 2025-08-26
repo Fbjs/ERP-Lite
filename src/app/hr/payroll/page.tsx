@@ -7,6 +7,7 @@ import { MoreHorizontal, PlusCircle, Download, FileText, Upload, CalendarIcon } 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 type PayrollItem = {
   id: string;
