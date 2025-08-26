@@ -19,6 +19,7 @@ type RecipeFormProps = {
 export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFormProps) {
   const [sku, setSku] = useState('');
   const [name, setName] = useState('');
+  const [format, setFormat] = useState('');
   const [cost, setCost] = useState(0);
   const [ingredients, setIngredients] = useState<Ingredient[]>([{ name: '', quantity: 0, unit: '' }]);
   
@@ -28,6 +29,7 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
     if (initialData) {
       setSku(initialData.sku || '');
       setName(initialData.name || '');
+      setFormat(initialData.format || '');
       setCost(initialData.cost || 0);
       setIngredients(initialData.ingredients && initialData.ingredients.length > 0 ? initialData.ingredients : [{ name: '', quantity: 0, unit: '' }]);
     }
@@ -55,7 +57,7 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ sku, name, cost, ingredients });
+    onSubmit({ sku, name, format, cost, ingredients });
   };
 
   return (
@@ -67,6 +69,10 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
         <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Nombre</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" required />
+        </div>
+        <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="format" className="text-right">Formato de Entrega</Label>
+            <Input id="format" value={format} onChange={(e) => setFormat(e.target.value)} className="col-span-3" placeholder="Ej: Unidad 700g, Bolsa 500g" required />
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="cost" className="text-right">Costo Unitario</Label>

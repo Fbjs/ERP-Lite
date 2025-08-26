@@ -20,15 +20,17 @@ export type Recipe = {
   sku: string;
   name: string;
   ingredients: Ingredient[];
+  format: string;
   cost: number;
   lastUpdated: string;
 };
 
 export const initialRecipes: Recipe[] = [
-  { sku: 'PROD-PL-01', name: 'Pain au Levain', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.7, unit: 'L'}, {name: 'Masa Madre', quantity: 0.2, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], cost: 2.50, lastUpdated: '2023-10-26' },
-  { sku: 'PROD-BG-01', name: 'Baguette Tradition', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.01, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], cost: 1.80, lastUpdated: '2023-10-25' },
-  { sku: 'PROD-CR-01', name: 'Croissant au Beurre', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Mantequilla', quantity: 0.5, unit: 'kg'}, {name: 'Azucar', quantity: 0.1, unit: 'kg'}, {name: 'Leche', quantity: 0.4, unit: 'L'}], cost: 3.10, lastUpdated: '2023-10-27' },
-  { sku: 'PROD-CB-01', name: 'Ciabatta', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.005, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], cost: 2.20, lastUpdated: '2023-10-24' },
+  { sku: 'PROD-PL-01', name: 'Pain au Levain', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.7, unit: 'L'}, {name: 'Masa Madre', quantity: 0.2, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], format: 'Unidad de 700g', cost: 2.50, lastUpdated: '2023-10-26' },
+  { sku: 'PROD-BG-01', name: 'Baguette Tradition', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.01, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], format: 'Unidad de 250g', cost: 1.80, lastUpdated: '2023-10-25' },
+  { sku: 'PROD-CR-01', name: 'Croissant au Beurre', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Mantequilla', quantity: 0.5, unit: 'kg'}, {name: 'Azucar', quantity: 0.1, unit: 'kg'}, {name: 'Leche', quantity: 0.4, unit: 'L'}], format: 'Unidad', cost: 3.10, lastUpdated: '2023-10-27' },
+  { sku: 'PROD-CB-01', name: 'Ciabatta', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.005, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], format: 'Unidad de 300g', cost: 2.20, lastUpdated: '2023-10-24' },
+  { sku: 'PROD-PR-01', name: 'Pan Rallado', ingredients: [{name: 'Pan Sobrante', quantity: 1, unit: 'kg'}], format: 'Bolsa 500g', cost: 1.50, lastUpdated: '2023-10-28' },
 ];
 
 export default function RecipesPage() {
@@ -134,6 +136,7 @@ export default function RecipesPage() {
               <TableRow>
                 <TableHead>Cód. Producto (SKU)</TableHead>
                 <TableHead>Nombre del Producto</TableHead>
+                <TableHead>Formato</TableHead>
                 <TableHead>Nº Ingredientes</TableHead>
                 <TableHead>Costo por Unidad</TableHead>
                 <TableHead>Última Actualización</TableHead>
@@ -147,6 +150,7 @@ export default function RecipesPage() {
                 <TableRow key={recipe.sku} className="hover:bg-muted/50">
                   <TableCell data-label="SKU" className="font-medium">{recipe.sku}</TableCell>
                   <TableCell data-label="Nombre">{recipe.name}</TableCell>
+                  <TableCell data-label="Formato">{recipe.format}</TableCell>
                   <TableCell data-label="Nº Ingredientes">{recipe.ingredients.length}</TableCell>
                   <TableCell data-label="Costo">${recipe.cost.toFixed(2)}</TableCell>
                   <TableCell data-label="Actualizado">{recipe.lastUpdated}</TableCell>
@@ -210,6 +214,10 @@ export default function RecipesPage() {
                         <div>
                             <p className="font-semibold text-gray-600">Código de Producto (SKU):</p>
                             <p className="text-lg font-mono">{selectedRecipe.sku}</p>
+                        </div>
+                        <div>
+                            <p className="font-semibold text-gray-600">Formato de Entrega:</p>
+                            <p className="text-lg">{selectedRecipe.format}</p>
                         </div>
                         <div>
                             <p className="font-semibold text-gray-600">Costo por Unidad:</p>
