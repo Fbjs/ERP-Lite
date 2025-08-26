@@ -7,17 +7,7 @@ export default function CashFlowPage() {
     return (
         <Suspense fallback={<div>Cargando...</div>}>
             <AppLayout pageTitle="Flujo de Caja">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">Proyección de Flujo de Caja</CardTitle>
-                        <CardDescription className="font-body">
-                            Analiza el flujo de caja mensual o diario y proyecta los saldos futuros para una mejor toma de decisiones financieras.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <CashFlowProjection />
-                    </CardContent>
-                </Card>
+                <CashFlowProjection />
             </AppLayout>
         </Suspense>
     );
