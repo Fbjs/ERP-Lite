@@ -8,7 +8,13 @@ import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Recipe, ProductFormat } from '@/app/recipes/page';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar as CalendarIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar } from './ui/calendar';
+import { cn } from '@/lib/utils';
+import { format, addDays } from 'date-fns';
+import { es } from 'date-fns/locale';
+
 
 type OrderItem = {
     recipeId: string;
@@ -18,6 +24,7 @@ type OrderItem = {
 
 export type OrderFormData = {
     customer: string;
+    deliveryDate: string;
     items: OrderItem[];
 };
 
@@ -29,6 +36,7 @@ type SalesOrderFormProps = {
 
 export default function SalesOrderForm({ onSubmit, onCancel, recipes }: SalesOrderFormProps) {
   const [customer, setCustomer] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 2));
   const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1 }]);
 
   const handleItemChange = (index: number, field: keyof OrderItem, value: string | number) => {
@@ -64,24 +72,57 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes }: SalesOrd
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ customer, items });
+    if (!deliveryDate) {
+        alert("Por favor, selecciona una fecha de entrega.");
+        return;
+    }
+    onSubmit({ customer, deliveryDate: format(deliveryDate, 'yyyy-MM-dd'), items });
   };
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6 py-4 font-body max-h-[70vh] overflow-y-auto px-2">
-        <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="customer" className="text-right">Cliente</Label>
-            <Input
-                id="customer"
-                value={customer}
-                onChange={(e) => setCustomer(e.target.value)}
-                className="col-span-3"
-                placeholder="Nombre del cliente"
-                required
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="customer">Cliente</Label>
+                <Input
+                    id="customer"
+                    value={customer}
+                    onChange={(e) => setCustomer(e.target.value)}
+                    placeholder="Nombre del cliente"
+                    required
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="deliveryDate">Fecha de Entrega</Label>
+                 <Popover>
+                    <PopoverTrigger asChild>
+                    <Button
+                        id="deliveryDate"
+                        variant={"outline"}
+                        className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !deliveryDate && "text-muted-foreground"
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {deliveryDate ? format(deliveryDate, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                        mode="single"
+                        selected={deliveryDate}
+                        onSelect={setDeliveryDate}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                        locale={es}
+                    />
+                    </PopoverContent>
+                </Popover>
+            </div>
         </div>
       
-        <div className="space-y-4">
+        <div className="space-y-4 border-t pt-4">
             <Label>Productos</Label>
             {items.map((item, index) => {
                 const availableFormats = getAvailableFormats(item.recipeId);

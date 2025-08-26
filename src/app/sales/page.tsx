@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
-import { format, subMonths } from 'date-fns';
+import { format, subMonths, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
@@ -34,17 +34,18 @@ export type Order = {
   amount: number;
   status: 'Completado' | 'Pendiente' | 'Enviado' | 'Cancelado' | 'En Preparación';
   date: string;
+  deliveryDate: string;
   items: OrderItem[];
 };
 
 
 export const initialOrders: Order[] = [
-  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-700', quantity: 100 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }] },
-  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', items: [{ recipeId: 'REC-003', formatSku: 'PROD-CR-U', quantity: 200 }, { recipeId: 'REC-004', formatSku: 'PROD-CB-300', quantity: 150 }] },
-  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-1400', quantity: 50 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }] },
-  { id: 'SALE884', customer: 'Panaderia Central', amount: 320750, status: 'Completado', date: '2025-07-26', items: [{ recipeId: 'REC-005', formatSku: 'PROD-PR-500', quantity: 300 }] },
-  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950000, status: 'Cancelado', date: '2025-07-25', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 500 }] },
-  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210000, status: 'En Preparación', date: '2025-07-29', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 100 }] },
+  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-700', quantity: 100 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }] },
+  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'REC-003', formatSku: 'PROD-CR-U', quantity: 200 }, { recipeId: 'REC-004', formatSku: 'PROD-CB-300', quantity: 150 }] },
+  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-1400', quantity: 50 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }] },
+  { id: 'SALE884', customer: 'Panaderia Central', amount: 320750, status: 'Completado', date: '2025-07-26', deliveryDate: '2025-07-27', items: [{ recipeId: 'REC-005', formatSku: 'PROD-PR-500', quantity: 300 }] },
+  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950000, status: 'Cancelado', date: '2025-07-25', deliveryDate: '2025-07-26', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 500 }] },
+  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210000, status: 'En Preparación', date: '2025-07-29', deliveryDate: '2025-07-31', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 100 }] },
 ];
 
 export default function SalesPage() {
@@ -116,6 +117,7 @@ export default function SalesPage() {
             id: `SALE${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
             status: 'Pendiente',
             date: new Date().toISOString().split('T')[0],
+            deliveryDate: newOrderData.deliveryDate,
             customer: newOrderData.customer,
             items: newOrderData.items,
             amount: totalAmount,
@@ -312,8 +314,8 @@ export default function SalesPage() {
                     <TableHead>ID de Orden</TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead className="text-right">Monto</TableHead>
+                    <TableHead>Fecha Entrega</TableHead>
                     <TableHead>Estado</TableHead>
-                    <TableHead>Fecha</TableHead>
                     <TableHead><span className="sr-only">Acciones</span></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -323,6 +325,7 @@ export default function SalesPage() {
                       <TableCell data-label="ID Orden" className="font-medium">{order.id}</TableCell>
                       <TableCell data-label="Cliente">{order.customer}</TableCell>
                       <TableCell data-label="Monto" className="text-left sm:text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
+                      <TableCell data-label="Fecha Entrega">{new Date(order.deliveryDate).toLocaleDateString('es-CL')}</TableCell>
                       <TableCell data-label="Estado">
                          <Badge 
                             variant={
@@ -335,7 +338,6 @@ export default function SalesPage() {
                             {order.status}
                         </Badge>
                       </TableCell>
-                      <TableCell data-label="Fecha">{new Date(order.date).toLocaleDateString('es-CL')}</TableCell>
                        <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -396,10 +398,11 @@ export default function SalesPage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 font-body mb-6">
                         <div><p className="font-semibold text-gray-600">ID Orden:</p><p>{selectedOrder.id}</p></div>
-                        <div><p className="font-semibold text-gray-600">Fecha:</p><p>{new Date(selectedOrder.date).toLocaleDateString('es-ES')}</p></div>
+                        <div><p className="font-semibold text-gray-600">Fecha de Emisión:</p><p>{new Date(selectedOrder.date).toLocaleDateString('es-ES')}</p></div>
                         <div><p className="font-semibold text-gray-600">Cliente:</p><p>{selectedOrder.customer}</p></div>
+                        <div><p className="font-semibold text-gray-600">Fecha de Entrega:</p><p>{new Date(selectedOrder.deliveryDate).toLocaleDateString('es-ES')}</p></div>
                         <div><p className="font-semibold text-gray-600">Monto Total:</p><p>${selectedOrder.amount.toLocaleString('es-CL')}</p></div>
-                        <div className="sm:col-span-2"><p className="font-semibold text-gray-600">Estado:</p><p>{selectedOrder.status}</p></div>
+                        <div><p className="font-semibold text-gray-600">Estado:</p><p>{selectedOrder.status}</p></div>
                         <div className="sm:col-span-2"><p className="font-semibold text-gray-600">Detalles del Pedido:</p><p className="whitespace-pre-wrap">{getOrderDetailsAsString(selectedOrder.items)}</p></div>
                     </div>
                     <div className="border-t-2 border-gray-200 pt-4 mt-4 text-center text-xs text-gray-500">
