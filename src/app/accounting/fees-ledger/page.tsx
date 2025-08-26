@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { Download, Calendar as CalendarIcon } from 'lucide-react';
+import { Download, Calendar as CalendarIcon, RefreshCcw } from 'lucide-react';
 import { useState, useMemo, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -15,11 +15,13 @@ import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import Logo from '@/components/logo';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 type FeeDocument = {
     id: number;
     date: string;
-    docType: string;
+    docType: 'Boleta de Honorarios';
     folio: string;
     issuer: string;
     rut: string;
@@ -42,20 +44,31 @@ export default function FeesLedgerPage() {
     const { toast } = useToast();
     const reportContentRef = useRef<HTMLDivElement>(null);
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: subMonths(new Date(2025, 6, 29), 1),
-        to: new Date(2025, 6, 29)
+        from: subMonths(new Date(2025, 6, 1), 1),
+        to: new Date(2025, 7, 0)
     });
+    const [selectedIssuer, setSelectedIssuer] = useState('all');
+
+    const uniqueIssuers = useMemo(() => ['all', ...Array.from(new Set(initialFees.map(doc => doc.issuer)))], []);
 
     const filteredFees = useMemo(() => {
-        if (!dateRange?.from) return initialFees;
-        const fromDate = dateRange.from;
-        const toDate = dateRange.to || fromDate;
+        let fees = initialFees;
 
-        return initialFees.filter(doc => {
-            const docDate = new Date(doc.date);
-            return docDate >= fromDate && docDate <= toDate;
-        });
-    }, [dateRange]);
+        if (dateRange?.from) {
+            const fromDate = dateRange.from;
+            const toDate = dateRange.to || fromDate;
+            fees = fees.filter(doc => {
+                const docDate = new Date(doc.date);
+                return docDate >= fromDate && docDate <= toDate;
+            });
+        }
+        
+        if (selectedIssuer !== 'all') {
+            fees = fees.filter(doc => doc.issuer === selectedIssuer);
+        }
+
+        return fees;
+    }, [dateRange, selectedIssuer]);
 
     const totals = useMemo(() => {
         return filteredFees.reduce((acc, doc) => {
@@ -102,12 +115,20 @@ export default function FeesLedgerPage() {
             });
         }
     };
+    
+    const resetFilters = () => {
+        setDateRange({
+            from: subMonths(new Date(2025, 6, 1), 1),
+            to: new Date(2025, 7, 0)
+        });
+        setSelectedIssuer('all');
+    };
 
 
     return (
         <AppLayout pageTitle="Libro de Honorarios">
             <div ref={reportContentRef} className="fixed -left-[9999px] top-0 bg-white text-black p-4 font-body" style={{ width: '11in', minHeight: '8.5in' }}>
-                 <header className="flex justify-between items-center mb-4 border-b-2 border-gray-800 pb-2">
+                 <header className="flex justify-between items-start mb-4 border-b-2 border-gray-800 pb-2">
                     <div className="flex items-center gap-3">
                         <Logo className="w-24" />
                         <div>
@@ -118,6 +139,12 @@ export default function FeesLedgerPage() {
                     <div className="text-right text-xs">
                         <p><span className="font-semibold">Período:</span> {dateRange?.from ? format(dateRange.from, "P", { locale: es }) : ''} a {dateRange?.to ? format(dateRange.to, "P", { locale: es }) : 'Ahora'}</p>
                         <p><span className="font-semibold">Fecha de Emisión:</span> {format(new Date(), "P p", { locale: es })}</p>
+                        <div className="mt-2 text-left bg-gray-50 p-2 rounded-md border border-gray-200">
+                             <p><span className="font-semibold">Cant. Documentos:</span> {filteredFees.length}</p>
+                             <p><span className="font-semibold">Total Bruto:</span> {formatCurrency(totals.gross)}</p>
+                             <p><span className="font-semibold">Total Retención:</span> {formatCurrency(totals.retention)}</p>
+                             <p><span className="font-semibold">Total Líquido:</span> {formatCurrency(totals.net)}</p>
+                        </div>
                     </div>
                 </header>
                 <Table className="w-full text-xs">
@@ -168,14 +195,23 @@ export default function FeesLedgerPage() {
                             <CardTitle className="font-headline">Libro de Honorarios</CardTitle>
                             <CardDescription className="font-body">Consulta las boletas de honorarios recibidas en un período.</CardDescription>
                         </div>
-                         <div className="flex items-center gap-2">
-                            <Popover>
+                         <Button onClick={handleDownloadPdf}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Descargar PDF
+                        </Button>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b">
+                        <div className="flex-1 min-w-[240px]">
+                            <Label>Período</Label>
+                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
                                         id="date"
                                         variant={"outline"}
                                         className={cn(
-                                        "w-[300px] justify-start text-left font-normal",
+                                        "w-full justify-start text-left font-normal",
                                         !dateRange && "text-muted-foreground"
                                         )}
                                     >
@@ -183,18 +219,18 @@ export default function FeesLedgerPage() {
                                         {dateRange?.from ? (
                                         dateRange.to ? (
                                             <>
-                                            {format(dateRange.from, "LLL dd, y")} -{" "}
-                                            {format(dateRange.to, "LLL dd, y")}
+                                            {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                                            {format(dateRange.to, "LLL dd, y", { locale: es })}
                                             </>
                                         ) : (
-                                            format(dateRange.from, "LLL dd, y")
+                                            format(dateRange.from, "LLL dd, y", { locale: es })
                                         )
                                         ) : (
                                         <span>Selecciona un rango</span>
                                         )}
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="end">
+                                <PopoverContent className="w-auto p-0" align="start">
                                     <Calendar
                                         initialFocus
                                         mode="range"
@@ -206,14 +242,28 @@ export default function FeesLedgerPage() {
                                     />
                                 </PopoverContent>
                             </Popover>
-                            <Button onClick={handleDownloadPdf}>
-                                <Download className="mr-2 h-4 w-4" />
-                                Descargar PDF
+                        </div>
+                        <div className="flex-1 min-w-[240px]">
+                            <Label>Emisor</Label>
+                            <Select value={selectedIssuer} onValueChange={setSelectedIssuer}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Filtrar por emisor..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Todos los Emisores</SelectItem>
+                                    {uniqueIssuers.filter(c => c !== 'all').map(issuer => (
+                                        <SelectItem key={issuer} value={issuer}>{issuer}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                         <div className="flex items-end">
+                            <Button variant="ghost" onClick={resetFilters}>
+                                <RefreshCcw className="mr-2 h-4 w-4" />
+                                Limpiar
                             </Button>
                         </div>
                     </div>
-                </CardHeader>
-                <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -227,7 +277,7 @@ export default function FeesLedgerPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredFees.map(doc => (
+                            {filteredFees.length > 0 ? filteredFees.map(doc => (
                                 <TableRow key={doc.id}>
                                     <TableCell>{format(new Date(doc.date), "P", { locale: es })}</TableCell>
                                     <TableCell>{doc.docType}</TableCell>
@@ -237,7 +287,11 @@ export default function FeesLedgerPage() {
                                     <TableCell className="text-right">${formatCurrency(doc.retention)}</TableCell>
                                     <TableCell className="text-right">${formatCurrency(doc.net)}</TableCell>
                                 </TableRow>
-                            ))}
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-center h-24">No se encontraron documentos con los filtros seleccionados.</TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                         <TableFooter>
                             <TableRow>
