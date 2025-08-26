@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus, BookOpen, FilePlus2, AreaChart, User, Briefcase, BookKey } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus, BookOpen, FilePlus2, AreaChart, User, Briefcase, BookKey, BarChart3 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -424,9 +424,9 @@ function AccountingPageContent() {
                            </Link>
                         </Button>
                          <Button asChild variant="outline" className="h-20 text-lg">
-                           <Link href="/accounting/cash-flow">
-                            <AreaChart className="mr-4 h-6 w-6"/>
-                             Flujo de Caja
+                           <Link href="/accounting/reports">
+                            <BarChart3 className="mr-4 h-6 w-6"/>
+                             Reportes
                            </Link>
                         </Button>
                     </div>
