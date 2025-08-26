@@ -82,29 +82,55 @@ export default function CashFlowProjection() {
 
     const [futureMovements, setFutureMovements] = useState<FutureMovement[]>([]);
     const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
+    const [editingMovement, setEditingMovement] = useState<FutureMovement | null>(null);
     const [movementType, setMovementType] = useState<'income' | 'expense'>('expense');
     const [newMovement, setNewMovement] = useState<{description: string, amount: string, date: string}>({description: '', amount: '', date: ''});
 
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [detailsContent, setDetailsContent] = useState<{title: string, items: {date: Date, description: string, amount: number}[]}>({title: '', items: []});
 
-    const handleOpenMovementModal = (type: 'income' | 'expense') => {
+    const handleOpenMovementModal = (type: 'income' | 'expense', movementToEdit: FutureMovement | null = null) => {
         setMovementType(type);
+        setEditingMovement(movementToEdit);
+        if (movementToEdit) {
+            setNewMovement({
+                description: movementToEdit.description,
+                amount: String(movementToEdit.amount),
+                date: format(movementToEdit.date, 'yyyy-MM-dd')
+            });
+        } else {
+            setNewMovement({description: '', amount: '', date: ''});
+        }
         setIsMovementModalOpen(true);
     };
     
-    const handleAddFutureMovement = () => {
+    const handleSaveFutureMovement = () => {
         if (newMovement.description && newMovement.amount && newMovement.date) {
-            setFutureMovements(prev => [...prev, {
-                id: `fut-${Date.now()}`,
-                description: newMovement.description,
-                amount: parseFloat(newMovement.amount),
-                date: new Date(newMovement.date + 'T00:00:00'), // Avoid timezone issues
-                type: movementType,
-            }]);
+            if (editingMovement) {
+                // Editing existing movement
+                setFutureMovements(prev => prev.map(mov => 
+                    mov.id === editingMovement.id ? {
+                        ...mov,
+                        description: newMovement.description,
+                        amount: parseFloat(newMovement.amount),
+                        date: new Date(newMovement.date + 'T00:00:00'),
+                    } : mov
+                ));
+                 toast({ title: `Proyección Actualizada`, description: 'El movimiento ha sido modificado.' });
+            } else {
+                // Adding new movement
+                setFutureMovements(prev => [...prev, {
+                    id: `fut-${Date.now()}`,
+                    description: newMovement.description,
+                    amount: parseFloat(newMovement.amount),
+                    date: new Date(newMovement.date + 'T00:00:00'), // Avoid timezone issues
+                    type: movementType,
+                }]);
+                toast({ title: `Proyección Futura Añadida`, description: 'El movimiento ha sido incorporado a la proyección.' });
+            }
             setNewMovement({description: '', amount: '', date: ''});
             setIsMovementModalOpen(false);
-            toast({ title: `Proyección Futura Añadida`, description: 'El movimiento ha sido incorporado a la proyección.' });
+            setEditingMovement(null);
         }
     };
     
@@ -513,7 +539,7 @@ export default function CashFlowProjection() {
             <Dialog open={isMovementModalOpen} onOpenChange={setIsMovementModalOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="font-headline">Añadir Proyección de {movementType === 'income' ? 'Ingreso' : 'Gasto'}</DialogTitle>
+                        <DialogTitle className="font-headline">{editingMovement ? 'Editar' : 'Añadir'} Proyección de {movementType === 'income' ? 'Ingreso' : 'Gasto'}</DialogTitle>
                         <DialogDescription className="font-body">
                             Ingresa un movimiento para incluirlo en la proyección de flujo de caja.
                         </DialogDescription>
@@ -534,7 +560,7 @@ export default function CashFlowProjection() {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsMovementModalOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleAddFutureMovement}>Añadir Proyección</Button>
+                        <Button onClick={handleSaveFutureMovement}>{editingMovement ? 'Guardar Cambios' : 'Añadir Proyección'}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -552,6 +578,7 @@ export default function CashFlowProjection() {
                                     <TableHead>Fecha</TableHead>
                                     <TableHead>Tipo</TableHead>
                                     <TableHead className="text-right">Monto</TableHead>
+                                    <TableHead className="text-right">Acciones</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -565,6 +592,11 @@ export default function CashFlowProjection() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">{formatCurrency(mov.amount)}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon" onClick={() => handleOpenMovementModal(mov.type, mov)}>
+                                                <Edit className="h-4 w-4" />
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -612,4 +644,3 @@ export default function CashFlowProjection() {
         </div>
     );
 }
-
