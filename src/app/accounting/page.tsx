@@ -1,10 +1,11 @@
+
 'use client';
 
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus, BookOpen, FilePlus2, AreaChart, User, Briefcase } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus, BookOpen, FilePlus2, AreaChart, User, Briefcase, BookKey } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -397,7 +398,13 @@ function AccountingPageContent() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                         <Button asChild variant="outline" className="h-20 text-lg">
+                           <Link href="/accounting/journal">
+                            <BookKey className="mr-4 h-6 w-6"/>
+                            Libro Diario
+                           </Link>
+                        </Button>
                         <Button asChild variant="outline" className="h-20 text-lg">
                            <Link href="/accounting/sales-ledger">
                             <BookOpen className="mr-4 h-6 w-6"/>
