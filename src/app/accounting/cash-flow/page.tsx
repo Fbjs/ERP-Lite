@@ -11,7 +11,7 @@ export default function CashFlowPage() {
                     <CardHeader>
                         <CardTitle className="font-headline">Proyección de Flujo de Caja</CardTitle>
                         <CardDescription className="font-body">
-                            Analiza el flujo de caja mensual actual y proyecta los saldos futuros para una mejor toma de decisiones financieras.
+                            Analiza el flujo de caja mensual o diario y proyecta los saldos futuros para una mejor toma de decisiones financieras.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
