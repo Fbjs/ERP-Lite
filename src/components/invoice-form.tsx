@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from './ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Customer } from '@/app/admin/customers/page';
 
 export type InvoiceFormData = {
     client: string;
@@ -17,9 +19,10 @@ export type InvoiceFormData = {
 type InvoiceFormProps = {
   onSubmit: (data: InvoiceFormData) => void;
   onCancel: () => void;
+  customers: Customer[];
 };
 
-export default function InvoiceForm({ onSubmit, onCancel }: InvoiceFormProps) {
+export default function InvoiceForm({ onSubmit, onCancel, customers }: InvoiceFormProps) {
   const [client, setClient] = useState('');
   const [amount, setAmount] = useState(0);
   const [items, setItems] = useState('');
@@ -35,13 +38,18 @@ export default function InvoiceForm({ onSubmit, onCancel }: InvoiceFormProps) {
         <Label htmlFor="client" className="text-right">
           Cliente
         </Label>
-        <Input
-          id="client"
-          value={client}
-          onChange={(e) => setClient(e.target.value)}
-          className="col-span-3"
-          required
-        />
+        <Select onValueChange={setClient} value={client} required>
+            <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Selecciona un cliente..." />
+            </SelectTrigger>
+            <SelectContent>
+                {customers.map(customer => (
+                    <SelectItem key={customer.id} value={customer.name}>
+                        {customer.name} ({customer.rut})
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="amount" className="text-right">

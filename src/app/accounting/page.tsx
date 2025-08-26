@@ -24,6 +24,7 @@ import Logo from '@/components/logo';
 import Link from 'next/link';
 import CreditNoteForm, { CreditNoteFormData } from '@/components/credit-note-form';
 import DebitNoteForm, { DebitNoteFormData } from '@/components/debit-note-form';
+import { initialCustomers } from '@/app/admin/customers/page';
 
 
 type Document = {
@@ -523,6 +524,7 @@ function AccountingPageContent() {
               <InvoiceForm
                   onSubmit={handleCreateInvoice}
                   onCancel={() => setNewInvoiceModalOpen(false)}
+                  customers={initialCustomers}
               />
           </DialogContent>
       </Dialog>
