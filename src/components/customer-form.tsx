@@ -23,7 +23,7 @@ const defaultFormData: CustomerFormData = {
     phone: '',
     email: '',
     priceList: 'General',
-    deliveryLocations: [{ id: `loc-${Date.now()}`, name: '', address: '', salesperson: '' }],
+    deliveryLocations: [{ id: `loc-${Date.now()}`, code: '', name: '', address: '', salesperson: '' }],
 };
 
 export default function CustomerForm({ customer, onSubmit, onCancel }: CustomerFormProps) {
@@ -55,7 +55,7 @@ export default function CustomerForm({ customer, onSubmit, onCancel }: CustomerF
             ...formData,
             deliveryLocations: [
                 ...formData.deliveryLocations,
-                { id: `loc-${Date.now()}`, name: '', address: '', salesperson: '' }
+                { id: `loc-${Date.now()}`, code: '', name: '', address: '', salesperson: '' }
             ]
         });
     };
@@ -105,19 +105,23 @@ export default function CustomerForm({ customer, onSubmit, onCancel }: CustomerF
                 <Label className="font-semibold text-lg">Locales de Entrega</Label>
                  {formData.deliveryLocations.map((location, index) => (
                     <div key={location.id} className="p-4 border rounded-md space-y-4 relative">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                              <div className="space-y-1">
+                                <Label htmlFor={`loc-code-${index}`}>Código</Label>
+                                <Input id={`loc-code-${index}`} value={location.code} onChange={(e) => handleLocationChange(index, 'code', e.target.value)} required placeholder="Ej: BODEGA-STGO"/>
+                            </div>
+                             <div className="space-y-1 col-span-2">
                                 <Label htmlFor={`loc-name-${index}`}>Nombre del Local</Label>
                                 <Input id={`loc-name-${index}`} value={location.name} onChange={(e) => handleLocationChange(index, 'name', e.target.value)} required placeholder="Ej: Sucursal Centro"/>
-                            </div>
-                            <div className="space-y-1">
-                                <Label htmlFor={`loc-salesperson-${index}`}>Vendedor Asignado</Label>
-                                <Input id={`loc-salesperson-${index}`} value={location.salesperson} onChange={(e) => handleLocationChange(index, 'salesperson', e.target.value)} required placeholder="Nombre del vendedor"/>
                             </div>
                         </div>
                         <div className="space-y-1">
                             <Label htmlFor={`loc-address-${index}`}>Dirección de Entrega</Label>
                             <Input id={`loc-address-${index}`} value={location.address} onChange={(e) => handleLocationChange(index, 'address', e.target.value)} required />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor={`loc-salesperson-${index}`}>Vendedor Asignado</Label>
+                            <Input id={`loc-salesperson-${index}`} value={location.salesperson} onChange={(e) => handleLocationChange(index, 'salesperson', e.target.value)} required placeholder="Nombre del vendedor"/>
                         </div>
                         {formData.deliveryLocations.length > 1 && (
                              <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2" onClick={() => removeLocation(index)}>

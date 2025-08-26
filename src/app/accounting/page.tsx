@@ -39,9 +39,9 @@ type Document = {
 };
 
 const initialDocuments: Document[] = [
-  { id: 'F001', type: 'Factura', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', items: '100 x Pan de Masa Madre, 50 x Baguettes', createdBy: 'Ana Gómez' },
-  { id: 'F002', type: 'Factura', client: 'Cafe Central', date: '2025-07-20', total: 1200.50, status: 'Pendiente', items: '200 x Croissants, 150 x Ciabattas', createdBy: 'Usuario Admin' },
-  { id: 'F003', type: 'Factura', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', items: '50 x Pain au Levain, 50 x Baguette Tradition', createdBy: 'Ana Gómez' },
+  { id: 'F001', type: 'Factura', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', items: '100 x Pan de Masa Madre, 50 x Baguettes. \nLocal: Local Principal (SJ-MAIPU) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez' },
+  { id: 'F002', type: 'Factura', client: 'Cafe Central', date: '2025-07-20', total: 1200.50, status: 'Pendiente', items: '200 x Croissants, 150 x Ciabattas. \nLocal: Providencia (CC-PROVI) \nVendedor: Vendedor 2', createdBy: 'Usuario Admin' },
+  { id: 'F003', type: 'Factura', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', items: '50 x Pain au Levain, 50 x Baguette Tradition. \nLocal: Sucursal La Cisterna (SDS-CIST) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez' },
   { id: 'F004', type: 'Factura', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320.75, status: 'Vencida', items: '300 x Pan de Centeno', createdBy: 'Usuario Admin' },
 ];
 
@@ -128,12 +128,17 @@ function AccountingPageContent() {
     }, [searchParams, toast]);
 
     const handleCreateInvoice = (data: InvoiceFormData) => {
+        const customer = initialCustomers.find(c => c.id === data.customerId);
+        const location = customer?.deliveryLocations.find(l => l.id === data.locationId);
+        
+        const detailsString = `${data.items}\nLocal: ${location?.name} (${location?.code})\nVendedor: ${data.salesperson}`;
+
         const newInvoice: Document = {
             id: `F${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
             type: 'Factura',
-            client: data.client,
+            client: customer?.name || 'Cliente Desconocido',
             total: data.amount,
-            items: data.items,
+            items: detailsString,
             date: new Date().toISOString().split('T')[0],
             status: 'Pendiente',
             createdBy: 'Usuario Admin', // Asignar creador
@@ -142,7 +147,7 @@ function AccountingPageContent() {
         setNewInvoiceModalOpen(false);
         toast({
             title: "Factura Creada",
-            description: `Se ha creado la factura para ${data.client}.`
+            description: `Se ha creado la factura para ${newInvoice.client}.`
         });
     };
 

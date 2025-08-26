@@ -1,17 +1,18 @@
-
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Customer } from '@/app/admin/customers/page';
+import { Customer, DeliveryLocation } from '@/app/admin/customers/page';
 
 export type InvoiceFormData = {
-    client: string;
+    customerId: string;
+    locationId: string;
+    salesperson: string;
     amount: number;
     items: string;
 };
@@ -23,34 +24,96 @@ type InvoiceFormProps = {
 };
 
 export default function InvoiceForm({ onSubmit, onCancel, customers }: InvoiceFormProps) {
-  const [client, setClient] = useState('');
+  const [customerId, setCustomerId] = useState('');
+  const [locationId, setLocationId] = useState('');
+  const [salesperson, setSalesperson] = useState('');
   const [amount, setAmount] = useState(0);
   const [items, setItems] = useState('');
 
+  const [availableLocations, setAvailableLocations] = useState<DeliveryLocation[]>([]);
+
+  useEffect(() => {
+    if (customerId) {
+      const selectedCustomer = customers.find(c => c.id === customerId);
+      setAvailableLocations(selectedCustomer?.deliveryLocations || []);
+      setLocationId('');
+      setSalesperson('');
+    } else {
+      setAvailableLocations([]);
+    }
+  }, [customerId, customers]);
+
+  useEffect(() => {
+    if (locationId) {
+      const selectedLocation = availableLocations.find(l => l.id === locationId);
+      setSalesperson(selectedLocation?.salesperson || '');
+    }
+  }, [locationId, availableLocations]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ client, amount, items });
+    if (!customerId || !locationId) {
+        // Optionally, add a toast notification for the user
+        alert('Por favor, selecciona un cliente y un local de entrega.');
+        return;
+    }
+    onSubmit({ customerId, locationId, salesperson, amount, items });
   };
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-4 py-4 font-body">
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="client" className="text-right">
+        <Label htmlFor="customerId" className="text-right">
           Cliente
         </Label>
-        <Select onValueChange={setClient} value={client} required>
+        <Select onValueChange={setCustomerId} value={customerId} required>
             <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Selecciona un cliente..." />
             </SelectTrigger>
             <SelectContent>
                 {customers.map(customer => (
-                    <SelectItem key={customer.id} value={customer.name}>
+                    <SelectItem key={customer.id} value={customer.id}>
                         {customer.name} ({customer.rut})
                     </SelectItem>
                 ))}
             </SelectContent>
         </Select>
       </div>
+
+      {customerId && (
+         <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="locationId" className="text-right">
+                Local Entrega
+            </Label>
+            <Select onValueChange={setLocationId} value={locationId} required>
+                <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Selecciona un local..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {availableLocations.map(location => (
+                        <SelectItem key={location.id} value={location.id}>
+                            {location.name} ({location.code})
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+      )}
+
+       <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="salesperson" className="text-right">
+                Vendedor
+            </Label>
+            <Input
+                id="salesperson"
+                value={salesperson}
+                onChange={(e) => setSalesperson(e.target.value)}
+                className="col-span-3"
+                required
+                disabled={!locationId}
+            />
+        </div>
+
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="amount" className="text-right">
           Monto

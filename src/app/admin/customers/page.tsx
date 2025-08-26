@@ -13,6 +13,7 @@ import CustomerForm from '@/components/customer-form';
 
 export type DeliveryLocation = {
     id: string;
+    code: string;
     name: string;
     address: string;
     salesperson: string;
@@ -31,14 +32,14 @@ export type Customer = {
 
 export const initialCustomers: Customer[] = [
     { id: '1', name: 'Panaderia San Jose', rut: '76.111.222-3', contactPerson: 'Mariana Rojas', phone: '+56 9 8877 6655', email: 'compras@sanjose.cl', priceList: 'Mayorista A', deliveryLocations: [
-        { id: 'loc1', name: 'Local Principal', address: 'Calle Larga 45, Maipú', salesperson: 'Vendedor 1' }
+        { id: 'loc1', code: 'SJ-MAIPU', name: 'Local Principal', address: 'Calle Larga 45, Maipú', salesperson: 'Vendedor 1' }
     ]},
     { id: '2', name: 'Cafe Central', rut: '77.222.333-4', contactPerson: 'Pedro Pascal', phone: '+56 2 2333 4455', email: 'pedro@cafecentral.cl', priceList: 'Cafetería Especial', deliveryLocations: [
-        { id: 'loc2', name: 'Providencia', address: 'Av. Providencia 1234, Providencia', salesperson: 'Vendedor 2' }
+        { id: 'loc2', code: 'CC-PROVI', name: 'Providencia', address: 'Av. Providencia 1234, Providencia', salesperson: 'Vendedor 2' }
     ]},
     { id: '3', name: 'Supermercado del Sur', rut: '78.333.444-5', contactPerson: 'Luisa Perez', phone: '+56 9 1122 3344', email: 'lperez@delsur.cl', priceList: 'Supermercado', deliveryLocations: [
-        { id: 'loc3', name: 'Sucursal La Cisterna', address: 'Gran Avenida 5678, La Cisterna', salesperson: 'Vendedor 1' },
-        { id: 'loc4', name: 'Bodega Central', address: 'Av. Departamental 987, San Miguel', salesperson: 'Vendedor 1' },
+        { id: 'loc3', code: 'SDS-CIST', name: 'Sucursal La Cisterna', address: 'Gran Avenida 5678, La Cisterna', salesperson: 'Vendedor 1' },
+        { id: 'loc4', code: 'SDS-BOD', name: 'Bodega Central', address: 'Av. Departamental 987, San Miguel', salesperson: 'Vendedor 1' },
     ]},
 ];
 
@@ -87,7 +88,7 @@ export default function CustomersPage() {
                         <div>
                             <CardTitle className="font-headline">Gestión de Clientes</CardTitle>
                             <CardDescription className="font-body">
-                                Centraliza la información de tus clientes, incluyendo datos de contacto, facturación y listas de precios.
+                                Centraliza la información de tus clientes, incluyendo datos de contacto, facturación y locales de entrega.
                             </CardDescription>
                         </div>
                          <Button onClick={() => handleOpenModal()}>
