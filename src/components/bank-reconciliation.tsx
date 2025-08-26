@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Upload, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Upload, CheckCircle2, AlertCircle, RefreshCw, Wand2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 
@@ -30,23 +30,22 @@ type SystemTransaction = {
 };
 
 
-// Datos de ejemplo para simulación ampliados
 const initialBankTransactions: BankTransaction[] = [
-    { id: 'BANK001', date: '2025-07-15', description: 'Transferencia de Panaderia San Jose', debit: 0, credit: 450.00 },
-    { id: 'BANK002', date: '2025-07-11', description: 'Pago a Harinas del Sur', debit: 800.00, credit: 0 },
-    { id: 'BANK003', date: '2025-07-10', description: 'Depósito de Supermercado del Sur', debit: 0, credit: 875.00 },
-    { id: 'BANK004', date: '2025-07-21', description: 'Transferencia de Cafe Central', debit: 0, credit: 1200.50 },
+    { id: 'BANK001', date: '2025-07-15', description: 'Transferencia de Panaderia San Jose, Factura F001', debit: 0, credit: 450.00 },
+    { id: 'BANK002', date: '2025-07-11', description: 'Pago a Harinas del Sur, Factura 78901', debit: 800000, credit: 0 },
+    { id: 'BANK003', date: '2025-07-10', description: 'Depósito de Supermercado del Sur, Factura F003', debit: 0, credit: 875.00 },
+    { id: 'BANK004', date: '2025-07-21', description: 'Transferencia de Cafe Central, Factura F002', debit: 0, credit: 1200.50 },
     { id: 'BANK005', date: '2025-07-30', description: 'Pago Nómina de Sueldos', debit: 2500000, credit: 0 },
     { id: 'BANK006', date: '2025-07-31', description: 'Abono Intereses a Favor', debit: 0, credit: 50.25 },
     { id: 'BANK007', date: '2025-07-31', description: 'Comisión por Mantención', debit: 15.00, credit: 0 },
-    { id: 'BANK008', date: '2025-07-29', description: 'Pago Servicio Eléctrico', debit: 120.00, credit: 0 },
+    { id: 'BANK008', date: '2025-07-29', description: 'Pago Servicio Eléctrico CGE', debit: 120.00, credit: 0 },
 ];
 
 const initialSystemTransactions: SystemTransaction[] = [
     { id: 'F001', date: '2025-07-15', description: 'Factura a Panaderia San Jose', debit: 450.00, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
     { id: 'F002', date: '2025-07-20', description: 'Factura a Cafe Central', debit: 1200.50, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
     { id: 'F003', date: '2025-07-10', description: 'Factura a Supermercado del Sur', debit: 875.00, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
-    { id: 'G001', date: '2025-07-11', description: 'Pago Proveedor Harinas del Sur', debit: 0, credit: 800.00, chargeAccount: 'Proveedores', isReconciled: false },
+    { id: 'G001', date: '2025-07-11', description: 'Pago Proveedor Harinas del Sur', debit: 0, credit: 800000, chargeAccount: 'Proveedores', isReconciled: false },
     { id: 'F005', date: '2025-07-22', description: 'Factura a Hotel Grand Vista', debit: 500.00, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
     { id: 'REM01', date: '2025-07-30', description: 'Centralización Sueldos Julio', debit: 0, credit: 2500000, chargeAccount: 'Sueldos por Pagar', isReconciled: false },
     { id: 'INT01', date: '2025-07-31', description: 'Reconocimiento Intereses Ganados', debit: 50.25, credit: 0, chargeAccount: 'Ingresos Financieros', isReconciled: false },
@@ -62,13 +61,51 @@ export default function BankReconciliation() {
     const { toast } = useToast();
 
     const handleLoadStatement = () => {
-        // Simulación de carga de archivo
         setBankTransactions(initialBankTransactions);
         toast({
             title: "Extracto Cargado",
             description: "Se han cargado las transacciones bancarias para conciliar.",
         });
     };
+
+    const handleAutoSuggest = () => {
+        let suggestedBankIds: string[] = [];
+        let suggestedSystemIds: string[] = [];
+        let suggestionsCount = 0;
+
+        const availableSystemTxs = systemTransactions.filter(st => !st.isReconciled);
+
+        for (const bankTx of bankTransactions) {
+            for (const systemTx of availableSystemTxs) {
+                const isMatch = (bankTx.credit.toFixed(2) === systemTx.debit.toFixed(2) && bankTx.credit > 0) || (bankTx.debit.toFixed(2) === systemTx.credit.toFixed(2) && bankTx.debit > 0);
+                const descriptionIncludesId = systemTx.id.length > 2 && bankTx.description.toUpperCase().includes(systemTx.id.toUpperCase());
+
+                if (isMatch && descriptionIncludesId && !suggestedBankIds.includes(bankTx.id) && !suggestedSystemIds.includes(systemTx.id)) {
+                    suggestedBankIds.push(bankTx.id);
+                    suggestedSystemIds.push(systemTx.id);
+                    suggestionsCount++;
+                    break; 
+                }
+            }
+        }
+        
+        setSelectedBank(prev => [...new Set([...prev, ...suggestedBankIds])]);
+        setSelectedSystem(prev => [...new Set([...prev, ...suggestedSystemIds])]);
+
+        if (suggestionsCount > 0) {
+            toast({
+                title: "Sugerencias Encontradas",
+                description: `Se han seleccionado automáticamente ${suggestionsCount} coincidencias. Revísalas y procesa la conciliación.`
+            });
+        } else {
+             toast({
+                variant: 'default',
+                title: "Sin Sugerencias Nuevas",
+                description: `No se encontraron nuevas coincidencias automáticas claras.`
+            });
+        }
+    };
+
 
     const handleReconcile = () => {
         const selectedBankTxs = bankTransactions.filter(tx => selectedBank.includes(tx.id));
@@ -79,7 +116,6 @@ export default function BankReconciliation() {
         const totalSystemDebit = selectedSystemTxs.reduce((sum, tx) => sum + tx.debit, 0);
         const totalSystemCredit = selectedSystemTxs.reduce((sum, tx) => sum + tx.credit, 0);
         
-        // La lógica de conciliación cruza los movimientos: un débito en el banco es un crédito en el sistema y viceversa
         const bankSideTotal = totalBankCredit - totalBankDebit;
         const systemSideTotal = totalSystemDebit - totalSystemCredit;
 
@@ -134,6 +170,10 @@ export default function BankReconciliation() {
                     <Input id="bank-statement" type="file" />
                 </div>
                 <Button onClick={handleLoadStatement}><Upload className="mr-2 h-4 w-4" /> Cargar (Simulación)</Button>
+                <Button onClick={handleAutoSuggest} variant="outline" disabled={bankTransactions.length === 0}>
+                    <Wand2 className="mr-2 h-4 w-4"/>
+                    Sugerir Conciliación
+                </Button>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -154,7 +194,7 @@ export default function BankReconciliation() {
                             </TableHeader>
                             <TableBody>
                                 {bankTransactions.map(tx => (
-                                    <TableRow key={tx.id}>
+                                    <TableRow key={tx.id} data-state={selectedBank.includes(tx.id) ? 'selected' : undefined}>
                                         <TableCell>
                                             <Checkbox
                                                 checked={selectedBank.includes(tx.id)}
@@ -196,7 +236,7 @@ export default function BankReconciliation() {
                                 </TableHeader>
                                 <TableBody>
                                      {systemTransactions.filter(tx => !tx.isReconciled).map(tx => (
-                                        <TableRow key={tx.id}>
+                                        <TableRow key={tx.id} data-state={selectedSystem.includes(tx.id) ? 'selected' : undefined}>
                                             <TableCell>
                                                 <Checkbox
                                                     checked={selectedSystem.includes(tx.id)}
