@@ -1,9 +1,13 @@
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useMemo } from 'react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Lock } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 type CashFlowData = {
     month: string;
@@ -27,7 +31,9 @@ const initialCashFlowData: CashFlowData[] = [
 ];
 
 export default function CashFlowProjection() {
-    
+    const [closedMonths, setClosedMonths] = useState<string[]>([]);
+    const { toast } = useToast();
+
     const processedData = useMemo(() => {
         const data = [...initialCashFlowData];
         for (let i = 0; i < data.length; i++) {
@@ -38,7 +44,7 @@ export default function CashFlowProjection() {
             const totalExpenses = current.supplierPayments + current.salaries + current.operatingExpenses;
             
             const initialBalance = previous 
-                ? (previous.initialBalance + (previous.collections + previous.otherIncome) - (previous.supplierPayments + previous.salaries + previous.operatingExpenses)) 
+                ? (previous as any).finalBalance
                 : current.initialBalance;
             
             const finalBalance = initialBalance + totalIncome - totalExpenses;
@@ -59,7 +65,14 @@ export default function CashFlowProjection() {
         Ingresos: (d as any).totalIncome,
         Egresos: (d as any).totalExpenses,
     }));
-
+    
+    const handleCloseMonth = (month: string) => {
+        setClosedMonths(prev => [...prev, month]);
+        toast({
+            title: `Mes de ${month} Cerrado`,
+            description: `El saldo final ha sido confirmado y transferido como saldo inicial del siguiente mes.`,
+        });
+    };
 
     return (
         <div className="space-y-6">
@@ -116,6 +129,32 @@ export default function CashFlowProjection() {
                                 {processedData.map(d => <TableCell key={d.month} className="text-right">{formatCurrency((d as any).finalBalance)}</TableCell>)}
                             </TableRow>
                         </TableBody>
+                        <TableFooter>
+                             <TableRow>
+                                <TableCell>Estado</TableCell>
+                                {processedData.map(d => {
+                                    const isClosed = closedMonths.includes(d.month);
+                                    const canBeClosed = !isClosed && (processedData.findIndex(m => m.month === d.month) === closedMonths.length);
+                                    return (
+                                        <TableCell key={d.month} className="text-right p-2">
+                                            {isClosed ? (
+                                                <Badge variant="default" className="bg-green-600 hover:bg-green-700">Cerrado</Badge>
+                                            ) : (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    disabled={!canBeClosed}
+                                                    onClick={() => handleCloseMonth(d.month)}
+                                                >
+                                                    <Lock className="mr-2 h-4 w-4" />
+                                                    Cerrar Mes
+                                                </Button>
+                                            )}
+                                        </TableCell>
+                                    );
+                                })}
+                            </TableRow>
+                        </TableFooter>
                     </Table>
                     </div>
                 </CardContent>
