@@ -22,7 +22,7 @@ export type Customer = {
     priceList: string;
 };
 
-const initialCustomers: Customer[] = [
+export const initialCustomers: Customer[] = [
     { id: '1', name: 'Panaderia San Jose', rut: '76.111.222-3', contactPerson: 'Mariana Rojas', phone: '+56 9 8877 6655', email: 'compras@sanjose.cl', address: 'Calle Larga 45, Maipú', priceList: 'Mayorista A' },
     { id: '2', name: 'Cafe Central', rut: '77.222.333-4', contactPerson: 'Pedro Pascal', phone: '+56 2 2333 4455', email: 'pedro@cafecentral.cl', address: 'Av. Providencia 1234, Providencia', priceList: 'Cafetería Especial' },
     { id: '3', name: 'Supermercado del Sur', rut: '78.333.444-5', contactPerson: 'Luisa Perez', phone: '+56 9 1122 3344', email: 'lperez@delsur.cl', address: 'Gran Avenida 5678, La Cisterna', priceList: 'Supermercado' },

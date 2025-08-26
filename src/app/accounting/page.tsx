@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus, BookOpen, FilePlus2, AreaChart } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus, BookOpen, FilePlus2, AreaChart, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -35,13 +35,14 @@ type Document = {
   total: number;
   status: 'Pagada' | 'Pendiente' | 'Vencida' | 'Anulada' | 'Aplicada';
   items: string;
+  createdBy: string;
 };
 
 const initialDocuments: Document[] = [
-  { id: 'F001', type: 'Factura', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', items: '100 x Pan de Masa Madre, 50 x Baguettes' },
-  { id: 'F002', type: 'Factura', client: 'Cafe Central', date: '2025-07-20', total: 1200.50, status: 'Pendiente', items: '200 x Croissants, 150 x Ciabattas' },
-  { id: 'F003', type: 'Factura', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', items: '50 x Pain au Levain, 50 x Baguette Tradition' },
-  { id: 'F004', type: 'Factura', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320.75, status: 'Vencida', items: '300 x Pan de Centeno' },
+  { id: 'F001', type: 'Factura', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', items: '100 x Pan de Masa Madre, 50 x Baguettes', createdBy: 'Ana Gómez' },
+  { id: 'F002', type: 'Factura', client: 'Cafe Central', date: '2025-07-20', total: 1200.50, status: 'Pendiente', items: '200 x Croissants, 150 x Ciabattas', createdBy: 'Usuario Admin' },
+  { id: 'F003', type: 'Factura', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', items: '50 x Pain au Levain, 50 x Baguette Tradition', createdBy: 'Ana Gómez' },
+  { id: 'F004', type: 'Factura', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320.75, status: 'Vencida', items: '300 x Pan de Centeno', createdBy: 'Usuario Admin' },
 ];
 
 function AccountingPageContent() {
@@ -114,6 +115,7 @@ function AccountingPageContent() {
                 date: new Date().toISOString().split('T')[0],
                 status: 'Pendiente',
                 items: details,
+                createdBy: 'Usuario Admin', // Asignar creador
             };
             setDocuments(prev => [newInvoice, ...prev]);
             toast({
@@ -134,6 +136,7 @@ function AccountingPageContent() {
             items: data.items,
             date: new Date().toISOString().split('T')[0],
             status: 'Pendiente',
+            createdBy: 'Usuario Admin', // Asignar creador
         };
         setDocuments(prev => [newInvoice, ...prev]);
         setNewInvoiceModalOpen(false);
@@ -152,6 +155,7 @@ function AccountingPageContent() {
             items: data.reason,
             date: new Date().toISOString().split('T')[0],
             status: 'Aplicada',
+            createdBy: 'Usuario Admin', // Asignar creador
         };
         setDocuments(prev => [newCreditNote, ...prev]);
         setNewCreditNoteModalOpen(false);
@@ -170,6 +174,7 @@ function AccountingPageContent() {
             items: data.reason,
             date: new Date().toISOString().split('T')[0],
             status: 'Pendiente',
+            createdBy: 'Usuario Admin', // Asignar creador
         };
         setDocuments(prev => [newDebitNote, ...prev]);
         setNewDebitNoteModalOpen(false);
@@ -455,16 +460,16 @@ function AccountingPageContent() {
                 <CardHeader>
                     <CardTitle className="font-headline">Listado de Documentos</CardTitle>
                     <CardDescription className="font-body">
-                        {dateRange?.from ? 'Mostrando facturas y notas de crédito para el período seleccionado.' : 'Mostrando todos los documentos.'}
+                        {dateRange?.from ? 'Mostrando facturas y notas para el período seleccionado.' : 'Mostrando todos los documentos.'}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                 <Table>
                     <TableHeader>
                     <TableRow>
-                        <TableHead>Documento No.</TableHead>
+                        <TableHead>Documento</TableHead>
                         <TableHead>Cliente</TableHead>
-                        <TableHead>Fecha</TableHead>
+                        <TableHead>Responsable</TableHead>
                         <TableHead className="text-right">Total</TableHead>
                         <TableHead>Estado</TableHead>
                         <TableHead>
@@ -475,9 +480,12 @@ function AccountingPageContent() {
                     <TableBody>
                     {filteredDocuments.map((doc) => (
                         <TableRow key={doc.id}>
-                        <TableCell className="font-medium">{doc.id}</TableCell>
+                        <TableCell>
+                            <div className="font-medium">{doc.id}</div>
+                            <div className="text-sm text-muted-foreground">{new Date(doc.date).toLocaleDateString('es-CL')}</div>
+                        </TableCell>
                         <TableCell>{doc.client}</TableCell>
-                        <TableCell>{new Date(doc.date).toLocaleDateString('es-CL')}</TableCell>
+                        <TableCell className="text-muted-foreground">{doc.createdBy}</TableCell>
                         <TableCell className={`text-right ${doc.type === 'Nota de Crédito' ? 'text-red-600' : ''}`}>
                             {doc.type === 'Nota de Crédito' ? '-' : ''}${doc.total.toLocaleString('es-CL')}
                         </TableCell>
@@ -635,6 +643,7 @@ function AccountingPageContent() {
 
                     <footer className="text-center text-xs text-gray-400 border-t pt-4">
                         <p>Gracias por su compra. Documento generado por Vollkorn ERP.</p>
+                        <p>Responsable: {selectedDocument.createdBy}</p>
                         {generationDate && <p>Generado el {format(generationDate, "Pp", { locale: es })}</p>}
                     </footer>
                 </div>
