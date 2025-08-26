@@ -11,6 +11,13 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import CustomerForm from '@/components/customer-form';
 
+export type DeliveryLocation = {
+    id: string;
+    name: string;
+    address: string;
+    salesperson: string;
+};
+
 export type Customer = {
     id: string;
     name: string;
@@ -18,14 +25,21 @@ export type Customer = {
     contactPerson: string;
     phone: string;
     email: string;
-    address: string;
     priceList: string;
+    deliveryLocations: DeliveryLocation[];
 };
 
 export const initialCustomers: Customer[] = [
-    { id: '1', name: 'Panaderia San Jose', rut: '76.111.222-3', contactPerson: 'Mariana Rojas', phone: '+56 9 8877 6655', email: 'compras@sanjose.cl', address: 'Calle Larga 45, Maipú', priceList: 'Mayorista A' },
-    { id: '2', name: 'Cafe Central', rut: '77.222.333-4', contactPerson: 'Pedro Pascal', phone: '+56 2 2333 4455', email: 'pedro@cafecentral.cl', address: 'Av. Providencia 1234, Providencia', priceList: 'Cafetería Especial' },
-    { id: '3', name: 'Supermercado del Sur', rut: '78.333.444-5', contactPerson: 'Luisa Perez', phone: '+56 9 1122 3344', email: 'lperez@delsur.cl', address: 'Gran Avenida 5678, La Cisterna', priceList: 'Supermercado' },
+    { id: '1', name: 'Panaderia San Jose', rut: '76.111.222-3', contactPerson: 'Mariana Rojas', phone: '+56 9 8877 6655', email: 'compras@sanjose.cl', priceList: 'Mayorista A', deliveryLocations: [
+        { id: 'loc1', name: 'Local Principal', address: 'Calle Larga 45, Maipú', salesperson: 'Vendedor 1' }
+    ]},
+    { id: '2', name: 'Cafe Central', rut: '77.222.333-4', contactPerson: 'Pedro Pascal', phone: '+56 2 2333 4455', email: 'pedro@cafecentral.cl', priceList: 'Cafetería Especial', deliveryLocations: [
+        { id: 'loc2', name: 'Providencia', address: 'Av. Providencia 1234, Providencia', salesperson: 'Vendedor 2' }
+    ]},
+    { id: '3', name: 'Supermercado del Sur', rut: '78.333.444-5', contactPerson: 'Luisa Perez', phone: '+56 9 1122 3344', email: 'lperez@delsur.cl', priceList: 'Supermercado', deliveryLocations: [
+        { id: 'loc3', name: 'Sucursal La Cisterna', address: 'Gran Avenida 5678, La Cisterna', salesperson: 'Vendedor 1' },
+        { id: 'loc4', name: 'Bodega Central', address: 'Av. Departamental 987, San Miguel', salesperson: 'Vendedor 1' },
+    ]},
 ];
 
 export default function CustomersPage() {
@@ -89,7 +103,7 @@ export default function CustomersPage() {
                                 <TableHead>Nombre</TableHead>
                                 <TableHead>Contacto</TableHead>
                                 <TableHead>Teléfono</TableHead>
-                                <TableHead>Lista de Precios</TableHead>
+                                <TableHead>Locales de Entrega</TableHead>
                                 <TableHead><span className="sr-only">Acciones</span></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -99,7 +113,7 @@ export default function CustomersPage() {
                                     <TableCell className="font-medium">{customer.name}</TableCell>
                                     <TableCell>{customer.contactPerson}</TableCell>
                                     <TableCell>{customer.phone}</TableCell>
-                                    <TableCell>{customer.priceList}</TableCell>
+                                    <TableCell>{customer.deliveryLocations.length}</TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -126,7 +140,7 @@ export default function CustomersPage() {
             </Card>
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="sm:max-w-lg">
+                <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle className="font-headline">{selectedCustomer ? 'Editar Cliente' : 'Añadir Nuevo Cliente'}</DialogTitle>
                         <DialogDescription className="font-body">
