@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Download, Calendar as CalendarIcon, MoreHorizontal, RefreshCcw, ChevronsUpDown, Check } from 'lucide-react';
-import { useState, useMemo, useRef, forwardRef } from 'react';
+import { useState, useMemo, useRef, forwardRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -109,9 +109,15 @@ export default function SalesLedgerPage() {
     });
     const [selectedDocType, setSelectedDocType] = useState('all');
     const [selectedClient, setSelectedClient] = useState('all');
+    const [generationDate, setGenerationDate] = useState<Date | null>(null);
+
 
     const [selectedDocument, setSelectedDocument] = useState<SaleDocument | null>(null);
     const [isJournalEntryModalOpen, setIsJournalEntryModalOpen] = useState(false);
+
+    useEffect(() => {
+        setGenerationDate(new Date());
+    }, []);
 
     const uniqueDocTypes = useMemo(() => Array.from(new Set(initialSales.map(doc => doc.docType))).map(d => ({ value: d, label: d })), []);
     const uniqueClients = useMemo(() => Array.from(new Set(initialSales.map(doc => doc.client))).map(c => ({ value: c, label: c })), []);
@@ -230,7 +236,7 @@ export default function SalesLedgerPage() {
                     </div>
                     <div className="text-right text-xs">
                         <p><span className="font-semibold">Período:</span> {dateRange?.from ? format(dateRange.from, "P", { locale: es }) : ''} a {dateRange?.to ? format(dateRange.to, "P", { locale: es }) : 'Ahora'}</p>
-                        <p><span className="font-semibold">Fecha de Emisión:</span> {format(new Date(), "P p", { locale: es })}</p>
+                        {generationDate && <p><span className="font-semibold">Fecha de Emisión:</span> {format(generationDate, "P p", { locale: es })}</p>}
                         <div className="mt-2 text-left bg-gray-50 p-2 rounded-md border border-gray-200">
                              <p><span className="font-semibold">Cant. Documentos:</span> {filteredSales.length}</p>
                              <p><span className="font-semibold">Total Neto:</span> {formatCurrency(totals.net)}</p>
@@ -514,5 +520,7 @@ export default function SalesLedgerPage() {
         </AppLayout>
     )
 }
+
+    
 
     
