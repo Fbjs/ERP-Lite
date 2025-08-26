@@ -8,7 +8,7 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { Ingredient, Recipe } from '@/app/recipes/page';
 import { Trash2, PlusCircle } from 'lucide-react';
 
-type RecipeFormData = Omit<Recipe, 'id' | 'lastUpdated'>;
+type RecipeFormData = Omit<Recipe, 'lastUpdated'>;
 
 type RecipeFormProps = {
   onSubmit: (data: RecipeFormData) => void;
@@ -17,6 +17,7 @@ type RecipeFormProps = {
 };
 
 export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFormProps) {
+  const [sku, setSku] = useState('');
   const [name, setName] = useState('');
   const [cost, setCost] = useState(0);
   const [ingredients, setIngredients] = useState<Ingredient[]>([{ name: '', quantity: 0, unit: '' }]);
@@ -25,6 +26,7 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
 
   useEffect(() => {
     if (initialData) {
+      setSku(initialData.sku || '');
       setName(initialData.name || '');
       setCost(initialData.cost || 0);
       setIngredients(initialData.ingredients && initialData.ingredients.length > 0 ? initialData.ingredients : [{ name: '', quantity: 0, unit: '' }]);
@@ -53,11 +55,15 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ name, cost, ingredients });
+    onSubmit({ sku, name, cost, ingredients });
   };
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6 py-4 font-body max-h-[70vh] overflow-y-auto px-2">
+        <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="sku" className="text-right">Cód. Producto (SKU)</Label>
+            <Input id="sku" value={sku} onChange={(e) => setSku(e.target.value)} className="col-span-3" required disabled={isEditing} />
+        </div>
         <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Nombre</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" required />

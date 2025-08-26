@@ -17,7 +17,7 @@ export type Ingredient = {
 };
 
 export type Recipe = {
-  id: string;
+  sku: string;
   name: string;
   ingredients: Ingredient[];
   cost: number;
@@ -25,10 +25,10 @@ export type Recipe = {
 };
 
 export const initialRecipes: Recipe[] = [
-  { id: 'REC001', name: 'Pain au Levain', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.7, unit: 'L'}, {name: 'Masa Madre', quantity: 0.2, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], cost: 2.50, lastUpdated: '2023-10-26' },
-  { id: 'REC002', name: 'Baguette Tradition', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.01, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], cost: 1.80, lastUpdated: '2023-10-25' },
-  { id: 'REC003', name: 'Croissant au Beurre', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Mantequilla', quantity: 0.5, unit: 'kg'}, {name: 'Azucar', quantity: 0.1, unit: 'kg'}, {name: 'Leche', quantity: 0.4, unit: 'L'}], cost: 3.10, lastUpdated: '2023-10-27' },
-  { id: 'REC004', name: 'Ciabatta', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.005, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], cost: 2.20, lastUpdated: '2023-10-24' },
+  { sku: 'PROD-PL-01', name: 'Pain au Levain', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.7, unit: 'L'}, {name: 'Masa Madre', quantity: 0.2, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], cost: 2.50, lastUpdated: '2023-10-26' },
+  { sku: 'PROD-BG-01', name: 'Baguette Tradition', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.01, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], cost: 1.80, lastUpdated: '2023-10-25' },
+  { sku: 'PROD-CR-01', name: 'Croissant au Beurre', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Mantequilla', quantity: 0.5, unit: 'kg'}, {name: 'Azucar', quantity: 0.1, unit: 'kg'}, {name: 'Leche', quantity: 0.4, unit: 'L'}], cost: 3.10, lastUpdated: '2023-10-27' },
+  { sku: 'PROD-CB-01', name: 'Ciabatta', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.005, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], cost: 2.20, lastUpdated: '2023-10-24' },
 ];
 
 export default function RecipesPage() {
@@ -39,10 +39,9 @@ export default function RecipesPage() {
   const detailsModalContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
+  const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'lastUpdated'>) => {
     const newRecipe: Recipe = {
       ...newRecipeData,
-      id: `REC${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
       lastUpdated: new Date().toISOString().split('T')[0],
     };
     setRecipes(prev => [newRecipe, ...prev]);
@@ -53,16 +52,16 @@ export default function RecipesPage() {
     });
   };
   
-  const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
+  const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'lastUpdated'>) => {
       if (!selectedRecipe) return;
       
       const updatedRecipe: Recipe = {
           ...updatedRecipeData,
-          id: selectedRecipe.id,
+          sku: selectedRecipe.sku,
           lastUpdated: new Date().toISOString().split('T')[0],
       };
       
-      setRecipes(recipes.map(r => r.id === selectedRecipe.id ? updatedRecipe : r));
+      setRecipes(recipes.map(r => r.sku === selectedRecipe.sku ? updatedRecipe : r));
       setFormModalOpen(false);
       setSelectedRecipe(null);
       toast({
@@ -106,7 +105,7 @@ export default function RecipesPage() {
         const xOffset = (pdfWidth - pdfImageWidth) / 2;
 
         pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
-        pdf.save(`receta-${selectedRecipe?.id}.pdf`);
+        pdf.save(`receta-${selectedRecipe?.sku}.pdf`);
         toast({
             title: "PDF Descargado",
             description: `La receta ${selectedRecipe?.name} ha sido descargada.`,
@@ -133,8 +132,8 @@ export default function RecipesPage() {
           <Table className="responsive-table">
             <TableHeader>
               <TableRow>
-                <TableHead>ID de Receta</TableHead>
-                <TableHead>Nombre</TableHead>
+                <TableHead>Cód. Producto (SKU)</TableHead>
+                <TableHead>Nombre del Producto</TableHead>
                 <TableHead>Nº Ingredientes</TableHead>
                 <TableHead>Costo por Unidad</TableHead>
                 <TableHead>Última Actualización</TableHead>
@@ -145,8 +144,8 @@ export default function RecipesPage() {
             </TableHeader>
             <TableBody>
               {recipes.map((recipe) => (
-                <TableRow key={recipe.id} className="hover:bg-muted/50">
-                  <TableCell data-label="ID Receta" className="font-medium">{recipe.id}</TableCell>
+                <TableRow key={recipe.sku} className="hover:bg-muted/50">
+                  <TableCell data-label="SKU" className="font-medium">{recipe.sku}</TableCell>
                   <TableCell data-label="Nombre">{recipe.name}</TableCell>
                   <TableCell data-label="Nº Ingredientes">{recipe.ingredients.length}</TableCell>
                   <TableCell data-label="Costo">${recipe.cost.toFixed(2)}</TableCell>
@@ -197,7 +196,7 @@ export default function RecipesPage() {
           <DialogHeader>
             <DialogTitle className="font-headline">{selectedRecipe?.name}</DialogTitle>
              <DialogDescription className="font-body">
-                Ficha de Receta - {selectedRecipe?.id}
+                Ficha de Receta - {selectedRecipe?.sku}
             </DialogDescription>
           </DialogHeader>
           {selectedRecipe && (
@@ -207,6 +206,10 @@ export default function RecipesPage() {
                         <div>
                             <p className="font-semibold text-gray-600">Nombre del Producto:</p>
                             <p className="text-lg">{selectedRecipe.name}</p>
+                        </div>
+                        <div>
+                            <p className="font-semibold text-gray-600">Código de Producto (SKU):</p>
+                            <p className="text-lg font-mono">{selectedRecipe.sku}</p>
                         </div>
                         <div>
                             <p className="font-semibold text-gray-600">Costo por Unidad:</p>
