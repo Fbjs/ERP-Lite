@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus, BookOpen } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus, BookOpen, FilePlus2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -23,11 +23,12 @@ import { cn } from '@/lib/utils';
 import Logo from '@/components/logo';
 import Link from 'next/link';
 import CreditNoteForm, { CreditNoteFormData } from '@/components/credit-note-form';
+import DebitNoteForm, { DebitNoteFormData } from '@/components/debit-note-form';
 
 
 type Document = {
   id: string;
-  type: 'Factura' | 'Nota de Crédito';
+  type: 'Factura' | 'Nota de Crédito' | 'Nota de Débito';
   client: string;
   date: string;
   total: number;
@@ -46,6 +47,7 @@ function AccountingPageContent() {
     const [documents, setDocuments] = useState<Document[]>(initialDocuments);
     const [isNewInvoiceModalOpen, setNewInvoiceModalOpen] = useState(false);
     const [isNewCreditNoteModalOpen, setNewCreditNoteModalOpen] = useState(false);
+    const [isNewDebitNoteModalOpen, setNewDebitNoteModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isSendEmailModalOpen, setSendEmailModalOpen] = useState(false);
     const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
@@ -74,18 +76,23 @@ function AccountingPageContent() {
 
 
     const summaryTotals = useMemo(() => {
-        const invoices = filteredDocuments.filter(d => d.type === 'Factura');
+        const invoicesAndDebitNotes = filteredDocuments.filter(d => d.type === 'Factura' || d.type === 'Nota de Débito');
         const creditNotes = filteredDocuments.filter(d => d.type === 'Nota de Crédito');
         
-        const totalCreditNotes = creditNotes.reduce((acc, cn) => acc + cn.total, 0);
+        const totalInvoiced = invoicesAndDebitNotes.reduce((acc, i) => acc + i.total, 0);
+        const totalCredited = creditNotes.reduce((acc, cn) => acc + cn.total, 0);
+        const totalPaid = invoicesAndDebitNotes.filter(i => i.status === 'Pagada').reduce((acc, i) => acc + i.total, 0);
+        const totalPending = invoicesAndDebitNotes.filter(i => i.status === 'Pendiente').reduce((acc, i) => acc + i.total, 0);
+        const totalOverdue = invoicesAndDebitNotes.filter(i => i.status === 'Vencida').reduce((acc, i) => acc + i.total, 0);
+
 
         return {
-            paid: invoices.filter(i => i.status === 'Pagada').reduce((acc, i) => acc + i.total, 0),
-            pending: invoices.filter(i => i.status === 'Pendiente').reduce((acc, i) => acc + i.total, 0),
-            overdue: invoices.filter(i => i.status === 'Vencida').reduce((acc, i) => acc + i.total, 0),
-            totalInvoiced: invoices.reduce((acc, i) => acc + i.total, 0),
-            totalCredited: totalCreditNotes,
-            netTotal: invoices.reduce((acc, i) => acc + i.total, 0) - totalCreditNotes
+            paid: totalPaid,
+            pending: totalPending,
+            overdue: totalOverdue,
+            totalInvoiced: totalInvoiced,
+            totalCredited: totalCredited,
+            netTotal: totalInvoiced - totalCredited
         }
     }, [filteredDocuments]);
 
@@ -140,7 +147,7 @@ function AccountingPageContent() {
             id: `NC${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
             type: 'Nota de Crédito',
             client: data.client,
-            total: data.amount, // Amounts for credit notes should be positive in data, handled as negative in summaries
+            total: data.amount,
             items: data.reason,
             date: new Date().toISOString().split('T')[0],
             status: 'Aplicada',
@@ -150,6 +157,24 @@ function AccountingPageContent() {
         toast({
             title: "Nota de Crédito Creada",
             description: `Se ha creado una nota de crédito para ${data.client}.`
+        });
+    };
+    
+    const handleCreateDebitNote = (data: DebitNoteFormData) => {
+        const newDebitNote: Document = {
+            id: `ND${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+            type: 'Nota de Débito',
+            client: data.client,
+            total: data.amount,
+            items: data.reason,
+            date: new Date().toISOString().split('T')[0],
+            status: 'Pendiente',
+        };
+        setDocuments(prev => [newDebitNote, ...prev]);
+        setNewDebitNoteModalOpen(false);
+        toast({
+            title: "Nota de Débito Creada",
+            description: `Se ha creado una nota de débito para ${data.client}.`
         });
     };
 
@@ -340,6 +365,10 @@ function AccountingPageContent() {
                                     Conciliación
                                 </Link>
                             </Button>
+                            <Button variant="secondary" onClick={() => setNewDebitNoteModalOpen(true)}>
+                                <FilePlus2 className="mr-2 h-4 w-4" />
+                                Nota de Débito
+                            </Button>
                             <Button variant="secondary" onClick={() => setNewCreditNoteModalOpen(true)}>
                                 <FileMinus className="mr-2 h-4 w-4" />
                                 Nota de Crédito
@@ -504,6 +533,23 @@ function AccountingPageContent() {
                 <CreditNoteForm
                     onSubmit={handleCreateCreditNote}
                     onCancel={() => setNewCreditNoteModalOpen(false)}
+                    invoices={documents.filter(d => d.type === 'Factura')}
+                />
+            </DialogContent>
+        </Dialog>
+        
+        {/* Modal Nueva Nota de Débito */}
+        <Dialog open={isNewDebitNoteModalOpen} onOpenChange={setNewDebitNoteModalOpen}>
+            <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle className="font-headline">Crear Nota de Débito</DialogTitle>
+                    <DialogDescription className="font-body">
+                        Completa los detalles para aumentar el valor de un documento.
+                    </DialogDescription>
+                </DialogHeader>
+                <DebitNoteForm
+                    onSubmit={handleCreateDebitNote}
+                    onCancel={() => setNewDebitNoteModalOpen(false)}
                     invoices={documents.filter(d => d.type === 'Factura')}
                 />
             </DialogContent>
