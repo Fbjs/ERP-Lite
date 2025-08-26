@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Line, LineChart } from 'recharts';
@@ -6,10 +7,10 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Lock, PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
+import { Lock, PlusCircle, Calendar as CalendarIcon, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { format, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval, addMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Popover, PopoverTrigger, PopoverContent } from './ui/popover';
 import { Calendar } from './ui/calendar';
@@ -28,20 +29,22 @@ type MonthlyCashFlowData = {
     supplierPayments: number;
     salaries: number;
     operatingExpenses: number;
-    futureExpenses: number;
 };
 
 type DailyCashFlowData = {
+    id: string;
     date: Date;
     description: string;
     income: number;
     expense: number;
 };
 
-type FutureExpense = {
+type FutureMovement = {
+    id: string;
     date: Date;
     description: string;
     amount: number;
+    type: 'income' | 'expense';
 };
 
 const formatCurrency = (value: number) => {
@@ -49,21 +52,21 @@ const formatCurrency = (value: number) => {
 };
 
 const initialMonthlyData: MonthlyCashFlowData[] = [
-    { month: 'Junio', monthDate: new Date(2025, 5, 1), initialBalance: 5000000, collections: 3500000, otherIncome: 100000, supplierPayments: 1800000, salaries: 2500000, operatingExpenses: 400000, futureExpenses: 0 },
-    { month: 'Julio', monthDate: new Date(2025, 6, 1), initialBalance: 0, collections: 4000000, otherIncome: 50000, supplierPayments: 2000000, salaries: 2500000, operatingExpenses: 450000, futureExpenses: 0 },
-    { month: 'Agosto', monthDate: new Date(2025, 7, 1), initialBalance: 0, collections: 4200000, otherIncome: 75000, supplierPayments: 2100000, salaries: 2600000, operatingExpenses: 460000, futureExpenses: 0 },
-    { month: 'Septiembre', monthDate: new Date(2025, 8, 1), initialBalance: 0, collections: 4100000, otherIncome: 60000, supplierPayments: 1900000, salaries: 2600000, operatingExpenses: 470000, futureExpenses: 0 },
-    { month: 'Octubre', monthDate: new Date(2025, 9, 1), initialBalance: 0, collections: 4500000, otherIncome: 80000, supplierPayments: 2200000, salaries: 2650000, operatingExpenses: 480000, futureExpenses: 0 },
+    { month: 'Junio', monthDate: new Date(2025, 5, 1), initialBalance: 5000000, collections: 3500000, otherIncome: 100000, supplierPayments: 1800000, salaries: 2500000, operatingExpenses: 400000 },
+    { month: 'Julio', monthDate: new Date(2025, 6, 1), initialBalance: 0, collections: 4000000, otherIncome: 50000, supplierPayments: 2000000, salaries: 2500000, operatingExpenses: 450000 },
+    { month: 'Agosto', monthDate: new Date(2025, 7, 1), initialBalance: 0, collections: 4200000, otherIncome: 75000, supplierPayments: 2100000, salaries: 2600000, operatingExpenses: 460000 },
+    { month: 'Septiembre', monthDate: new Date(2025, 8, 1), initialBalance: 0, collections: 4100000, otherIncome: 60000, supplierPayments: 1900000, salaries: 2600000, operatingExpenses: 470000 },
+    { month: 'Octubre', monthDate: new Date(2025, 9, 1), initialBalance: 0, collections: 4500000, otherIncome: 80000, supplierPayments: 2200000, salaries: 2650000, operatingExpenses: 480000 },
 ];
 
 const initialDailyData: DailyCashFlowData[] = [
-    { date: new Date('2025-07-01'), description: 'Cobro Factura F001', income: 450000, expense: 0 },
-    { date: new Date('2025-07-01'), description: 'Pago arriendo oficina', income: 0, expense: 700000 },
-    { date: new Date('2025-07-02'), description: 'Pago proveedor Harinas del Sur', income: 0, expense: 800000 },
-    { date: new Date('2025-07-03'), description: 'Cobro Factura F003', income: 875000, expense: 0 },
-    { date: new Date('2025-07-05'), description: 'Venta directa mesón', income: 150000, expense: 0 },
-    { date: new Date('2025-07-05'), description: 'Pago servicio de luz', income: 0, expense: 120000 },
-    { date: new Date('2025-07-07'), description: 'Cobro Factura F002', income: 1200500, expense: 0 },
+    { id: 'd001', date: new Date('2025-07-01'), description: 'Cobro Factura F001', income: 450000, expense: 0 },
+    { id: 'd002', date: new Date('2025-07-01'), description: 'Pago arriendo oficina', income: 0, expense: 700000 },
+    { id: 'd003', date: new Date('2025-07-02'), description: 'Pago proveedor Harinas del Sur', income: 0, expense: 800000 },
+    { id: 'd004', date: new Date('2025-07-03'), description: 'Cobro Factura F003', income: 875000, expense: 0 },
+    { id: 'd005', date: new Date('2025-07-05'), description: 'Venta directa mesón', income: 150000, expense: 0 },
+    { id: 'd006', date: new Date('2025-07-05'), description: 'Pago servicio de luz', income: 0, expense: 120000 },
+    { id: 'd007', date: new Date('2025-07-07'), description: 'Cobro Factura F002', income: 1200500, expense: 0 },
 ];
 
 export default function CashFlowProjection() {
@@ -73,55 +76,70 @@ export default function CashFlowProjection() {
         from: new Date(2025, 5, 1),
         to: new Date(2025, 10, 0)
     });
-    const [futureExpenses, setFutureExpenses] = useState<FutureExpense[]>([]);
-    const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-    const [newExpense, setNewExpense] = useState<{description: string, amount: string, date: string}>({description: '', amount: '', date: ''});
+    
+    const [manualInitialBalance, setManualInitialBalance] = useState<number | null>(5000000);
+    const [dailyMovements, setDailyMovements] = useState<DailyCashFlowData[]>(initialDailyData);
 
+    const [futureMovements, setFutureMovements] = useState<FutureMovement[]>([]);
+    const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
+    const [movementType, setMovementType] = useState<'income' | 'expense'>('expense');
+    const [newMovement, setNewMovement] = useState<{description: string, amount: string, date: string}>({description: '', amount: '', date: ''});
 
-    const handleAddFutureExpense = () => {
-        if (newExpense.description && newExpense.amount && newExpense.date) {
-            setFutureExpenses(prev => [...prev, {
-                description: newExpense.description,
-                amount: parseFloat(newExpense.amount),
-                date: new Date(newExpense.date + 'T00:00:00') // Avoid timezone issues
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [detailsContent, setDetailsContent] = useState<{title: string, items: {date: Date, description: string, amount: number}[]}>({title: '', items: []});
+
+    const handleOpenMovementModal = (type: 'income' | 'expense') => {
+        setMovementType(type);
+        setIsMovementModalOpen(true);
+    };
+    
+    const handleAddFutureMovement = () => {
+        if (newMovement.description && newMovement.amount && newMovement.date) {
+            setFutureMovements(prev => [...prev, {
+                id: `fut-${Date.now()}`,
+                description: newMovement.description,
+                amount: parseFloat(newMovement.amount),
+                date: new Date(newMovement.date + 'T00:00:00'), // Avoid timezone issues
+                type: movementType,
             }]);
-            setNewExpense({description: '', amount: '', date: ''});
-            setIsExpenseModalOpen(false);
-            toast({ title: 'Gasto Futuro Añadido', description: 'El gasto ha sido incorporado a la proyección.' });
+            setNewMovement({description: '', amount: '', date: ''});
+            setIsMovementModalOpen(false);
+            toast({ title: `Proyección Futura Añadida`, description: 'El movimiento ha sido incorporado a la proyección.' });
         }
     };
     
     const filteredMonthlyData = useMemo(() => {
          return initialMonthlyData.filter(d => 
-            dateRange?.from && dateRange.to && isWithinInterval(d.monthDate, { start: dateRange.from, end: dateRange.to })
+            dateRange?.from && dateRange.to && isWithinInterval(d.monthDate, { start: startOfMonth(dateRange.from), end: endOfMonth(dateRange.to) })
         );
     }, [dateRange]);
-
 
     const processedMonthlyData = useMemo(() => {
         let data = [...filteredMonthlyData];
         if (data.length === 0) return [];
         
-        // Recalculate future expenses for each month in the filtered range
         data = data.map(monthData => {
             const monthStart = monthData.monthDate;
             const monthEnd = endOfMonth(monthStart);
-            const totalFutureExpenses = futureExpenses
-                .filter(exp => isWithinInterval(exp.date, { start: monthStart, end: monthEnd }))
+            const totalFutureExpenses = futureMovements
+                .filter(exp => exp.type === 'expense' && isWithinInterval(exp.date, { start: monthStart, end: monthEnd }))
                 .reduce((acc, exp) => acc + exp.amount, 0);
-            return { ...monthData, futureExpenses: totalFutureExpenses };
+            const totalFutureIncomes = futureMovements
+                .filter(inc => inc.type === 'income' && isWithinInterval(inc.date, { start: monthStart, end: monthEnd }))
+                .reduce((acc, inc) => acc + inc.amount, 0);
+            return { ...monthData, futureExpenses: totalFutureExpenses, futureIncomes: totalFutureIncomes };
         });
 
         for (let i = 0; i < data.length; i++) {
             const current = data[i];
             const previous = i > 0 ? data[i - 1] : null;
 
-            const totalIncome = current.collections + current.otherIncome;
-            const totalExpenses = current.supplierPayments + current.salaries + current.operatingExpenses + current.futureExpenses;
+            const totalIncome = current.collections + current.otherIncome + (current as any).futureIncomes;
+            const totalExpenses = current.supplierPayments + current.salaries + current.operatingExpenses + (current as any).futureExpenses;
             
             const initialBalance = previous 
                 ? (previous as any).finalBalance
-                : current.initialBalance; // Use the original initial balance for the first item in the range
+                : (manualInitialBalance !== null ? manualInitialBalance : current.initialBalance);
             
             const finalBalance = initialBalance + totalIncome - totalExpenses;
             
@@ -134,7 +152,7 @@ export default function CashFlowProjection() {
             } as any;
         }
         return data;
-    }, [filteredMonthlyData, futureExpenses]);
+    }, [filteredMonthlyData, futureMovements, manualInitialBalance]);
 
     const monthlyChartData = processedMonthlyData.map(d => ({
         name: d.month,
@@ -143,27 +161,27 @@ export default function CashFlowProjection() {
     }));
 
      const processedDailyData = useMemo(() => {
-        if (!dateRange?.from) return [];
+        if (!dateRange?.from || processedMonthlyData.length === 0) return [];
 
         const start = dateRange.from;
         const end = dateRange.to || start;
 
         const allDays = eachDayOfInterval({ start, end });
 
-        const combinedDailyData: {date: Date, description: string, income: number, expense: number}[] = [
-            ...initialDailyData.map(d => ({...d, date: new Date(d.date)})),
-            ...futureExpenses.map(fe => ({
-                date: fe.date,
-                description: `(Gasto Futuro) ${fe.description}`,
-                income: 0,
-                expense: fe.amount
+        const combinedDailyData: {id: string, date: Date, description: string, income: number, expense: number}[] = [
+            ...dailyMovements.map(d => ({...d, date: new Date(d.date)})),
+            ...futureMovements.map(fm => ({
+                id: fm.id,
+                date: fm.date,
+                description: `(Proyección) ${fm.description}`,
+                income: fm.type === 'income' ? fm.amount : 0,
+                expense: fm.type === 'expense' ? fm.amount : 0
             }))
         ].sort((a,b) => a.date.getTime() - b.date.getTime());
         
         let runningBalance = processedMonthlyData[0]?.initialBalance || 0;
-        let lastKnownBalanceDate = startOfMonth(processedMonthlyData[0]?.monthDate);
-
-        return allDays.map(day => {
+        
+        const dailyBalances = allDays.map(day => {
             const movementsForDay = combinedDailyData.filter(d => format(d.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'));
             if (movementsForDay.length > 0) {
                  const dailyTotalIncome = movementsForDay.reduce((acc, curr) => acc + curr.income, 0);
@@ -174,11 +192,12 @@ export default function CashFlowProjection() {
                 date: day,
                 day: format(day, 'dd/MM'),
                 balance: runningBalance,
+                movements: movementsForDay
             };
         });
+        return dailyBalances;
 
-    }, [dateRange, processedMonthlyData, futureExpenses]);
-
+    }, [dateRange, processedMonthlyData, futureMovements, dailyMovements]);
     
     const handleCloseMonth = (month: string) => {
         setClosedMonths(prev => [...prev, month]);
@@ -186,6 +205,31 @@ export default function CashFlowProjection() {
             title: `Mes de ${month} Cerrado`,
             description: `El saldo final ha sido confirmado y transferido como saldo inicial del siguiente mes.`,
         });
+    };
+    
+    const showDetails = (month: MonthlyCashFlowData, type: string) => {
+        let title = '';
+        let items: {date: Date, description: string, amount: number}[] = [];
+        const monthStart = startOfMonth(month.monthDate);
+        const monthEnd = endOfMonth(month.monthDate);
+
+        switch (type) {
+            case 'collections':
+                title = `Detalle de Cobranza - ${month.month}`;
+                items = dailyMovements
+                    .filter(d => isWithinInterval(d.date, {start: monthStart, end: monthEnd}) && d.income > 0 && d.description.includes('Factura'))
+                    .map(d => ({ date: d.date, description: d.description, amount: d.income }));
+                break;
+            case 'supplierPayments':
+                title = `Detalle Pago Proveedores - ${month.month}`;
+                items = dailyMovements
+                    .filter(d => isWithinInterval(d.date, {start: monthStart, end: monthEnd}) && d.expense > 0 && d.description.toLowerCase().includes('proveedor'))
+                    .map(d => ({ date: d.date, description: d.description, amount: d.expense }));
+                break;
+        }
+
+        setDetailsContent({ title, items });
+        setIsDetailsModalOpen(true);
     };
 
     return (
@@ -199,7 +243,7 @@ export default function CashFlowProjection() {
                                 Analiza y proyecta el flujo de caja. Añade gastos futuros para simular escenarios.
                             </CardDescription>
                         </div>
-                        <div className="flex items-center gap-2">
+                         <div className="flex items-center gap-2">
                              <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -237,13 +281,30 @@ export default function CashFlowProjection() {
                                     />
                                 </PopoverContent>
                             </Popover>
-                            <Button onClick={() => setIsExpenseModalOpen(true)}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Añadir Gasto Futuro
-                            </Button>
                         </div>
                     </div>
                 </CardHeader>
+                <CardContent className="flex flex-wrap items-end gap-4">
+                    <div className="space-y-1.5">
+                        <Label htmlFor="initial-balance">Saldo Inicial Cta. Cte.</Label>
+                        <Input
+                            id="initial-balance"
+                            type="number"
+                            value={manualInitialBalance ?? ''}
+                            onChange={(e) => setManualInitialBalance(e.target.value ? Number(e.target.value) : null)}
+                            placeholder="Ingrese saldo inicial..."
+                            className="w-[250px]"
+                        />
+                    </div>
+                     <Button onClick={() => handleOpenMovementModal('income')}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Añadir Ingreso Futuro
+                    </Button>
+                    <Button onClick={() => handleOpenMovementModal('expense')}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Añadir Gasto Futuro
+                    </Button>
+                </CardContent>
             </Card>
 
             <Tabs defaultValue="monthly">
@@ -272,12 +333,16 @@ export default function CashFlowProjection() {
                                     </TableRow>
                                     <TableRow className="bg-green-50/30"><TableCell colSpan={processedMonthlyData.length + 1} className="font-semibold text-green-700 p-2">Ingresos</TableCell></TableRow>
                                     <TableRow>
-                                        <TableCell className="pl-6">Cobranza Clientes</TableCell>
+                                        <TableCell className="pl-6"><Button variant="link" className="p-0 h-auto" onClick={() => showDetails(processedMonthlyData.find(pd => pd.month === 'Julio')!, 'collections')}>Cobranza Clientes</Button></TableCell>
                                         {processedMonthlyData.map(d => <TableCell key={d.month} className="text-right">{formatCurrency(d.collections)}</TableCell>)}
                                     </TableRow>
                                     <TableRow>
                                         <TableCell className="pl-6">Otros Ingresos</TableCell>
                                         {processedMonthlyData.map(d => <TableCell key={d.month} className="text-right">{formatCurrency(d.otherIncome)}</TableCell>)}
+                                    </TableRow>
+                                     <TableRow>
+                                        <TableCell className="pl-6">Ingresos Futuros Proyectados</TableCell>
+                                        {processedMonthlyData.map(d => <TableCell key={d.month} className="text-right">{formatCurrency((d as any).futureIncomes)}</TableCell>)}
                                     </TableRow>
                                     <TableRow className="font-semibold">
                                         <TableCell className="pl-6">Total Ingresos</TableCell>
@@ -285,7 +350,7 @@ export default function CashFlowProjection() {
                                     </TableRow>
                                     <TableRow className="bg-red-50/30"><TableCell colSpan={processedMonthlyData.length + 1} className="font-semibold text-red-700 p-2">Egresos</TableCell></TableRow>
                                     <TableRow>
-                                        <TableCell className="pl-6">Pago Proveedores</TableCell>
+                                        <TableCell className="pl-6"><Button variant="link" className="p-0 h-auto" onClick={() => showDetails(processedMonthlyData.find(pd => pd.month === 'Julio')!, 'supplierPayments')}>Pago Proveedores</Button></TableCell>
                                         {processedMonthlyData.map(d => <TableCell key={d.month} className="text-right">{formatCurrency(d.supplierPayments)}</TableCell>)}
                                     </TableRow>
                                     <TableRow>
@@ -298,7 +363,7 @@ export default function CashFlowProjection() {
                                     </TableRow>
                                     <TableRow>
                                         <TableCell className="pl-6">Gastos Futuros Proyectados</TableCell>
-                                        {processedMonthlyData.map(d => <TableCell key={d.month} className="text-right">{formatCurrency(d.futureExpenses)}</TableCell>)}
+                                        {processedMonthlyData.map(d => <TableCell key={d.month} className="text-right">{formatCurrency((d as any).futureExpenses)}</TableCell>)}
                                     </TableRow>
                                     <TableRow className="font-semibold">
                                         <TableCell className="pl-6">Total Egresos</TableCell>
@@ -379,24 +444,36 @@ export default function CashFlowProjection() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead className="font-bold">Fecha</TableHead>
+                                        <TableHead className="font-bold">Descripción</TableHead>
+                                        <TableHead className="text-right font-bold">Ingresos</TableHead>
+                                        <TableHead className="text-right font-bold">Egresos</TableHead>
                                         <TableHead className="text-right font-bold">Saldo</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     <TableRow className="font-semibold bg-secondary/50">
-                                        <TableCell>Saldo Inicial del Período</TableCell>
+                                        <TableCell colSpan={4}>Saldo Inicial del Período</TableCell>
                                         <TableCell className="text-right">{formatCurrency(processedMonthlyData[0]?.initialBalance || 0)}</TableCell>
                                     </TableRow>
                                     {processedDailyData.map((d, index) => (
                                         <TableRow key={index}>
                                             <TableCell>{d.day}</TableCell>
+                                            <TableCell>
+                                                {d.movements.map(m => <div key={m.id}>{m.description}</div>)}
+                                            </TableCell>
+                                             <TableCell className="text-right text-green-600">
+                                                {d.movements.length > 0 && formatCurrency(d.movements.reduce((acc, m) => acc + m.income, 0))}
+                                            </TableCell>
+                                            <TableCell className="text-right text-red-600">
+                                                {d.movements.length > 0 && formatCurrency(d.movements.reduce((acc, m) => acc + m.expense, 0))}
+                                            </TableCell>
                                             <TableCell className="text-right">{formatCurrency(d.balance)}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
                                  <TableFooter>
                                     <TableRow className="font-bold text-lg bg-secondary">
-                                        <TableCell>Saldo Final Proyectado</TableCell>
+                                        <TableCell colSpan={4}>Saldo Final Proyectado</TableCell>
                                         <TableCell className="text-right">{formatCurrency(processedDailyData[processedDailyData.length - 1]?.balance || 0)}</TableCell>
                                     </TableRow>
                                 </TableFooter>
@@ -433,39 +510,39 @@ export default function CashFlowProjection() {
                 </TabsContent>
             </Tabs>
             
-            <Dialog open={isExpenseModalOpen} onOpenChange={setIsExpenseModalOpen}>
+            <Dialog open={isMovementModalOpen} onOpenChange={setIsMovementModalOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle className="font-headline">Añadir Gasto Futuro</DialogTitle>
+                        <DialogTitle className="font-headline">Añadir Proyección de {movementType === 'income' ? 'Ingreso' : 'Gasto'}</DialogTitle>
                         <DialogDescription className="font-body">
-                            Ingresa un gasto para incluirlo en la proyección de flujo de caja.
+                            Ingresa un movimiento para incluirlo en la proyección de flujo de caja.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="exp-desc" className="text-right">Descripción</Label>
-                            <Input id="exp-desc" value={newExpense.description} onChange={(e) => setNewExpense(p => ({...p, description: e.target.value}))} className="col-span-3" />
+                            <Label htmlFor="mov-desc" className="text-right">Descripción</Label>
+                            <Input id="mov-desc" value={newMovement.description} onChange={(e) => setNewMovement(p => ({...p, description: e.target.value}))} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="exp-amount" className="text-right">Monto</Label>
-                            <Input id="exp-amount" type="number" value={newExpense.amount} onChange={(e) => setNewExpense(p => ({...p, amount: e.target.value}))} className="col-span-3" />
+                            <Label htmlFor="mov-amount" className="text-right">Monto</Label>
+                            <Input id="mov-amount" type="number" value={newMovement.amount} onChange={(e) => setNewMovement(p => ({...p, amount: e.target.value}))} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="exp-date" className="text-right">Fecha</Label>
-                            <Input id="exp-date" type="date" value={newExpense.date} onChange={(e) => setNewExpense(p => ({...p, date: e.target.value}))} className="col-span-3" />
+                            <Label htmlFor="mov-date" className="text-right">Fecha</Label>
+                            <Input id="mov-date" type="date" value={newMovement.date} onChange={(e) => setNewMovement(p => ({...p, date: e.target.value}))} className="col-span-3" />
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsExpenseModalOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleAddFutureExpense}>Añadir Gasto</Button>
+                        <Button variant="outline" onClick={() => setIsMovementModalOpen(false)}>Cancelar</Button>
+                        <Button onClick={handleAddFutureMovement}>Añadir Proyección</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-             {futureExpenses.length > 0 && (
+             {(futureMovements.length > 0) && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline text-lg">Gastos Futuros Registrados</CardTitle>
+                        <CardTitle className="font-headline text-lg">Proyecciones Manuales Registradas</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -473,15 +550,21 @@ export default function CashFlowProjection() {
                                 <TableRow>
                                     <TableHead>Descripción</TableHead>
                                     <TableHead>Fecha</TableHead>
+                                    <TableHead>Tipo</TableHead>
                                     <TableHead className="text-right">Monto</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {futureExpenses.map((exp, i) => (
-                                    <TableRow key={i}>
-                                        <TableCell>{exp.description}</TableCell>
-                                        <TableCell>{format(exp.date, 'P', { locale: es })}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(exp.amount)}</TableCell>
+                                {futureMovements.map((mov) => (
+                                    <TableRow key={mov.id}>
+                                        <TableCell>{mov.description}</TableCell>
+                                        <TableCell>{format(mov.date, 'P', { locale: es })}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={mov.type === 'income' ? 'default' : 'secondary'}>
+                                                {mov.type === 'income' ? 'Ingreso' : 'Gasto'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">{formatCurrency(mov.amount)}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -490,6 +573,43 @@ export default function CashFlowProjection() {
                 </Card>
             )}
 
+            <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="font-headline">{detailsContent.title}</DialogTitle>
+                    </DialogHeader>
+                    <div className="max-h-[60vh] overflow-y-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Fecha</TableHead>
+                                    <TableHead>Descripción</TableHead>
+                                    <TableHead className="text-right">Monto</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {detailsContent.items.length > 0 ? detailsContent.items.map((item, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{format(item.date, 'P', { locale: es })}</TableCell>
+                                        <TableCell>{item.description}</TableCell>
+                                        <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow><TableCell colSpan={3} className="text-center">No hay detalles para mostrar.</TableCell></TableRow>
+                                )}
+                            </TableBody>
+                            <TableFooter>
+                                <TableRow className="font-bold">
+                                    <TableCell colSpan={2}>Total</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(detailsContent.items.reduce((acc, item) => acc + item.amount, 0))}</TableCell>
+                                </TableRow>
+                            </TableFooter>
+                        </Table>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
         </div>
     );
 }
+
