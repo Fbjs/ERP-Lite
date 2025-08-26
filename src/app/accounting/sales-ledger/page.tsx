@@ -5,10 +5,11 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { Download, Calendar as CalendarIcon, MoreHorizontal, RefreshCcw } from 'lucide-react';
-import { useState, useMemo, useRef } from 'react';
+import { Download, Calendar as CalendarIcon, MoreHorizontal, RefreshCcw, ChevronsUpDown, Check } from 'lucide-react';
+import { useState, useMemo, useRef, forwardRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { format, subMonths } from 'date-fns';
@@ -18,7 +19,6 @@ import Logo from '@/components/logo';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 type SaleDocument = {
     id: number;
@@ -43,6 +43,61 @@ const formatCurrency = (value: number) => {
     return value.toLocaleString('es-CL');
 }
 
+// Reusable Combobox Component for Filters
+const ComboboxFilter = forwardRef<HTMLButtonElement, {
+    options: { value: string; label: string }[];
+    value: string;
+    onSelect: (value: string) => void;
+    placeholder: string;
+}>(({ options, value, onSelect, placeholder }, ref) => {
+    const [open, setOpen] = useState(false);
+    
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    ref={ref}
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={open}
+                    className="w-full justify-between"
+                >
+                    {value ? options.find(o => o.value === value)?.label : placeholder}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                    <CommandInput placeholder="Buscar..." />
+                    <CommandEmpty>No encontrado.</CommandEmpty>
+                    <CommandList>
+                        <CommandGroup>
+                            <CommandItem onSelect={() => { onSelect('all'); setOpen(false); }}>
+                                <Check className={cn("mr-2 h-4 w-4", value === 'all' ? "opacity-100" : "opacity-0")} />
+                                Todos
+                            </CommandItem>
+                            {options.map((option) => (
+                                <CommandItem
+                                    key={option.value}
+                                    value={option.value}
+                                    onSelect={(currentValue) => {
+                                        onSelect(currentValue === value ? '' : currentValue);
+                                        setOpen(false);
+                                    }}
+                                >
+                                    <Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
+                                    {option.label}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    );
+});
+ComboboxFilter.displayName = 'ComboboxFilter';
+
 
 export default function SalesLedgerPage() {
     const { toast } = useToast();
@@ -58,8 +113,8 @@ export default function SalesLedgerPage() {
     const [selectedDocument, setSelectedDocument] = useState<SaleDocument | null>(null);
     const [isJournalEntryModalOpen, setIsJournalEntryModalOpen] = useState(false);
 
-    const uniqueDocTypes = useMemo(() => ['all', ...Array.from(new Set(initialSales.map(doc => doc.docType)))], []);
-    const uniqueClients = useMemo(() => ['all', ...Array.from(new Set(initialSales.map(doc => doc.client)))], []);
+    const uniqueDocTypes = useMemo(() => Array.from(new Set(initialSales.map(doc => doc.docType))).map(d => ({ value: d, label: d })), []);
+    const uniqueClients = useMemo(() => Array.from(new Set(initialSales.map(doc => doc.client))).map(c => ({ value: c, label: c })), []);
 
     const filteredSales = useMemo(() => {
         let sales = initialSales;
@@ -93,6 +148,23 @@ export default function SalesLedgerPage() {
         }, { net: 0, tax: 0, total: 0 });
     }, [filteredSales]);
     
+    const summaryByType = useMemo(() => {
+        const summary: { [key: string]: { count: number, net: number, tax: number, total: number } } = {};
+        
+        filteredSales.forEach(doc => {
+            if (!summary[doc.docType]) {
+                summary[doc.docType] = { count: 0, net: 0, tax: 0, total: 0 };
+            }
+            summary[doc.docType].count++;
+            summary[doc.docType].net += doc.net;
+            summary[doc.docType].tax += doc.tax;
+            summary[doc.docType].total += doc.total;
+        });
+
+        return Object.entries(summary);
+    }, [filteredSales]);
+
+
     const handleDownloadPdf = async (contentRef: React.RefObject<HTMLDivElement>, fileName: string, orientation: 'p' | 'l' = 'l') => {
         const input = contentRef.current;
         if (input) {
@@ -215,15 +287,21 @@ export default function SalesLedgerPage() {
                             <CardTitle className="font-headline">Libro de Ventas</CardTitle>
                             <CardDescription className="font-body">Consulta los documentos de venta emitidos en un período.</CardDescription>
                         </div>
-                         <Button onClick={() => handleDownloadPdf(reportContentRef, `libro-ventas-${new Date().toISOString().split('T')[0]}.pdf`)}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Descargar PDF
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" onClick={() => handleDownloadPdf(reportContentRef, `libro-ventas-${new Date().toISOString().split('T')[0]}.pdf`)}>
+                                <Download className="mr-2 h-4 w-4" />
+                                PDF
+                            </Button>
+                             <Button disabled>
+                                <Download className="mr-2 h-4 w-4" />
+                                Excel
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b">
-                         <div className="flex-1 min-w-[240px]">
+                    <div className="flex flex-wrap gap-4 mb-6 pb-6 border-b">
+                         <div className="flex-1 min-w-[240px] space-y-2">
                             <Label>Período</Label>
                              <Popover>
                                 <PopoverTrigger asChild>
@@ -263,33 +341,23 @@ export default function SalesLedgerPage() {
                                 </PopoverContent>
                             </Popover>
                         </div>
-                        <div className="flex-1 min-w-[200px]">
+                        <div className="flex-1 min-w-[200px] space-y-2">
                             <Label>Tipo Documento</Label>
-                            <Select value={selectedDocType} onValueChange={setSelectedDocType}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Filtrar por tipo..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Todos los Tipos</SelectItem>
-                                    {uniqueDocTypes.filter(d => d !== 'all').map(docType => (
-                                        <SelectItem key={docType} value={docType}>{docType}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                             <ComboboxFilter
+                                options={uniqueDocTypes}
+                                value={selectedDocType}
+                                onSelect={setSelectedDocType}
+                                placeholder="Filtrar por tipo..."
+                            />
                         </div>
-                        <div className="flex-1 min-w-[240px]">
+                        <div className="flex-1 min-w-[240px] space-y-2">
                             <Label>Cliente</Label>
-                            <Select value={selectedClient} onValueChange={setSelectedClient}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Filtrar por cliente..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Todos los Clientes</SelectItem>
-                                    {uniqueClients.filter(c => c !== 'all').map(client => (
-                                        <SelectItem key={client} value={client}>{client}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                             <ComboboxFilter
+                                options={uniqueClients}
+                                value={selectedClient}
+                                onSelect={setSelectedClient}
+                                placeholder="Filtrar por cliente..."
+                            />
                         </div>
                         <div className="flex items-end">
                             <Button variant="ghost" onClick={resetFilters}>
@@ -298,6 +366,30 @@ export default function SalesLedgerPage() {
                             </Button>
                         </div>
                     </div>
+                    
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Documentos Totales</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">{filteredSales.length}</div>
+                                <p className="text-xs text-muted-foreground">En el período seleccionado</p>
+                            </CardContent>
+                        </Card>
+                        {summaryByType.map(([docType, summary]) => (
+                            <Card key={docType}>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">{docType}</CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{formatCurrency(summary.total)}</div>
+                                    <p className="text-xs text-muted-foreground">{summary.count} documentos</p>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -422,3 +514,5 @@ export default function SalesLedgerPage() {
         </AppLayout>
     )
 }
+
+    
