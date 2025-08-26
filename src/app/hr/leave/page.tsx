@@ -7,6 +7,7 @@ import { MoreHorizontal, PlusCircle, Check, X, Calendar as CalendarIcon } from '
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { useState } from 'react';
+import { es } from 'date-fns/locale';
 
 type LeaveRequest = {
   id: string;
@@ -101,7 +102,7 @@ export default function LeavePage() {
                     selected={date}
                     onSelect={setDate}
                     className="rounded-md border p-0"
-                    locale={(await import('date-fns/locale/es')).default}
+                    locale={es}
                     modifiers={{
                          vacaciones: requests.filter(r => r.leaveType === 'Vacaciones' && r.status === 'Aprobado').map(r => ({ from: r.startDate, to: r.endDate })),
                          licencia: requests.filter(r => r.leaveType === 'Licencia Médica' && r.status === 'Aprobado').map(r => ({ from: r.startDate, to: r.endDate })),
