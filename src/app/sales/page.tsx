@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck, FileBarChart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -251,43 +251,51 @@ export default function SalesPage() {
 
             <TabsContent value="industrial" className="space-y-6 mt-6">
                 <div className="flex flex-wrap justify-between items-center gap-4">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                id="date"
-                                variant={"outline"}
-                                className={cn(
-                                "w-full sm:w-[300px] justify-start text-left font-normal",
-                                !dateRange && "text-muted-foreground"
-                                )}
-                            >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {dateRange?.from ? (
-                                dateRange.to ? (
-                                    <>
-                                    {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
-                                    {format(dateRange.to, "LLL dd, y", { locale: es })}
-                                    </>
-                                ) : (
-                                    format(dateRange.from, "LLL dd, y", { locale: es })
-                                )
-                                ) : (
-                                <span>Selecciona un rango</span>
-                                )}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                initialFocus
-                                mode="range"
-                                defaultMonth={dateRange?.from}
-                                selected={dateRange}
-                                onSelect={setDateRange}
-                                numberOfMonths={2}
-                                locale={es}
-                            />
-                        </PopoverContent>
-                    </Popover>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    id="date"
+                                    variant={"outline"}
+                                    className={cn(
+                                    "w-full sm:w-[300px] justify-start text-left font-normal",
+                                    !dateRange && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {dateRange?.from ? (
+                                    dateRange.to ? (
+                                        <>
+                                        {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                                        {format(dateRange.to, "LLL dd, y", { locale: es })}
+                                        </>
+                                    ) : (
+                                        format(dateRange.from, "LLL dd, y", { locale: es })
+                                    )
+                                    ) : (
+                                    <span>Selecciona un rango</span>
+                                    )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    initialFocus
+                                    mode="range"
+                                    defaultMonth={dateRange?.from}
+                                    selected={dateRange}
+                                    onSelect={setDateRange}
+                                    numberOfMonths={2}
+                                    locale={es}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                         <Button asChild variant="outline">
+                            <Link href="/sales/industrial-report">
+                                <FileBarChart className="mr-2 h-4 w-4" />
+                                Ver Reporte Industrial
+                            </Link>
+                        </Button>
+                    </div>
                     <Button onClick={() => setNewOrderModalOpen(true)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Nueva Orden Industrial
