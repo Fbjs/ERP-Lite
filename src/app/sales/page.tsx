@@ -59,6 +59,8 @@ export type SalespersonRequest = {
   deliveryDate: string; // F. ENTREGA
   status: 'Pendiente' | 'Despachado';
   items: SalespersonRequestItem[];
+  // Simulación de valor para el resumen
+  amount: number;
 };
 
 
@@ -78,10 +80,10 @@ export const initialSalespersonRequests: SalespersonRequest[] = [
         { client: 'LORENA AGUILAR', product: 'G. BLANCAS 16X16', quantity: 6, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
         { client: 'LORENA AGUILAR', product: 'PUMPERNICKEL 500', quantity: 12, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
         { client: 'LORENA AGUILAR', product: 'CROSTINI OREGANO', quantity: 14, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
-    ]},
+    ], amount: 350000},
     { id: 'PED002', salesperson: 'VENDEDOR 2', deliveryPerson: 'MARCELO', responsiblePerson: 'VENDEDOR 2', date: '2025-07-29', deliveryDate: '2025-07-30', status: 'Pendiente', items: [
         { client: 'BETTER FOOD', product: 'CRUTONES 7MM', quantity: 10, type: 'PROD', itemType: 'FACTURA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO...' }
-    ]},
+    ], amount: 80000},
 ];
 
 
@@ -148,9 +150,9 @@ export default function SalesPage() {
 
      const requestSummaryTotals = useMemo(() => {
         return {
-            total: filteredRequests.length,
-            dispatched: filteredRequests.filter(r => r.status === 'Despachado').length,
-            pending: filteredRequests.filter(r => r.status === 'Pendiente').length
+            total: filteredRequests.reduce((acc, r) => acc + r.amount, 0),
+            dispatched: filteredRequests.filter(r => r.status === 'Despachado').reduce((acc, r) => acc + r.amount, 0),
+            pending: filteredRequests.filter(r => r.status === 'Pendiente').reduce((acc, r) => acc + r.amount, 0),
         };
     }, [filteredRequests]);
 
@@ -200,6 +202,9 @@ export default function SalesPage() {
     };
     
     const handleCreateSalespersonRequest = (data: SalespersonRequestFormData) => {
+        const SIMULATED_AVG_ITEM_PRICE = 2500;
+        const totalAmount = data.items.reduce((acc, item) => acc + (item.quantity * SIMULATED_AVG_ITEM_PRICE), 0);
+
         const newRequest: SalespersonRequest = {
             id: `PED${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
             salesperson: data.salesperson,
@@ -209,6 +214,7 @@ export default function SalesPage() {
             deliveryDate: data.deliveryDate,
             items: data.items,
             status: 'Pendiente',
+            amount: totalAmount,
         };
         setSalespersonRequests(prev => [newRequest, ...prev]);
         setNewRequestModalOpen(false);
@@ -527,32 +533,32 @@ export default function SalesPage() {
                         <h3 className="text-lg font-headline font-semibold mb-4">
                             Resumen de Pedidos Generales
                         </h3>
-                        <div className="grid gap-4 md:grid-cols-3">
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Total Pedidos</CardTitle>
-                                    <FileBarChart className="h-4 w-4 text-muted-foreground" />
+                                    <CardTitle className="text-sm font-medium">Total en Pedidos</CardTitle>
+                                    <DollarSign className="h-4 w-4 text-muted-foreground" />
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{requestSummaryTotals.total}</div>
+                                    <div className="text-2xl font-bold">${requestSummaryTotals.total.toLocaleString('es-CL')}</div>
                                 </CardContent>
                             </Card>
-                            <Card>
+                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Despachados</CardTitle>
+                                    <CardTitle className="text-sm font-medium">Total Despachado</CardTitle>
                                     <Truck className="h-4 w-4 text-green-600" />
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold text-green-600">{requestSummaryTotals.dispatched}</div>
+                                    <div className="text-2xl font-bold text-green-600">${requestSummaryTotals.dispatched.toLocaleString('es-CL')}</div>
                                 </CardContent>
                             </Card>
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
+                                    <CardTitle className="text-sm font-medium">Total Pendiente</CardTitle>
                                     <Clock className="h-4 w-4 text-yellow-500" />
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold text-yellow-500">{requestSummaryTotals.pending}</div>
+                                    <div className="text-2xl font-bold text-yellow-500">${requestSummaryTotals.pending.toLocaleString('es-CL')}</div>
                                 </CardContent>
                             </Card>
                         </div>

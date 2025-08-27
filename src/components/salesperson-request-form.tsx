@@ -75,9 +75,9 @@ export default function SalespersonRequestForm({ onSubmit, onCancel, recipes, cu
   
   const [openCombobox, setOpenCombobox] = useState<{type: 'customer' | 'product', index: number} | null>(null);
   
-  const uniqueSalespersons = ['A.NORERO', 'VENDEDOR 2', 'CLAUDIO M'];
+  const uniqueSalespersons = ['A.NORERO', 'VENDEDOR 2', 'CLAUDIO M', 'FRANCISCA'];
   const uniqueDeliveryPersons = ['RODRIGO', 'MARCELO', 'RENE', 'EXTERNO'];
-  const uniqueResponsiblePersons = ['A.NORERO', 'VENDEDOR 2', 'BODEGA'];
+  const uniqueResponsiblePersons = ['A.NORERO', 'VENDEDOR 2', 'BODEGA', 'FRANCISCA'];
 
 
   const handleItemChange = (index: number, field: keyof SalespersonRequestItem, value: string | number) => {
