@@ -5,12 +5,12 @@ import AppLayout from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, ArrowLeft } from 'lucide-react';
 import { useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import Logo from '@/components/logo';
+import Link from 'next/link';
 
 type ReportData = {
     customer: string;
@@ -20,17 +20,17 @@ type ReportData = {
     whiteBread: number | null;
     wholeWheatBread: number | null;
     product: string;
-    productDetail: string;
+    productDetail: string; // Formato de entrega
     dispatcher: string;
     comments: string;
 };
 
 const reportData: ReportData[] = [
-    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '27-2-25', deliveryDate: '0-1-00', whiteBread: null, wholeWheatBread: 10, product: 'GUAGUA INTEGRAL 13X13', productDetail: 'S/O - 11 mm', dispatcher: '', comments: '' },
-    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '8-10-24', deliveryDate: '11-10-14', whiteBread: 18, wholeWheatBread: null, product: 'GUAGUA BLANCA 14X14', productDetail: 'S/O - 9,5 mm', dispatcher: 'RENE', comments: 'AGREGAR COSTO DE DESPACHO FACT. MENOR' },
-    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '8-10-24', deliveryDate: '11-10-14', whiteBread: 8, wholeWheatBread: null, product: 'GUAGUA BLANCA 13x13', productDetail: 'S/O - 9,5 mm', dispatcher: '', comments: '' },
-    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '8-10-24', deliveryDate: '11-10-14', whiteBread: null, wholeWheatBread: 8, product: 'GUAGUA MULTICEREAL 14X10', productDetail: 'C/O - 9,5 mm', dispatcher: '', comments: '' },
-    { customer: 'CAFÉ FILOMENA SPA', purchaseOrder: 'FACT', orderDate: '30-12-24', deliveryDate: '3-1-15', whiteBread: 3, wholeWheatBread: null, product: 'GUAGUA BLANCA 16X16', productDetail: 'S/O - 11 mm', dispatcher: 'MARCELO', comments: 'Direccion: Los clarines 3136 depto 603- Macu' },
+    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '27-02-2025', deliveryDate: 'N/A', whiteBread: null, wholeWheatBread: 10, product: 'GUAGUA INTEGRAL 13X13', productDetail: 'S/O - 11 mm', dispatcher: '', comments: '' },
+    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '08-10-2024', deliveryDate: '11-10-2024', whiteBread: 18, wholeWheatBread: null, product: 'GUAGUA BLANCA 14X14', productDetail: 'S/O - 9,5 mm', dispatcher: 'RENE', comments: 'AGREGAR COSTO DE DESPACHO FACT. MENOR' },
+    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '08-10-2024', deliveryDate: '11-10-2024', whiteBread: 8, wholeWheatBread: null, product: 'GUAGUA BLANCA 13x13', productDetail: 'S/O - 9,5 mm', dispatcher: '', comments: '' },
+    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '08-10-2024', deliveryDate: '11-10-2024', whiteBread: null, wholeWheatBread: 8, product: 'GUAGUA MULTICEREAL 14X10', productDetail: 'C/O - 9,5 mm', dispatcher: '', comments: '' },
+    { customer: 'CAFÉ FILOMENA SPA', purchaseOrder: 'FACT', orderDate: '30-12-2024', deliveryDate: '03-01-2025', whiteBread: 3, wholeWheatBread: null, product: 'GUAGUA BLANCA 16X16', productDetail: 'S/O - 11 mm', dispatcher: 'MARCELO', comments: 'Direccion: Los clarines 3136 depto 603- Macul' },
 ];
 
 export default function IndustrialReportPage() {
@@ -80,7 +80,7 @@ export default function IndustrialReportPage() {
                      <Table className="text-xs border">
                         <TableHeader className="bg-gray-100">
                             <TableRow>
-                                <TableHead className="border p-1">PRODUCTO</TableHead>
+                                <TableHead className="border p-1">CLIENTE</TableHead>
                                 <TableHead className="border p-1">ORDEN DE COMPRA</TableHead>
                                 <TableHead className="border p-1">F.PEDIDO</TableHead>
                                 <TableHead className="border p-1">F.ENTREGA</TableHead>
@@ -119,10 +119,18 @@ export default function IndustrialReportPage() {
                             <CardTitle className="font-headline">Reporte de Producto Industrial</CardTitle>
                             <CardDescription className="font-body">Vista detallada de los pedidos industriales.</CardDescription>
                         </div>
-                        <Button onClick={handleDownloadPdf}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Descargar PDF
-                        </Button>
+                        <div className="flex gap-2">
+                             <Button asChild variant="outline">
+                                <Link href="/sales">
+                                    <ArrowLeft className="mr-2 h-4 w-4" />
+                                    Volver
+                                </Link>
+                            </Button>
+                            <Button onClick={handleDownloadPdf}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Descargar PDF
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -133,10 +141,10 @@ export default function IndustrialReportPage() {
                                     <TableHead>Cliente</TableHead>
                                     <TableHead>OC</TableHead>
                                     <TableHead>F. Pedido</TableHead>
-                                    <TableHead>F. Entrega</TableHead>
+                                    <TableHead>Blanca</TableHead>
+                                    <TableHead>Integrales</TableHead>
                                     <TableHead>Producto</TableHead>
-                                    <TableHead>Detalle</TableHead>
-                                    <TableHead>Despachador</TableHead>
+                                    <TableHead>Formato Entrega</TableHead>
                                 </TableRow>
                             </TableHeader>
                              <TableBody>
@@ -145,18 +153,10 @@ export default function IndustrialReportPage() {
                                         <TableCell className="font-medium">{row.customer}</TableCell>
                                         <TableCell>{row.purchaseOrder}</TableCell>
                                         <TableCell>{row.orderDate}</TableCell>
-                                        <TableCell>{row.deliveryDate}</TableCell>
-                                        <TableCell>
-                                            <div className="flex flex-col">
-                                                <span>{row.product}</span>
-                                                <span className="text-xs text-muted-foreground">
-                                                    {row.whiteBread ? `Blanca: ${row.whiteBread}` : ''}
-                                                    {row.wholeWheatBread ? `Integrales: ${row.wholeWheatBread}` : ''}
-                                                </span>
-                                            </div>
-                                        </TableCell>
+                                        <TableCell className="text-center">{row.whiteBread || '-'}</TableCell>
+                                        <TableCell className="text-center">{row.wholeWheatBread || '-'}</TableCell>
+                                        <TableCell>{row.product}</TableCell>
                                         <TableCell>{row.productDetail}</TableCell>
-                                        <TableCell>{row.dispatcher}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -167,3 +167,4 @@ export default function IndustrialReportPage() {
         </AppLayout>
     );
 }
+
