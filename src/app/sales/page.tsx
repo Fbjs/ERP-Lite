@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SalespersonRequestForm, { SalespersonRequestFormData } from '@/components/salesperson-request-form';
+import { initialCustomers } from '@/app/admin/customers/page';
 
 export type OrderItem = {
   recipeId: string;
@@ -466,6 +467,7 @@ export default function SalesPage() {
             onSubmit={handleCreateOrder}
             onCancel={() => setNewOrderModalOpen(false)}
             recipes={recipes}
+            customers={initialCustomers}
             />
         </DialogContent>
       </Dialog>

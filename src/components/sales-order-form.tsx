@@ -8,12 +8,14 @@ import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Recipe, ProductFormat } from '@/app/recipes/page';
-import { PlusCircle, Trash2, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar as CalendarIcon, ChevronsUpDown, Check } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Calendar } from './ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Customer } from '@/app/admin/customers/page';
 
 
 type OrderItem = {
@@ -32,12 +34,14 @@ type SalesOrderFormProps = {
   onSubmit: (data: OrderFormData) => void;
   onCancel: () => void;
   recipes: Recipe[];
+  customers: Customer[];
 };
 
-export default function SalesOrderForm({ onSubmit, onCancel, recipes }: SalesOrderFormProps) {
+export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers }: SalesOrderFormProps) {
   const [customer, setCustomer] = useState('');
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 2));
   const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1 }]);
+  const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
 
   const handleItemChange = (index: number, field: keyof OrderItem, value: string | number) => {
     const newItems = [...items];
@@ -84,13 +88,49 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes }: SalesOrd
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="customer">Cliente</Label>
-                <Input
-                    id="customer"
-                    value={customer}
-                    onChange={(e) => setCustomer(e.target.value)}
-                    placeholder="Nombre del cliente"
-                    required
-                />
+                <Popover open={openCustomerCombobox} onOpenChange={setOpenCustomerCombobox}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openCustomerCombobox}
+                            className="w-full justify-between font-normal"
+                        >
+                            {customer
+                                ? customers.find((c) => c.name === customer)?.name
+                                : "Selecciona un cliente..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                        <Command>
+                            <CommandInput placeholder="Buscar cliente..." />
+                            <CommandEmpty>No se encontró el cliente.</CommandEmpty>
+                            <CommandList>
+                                <CommandGroup>
+                                    {customers.map((c) => (
+                                        <CommandItem
+                                            key={c.id}
+                                            value={c.name}
+                                            onSelect={(currentValue) => {
+                                                setCustomer(customers.find(c => c.name.toLowerCase() === currentValue.toLowerCase())?.name || '');
+                                                setOpenCustomerCombobox(false);
+                                            }}
+                                        >
+                                            <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    customer === c.name ? "opacity-100" : "opacity-0"
+                                                )}
+                                            />
+                                            {c.name}
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            </CommandList>
+                        </Command>
+                    </PopoverContent>
+                </Popover>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="deliveryDate">Fecha de Entrega</Label>
