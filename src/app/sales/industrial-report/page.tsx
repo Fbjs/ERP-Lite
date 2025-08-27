@@ -139,24 +139,26 @@ export default function IndustrialReportPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Cliente</TableHead>
-                                    <TableHead>OC</TableHead>
                                     <TableHead>F. Pedido</TableHead>
                                     <TableHead>Blanca</TableHead>
                                     <TableHead>Integrales</TableHead>
                                     <TableHead>Producto</TableHead>
                                     <TableHead>Formato Entrega</TableHead>
+                                    <TableHead>Encargado</TableHead>
+                                    <TableHead>Comentarios</TableHead>
                                 </TableRow>
                             </TableHeader>
                              <TableBody>
                                 {reportData.map((row, index) => (
                                     <TableRow key={index}>
                                         <TableCell className="font-medium">{row.customer}</TableCell>
-                                        <TableCell>{row.purchaseOrder}</TableCell>
                                         <TableCell>{row.orderDate}</TableCell>
                                         <TableCell className="text-center">{row.whiteBread || '-'}</TableCell>
                                         <TableCell className="text-center">{row.wholeWheatBread || '-'}</TableCell>
                                         <TableCell>{row.product}</TableCell>
                                         <TableCell>{row.productDetail}</TableCell>
+                                        <TableCell>{row.dispatcher}</TableCell>
+                                        <TableCell>{row.comments}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
