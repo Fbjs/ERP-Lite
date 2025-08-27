@@ -35,6 +35,36 @@ type SalespersonRequestFormProps = {
 
 const initialItem: SalespersonRequestItem = { client: '', product: '', quantity: 1, type: 'PROD', deliveryAddress: '' };
 
+const ComboboxInput = ({ value, onSelect, placeholder, options }: { value: string, onSelect: (value: string) => void, placeholder: string, options: string[] }) => {
+    const [open, setOpen] = useState(false);
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                    {value || placeholder}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                    <CommandInput placeholder={`Buscar ${placeholder.toLowerCase()}...`} />
+                    <CommandList>
+                        <CommandEmpty>No encontrado.</CommandEmpty>
+                        <CommandGroup>
+                            {options.map(option => (
+                                <CommandItem key={option} value={option} onSelect={(currentValue) => { onSelect(currentValue.toUpperCase()); setOpen(false); }}>
+                                    <Check className={cn("mr-2 h-4 w-4", value === option ? "opacity-100" : "opacity-0")} />
+                                    {option}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    );
+};
+
 export default function SalespersonRequestForm({ onSubmit, onCancel, recipes, customers }: SalespersonRequestFormProps) {
   const [salesperson, setSalesperson] = useState('');
   const [deliveryPerson, setDeliveryPerson] = useState('');
@@ -45,8 +75,9 @@ export default function SalespersonRequestForm({ onSubmit, onCancel, recipes, cu
   
   const [openCombobox, setOpenCombobox] = useState<{type: 'customer' | 'product', index: number} | null>(null);
   
-  const uniqueSalespersons = ['A.NORERO', 'VENDEDOR 2']; // Example data
-  const uniqueDeliveryPersons = ['RODRIGO', 'MARCELO', 'RENE']; // Example data
+  const uniqueSalespersons = ['A.NORERO', 'VENDEDOR 2', 'CLAUDIO M'];
+  const uniqueDeliveryPersons = ['RODRIGO', 'MARCELO', 'RENE', 'EXTERNO'];
+  const uniqueResponsiblePersons = ['A.NORERO', 'VENDEDOR 2', 'BODEGA'];
 
 
   const handleItemChange = (index: number, field: keyof SalespersonRequestItem, value: string | number) => {
@@ -132,15 +163,15 @@ export default function SalespersonRequestForm({ onSubmit, onCancel, recipes, cu
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="salesperson">Responsable</Label>
-                <Input id="salesperson" value={salesperson} onChange={(e) => setSalesperson(e.target.value)} placeholder="Ej: A.NORERO" required />
+                <ComboboxInput value={salesperson} onSelect={setSalesperson} placeholder="Vendedor..." options={uniqueSalespersons} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="deliveryPerson">Entrega</Label>
-                <Input id="deliveryPerson" value={deliveryPerson} onChange={(e) => setDeliveryPerson(e.target.value)} placeholder="Ej: RODRIGO" required />
+                 <ComboboxInput value={deliveryPerson} onSelect={setDeliveryPerson} placeholder="Repartidor..." options={uniqueDeliveryPersons} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="responsiblePerson">Registro</Label>
-                <Input id="responsiblePerson" value={responsiblePerson} onChange={(e) => setResponsiblePerson(e.target.value)} placeholder="Ej: A.NORERO" required />
+                 <ComboboxInput value={responsiblePerson} onSelect={setResponsiblePerson} placeholder="Registrado por..." options={uniqueResponsiblePersons} />
             </div>
         </div>
       
