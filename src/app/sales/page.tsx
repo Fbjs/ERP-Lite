@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck, FileBarChart } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck, FileBarChart, NotebookText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
-import { format, subMonths, addDays } from 'date-fns';
+import { format, subMonths, addDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
@@ -72,9 +72,12 @@ export const initialOrders: Order[] = [
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
-    { id: 'PED001', salesperson: 'A.NORERO', deliveryPerson: 'RODRIGO', responsiblePerson: 'A.NORERO', date: '2025-08-01', deliveryDate: '2025-08-01', status: 'Despachado', items: [
-        { client: 'LORENA AGUILAR', product: 'SCHWARZBROT', quantity: 5, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
-        { client: 'LORENA AGUILAR', product: 'LANDBROT', quantity: 2, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+    { id: 'PED001', salesperson: 'FRANCISCA', deliveryPerson: 'RODRIGO', responsiblePerson: 'FRANCISCA', date: '2025-08-29', deliveryDate: '2025-08-29', status: 'Despachado', items: [
+        { client: 'LORENA AGUILAR', product: 'SCHWARZBROT', quantity: 94, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'RUSTICO LINAZA', quantity: 20, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'G. BLANCAS 16X16', quantity: 6, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'PUMPERNICKEL 500', quantity: 12, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'CROSTINI OREGANO', quantity: 14, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
     ]},
     { id: 'PED002', salesperson: 'VENDEDOR 2', deliveryPerson: 'MARCELO', responsiblePerson: 'VENDEDOR 2', date: '2025-07-29', deliveryDate: '2025-07-30', status: 'Pendiente', items: [
         { client: 'BETTER FOOD', product: 'CRUTONES 7MM', quantity: 10, type: 'PROD', itemType: 'FACTURA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO...' }
@@ -116,7 +119,7 @@ export default function SalesPage() {
         const toDate = dateRange.to || fromDate;
 
         return orders.filter(order => {
-            const orderDate = new Date(order.date);
+            const orderDate = parseISO(order.date);
             return orderDate >= fromDate && orderDate <= toDate;
         });
     }, [orders, dateRange]);
@@ -127,7 +130,7 @@ export default function SalesPage() {
         const toDate = requestDateRange.to || fromDate;
 
         return salespersonRequests.filter(req => {
-            const reqDate = new Date(req.date);
+            const reqDate = parseISO(req.date);
             return reqDate >= fromDate && reqDate <= toDate;
         });
     }, [salespersonRequests, requestDateRange]);
@@ -420,7 +423,7 @@ export default function SalesPage() {
                             <TableCell data-label="ID Orden" className="font-medium">{order.id}</TableCell>
                             <TableCell data-label="Cliente">{order.customer}</TableCell>
                             <TableCell data-label="Monto" className="text-left sm:text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
-                            <TableCell data-label="Fecha Entrega">{new Date(order.deliveryDate + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
+                            <TableCell data-label="Fecha Entrega">{format(parseISO(order.deliveryDate), 'P', { locale: es })}</TableCell>
                             <TableCell data-label="Estado">
                                 <Badge 
                                     variant={
@@ -501,6 +504,12 @@ export default function SalesPage() {
                                 />
                             </PopoverContent>
                         </Popover>
+                        <Button asChild variant="outline">
+                            <Link href={`/sales/daily-vendor-report`}>
+                                <NotebookText className="mr-2 h-4 w-4" />
+                                Reporte Diario por Vendedor
+                            </Link>
+                        </Button>
                          <Button asChild variant="outline">
                             <Link href={`/sales/general-report?from=${requestDateRange?.from?.toISOString()}&to=${requestDateRange?.to?.toISOString()}`}>
                                 <FileBarChart className="mr-2 h-4 w-4" />
@@ -571,8 +580,8 @@ export default function SalesPage() {
                                     <TableRow key={req.id}>
                                         <TableCell>{req.id}</TableCell>
                                         <TableCell>{req.salesperson}</TableCell>
-                                        <TableCell>{new Date(req.date + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
-                                        <TableCell>{new Date(req.deliveryDate + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
+                                        <TableCell>{format(parseISO(req.date), 'P', { locale: es })}</TableCell>
+                                        <TableCell>{format(parseISO(req.deliveryDate), 'P', { locale: es })}</TableCell>
                                         <TableCell>{req.items.length}</TableCell>
                                         <TableCell>
                                             <Badge variant={req.status === 'Despachado' ? 'default' : 'secondary'}>
@@ -654,15 +663,15 @@ export default function SalesPage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 font-body mb-6">
                         <div><p className="font-semibold text-gray-600">ID Orden:</p><p>{selectedOrder.id}</p></div>
-                        <div><p className="font-semibold text-gray-600">Fecha de Emisión:</p><p>{new Date(selectedOrder.date + 'T00:00:00').toLocaleDateString('es-ES')}</p></div>
+                        <div><p className="font-semibold text-gray-600">Fecha de Emisión:</p><p>{format(parseISO(selectedOrder.date), 'P', { locale: es })}</p></div>
                         <div><p className="font-semibold text-gray-600">Cliente:</p><p>{selectedOrder.customer}</p></div>
-                        <div><p className="font-semibold text-gray-600">Fecha de Entrega:</p><p>{new Date(selectedOrder.deliveryDate + 'T00:00:00').toLocaleDateString('es-ES')}</p></div>
+                        <div><p className="font-semibold text-gray-600">Fecha de Entrega:</p><p>{format(parseISO(selectedOrder.deliveryDate), 'P', { locale: es })}</p></div>
                         <div><p className="font-semibold text-gray-600">Monto Total:</p><p>${selectedOrder.amount.toLocaleString('es-CL')}</p></div>
                         <div><p className="font-semibold text-gray-600">Estado:</p><p>{selectedOrder.status}</p></div>
                         <div className="sm:col-span-2"><p className="font-semibold text-gray-600">Detalles del Pedido:</p><p className="whitespace-pre-wrap">{getOrderDetailsAsString(selectedOrder.items)}</p></div>
                     </div>
                     <div className="border-t-2 border-gray-200 pt-4 mt-4 text-center text-xs text-gray-500">
-                        <p>Documento generado el {new Date().toLocaleDateString('es-ES')}</p>
+                        <p>Documento generado el {format(new Date(), 'P', { locale: es })}</p>
                     </div>
                 </div>
             </div>
