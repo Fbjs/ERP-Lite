@@ -41,12 +41,23 @@ export type Order = {
   items: OrderItem[];
 };
 
+export type SalespersonRequestItem = {
+    client: string;
+    product: string;
+    quantity: number;
+    type: string;
+    deliveryAddress: string;
+};
+
 export type SalespersonRequest = {
   id: string;
   salesperson: string;
+  deliveryPerson: string;
+  responsiblePerson: string;
   date: string;
-  items: { product: string; quantity: number }[];
+  deliveryDate: string;
   status: 'Pendiente' | 'Despachado';
+  items: SalespersonRequestItem[];
 };
 
 
@@ -60,20 +71,13 @@ export const initialOrders: Order[] = [
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
-    { id: 'PED001', salesperson: 'Francisca', date: '2025-08-29', items: [
-        {product: 'Schwarzbrot', quantity: 94},
-        {product: 'Chocoso Centeno', quantity: 20},
-        {product: 'Grob', quantity: 20},
-        {product: 'Rustico Linaza', quantity: 8},
-        {product: 'Rustico Multi', quantity: 12},
-        {product: 'Roggenbrot', quantity: 24},
-        {product: 'Schrobtrot', quantity: 12},
-        {product: 'Integral Light', quantity: 12},
-        {product: 'Landbrot 500', quantity: 14},
-        {product: 'Vollkorn Cracker', quantity: 34},
-        {product: 'G. Blancas 16x16', quantity: 6},
-    ], status: 'Despachado' },
-    { id: 'PED002', salesperson: 'Vendedor 2', date: '2025-07-29', items: [{product: 'Croissant au Beurre', quantity: 100}, {product: 'Ciabatta', quantity: 50}], status: 'Pendiente' },
+    { id: 'PED001', salesperson: 'A.NORERO', deliveryPerson: 'RODRIGO', responsiblePerson: 'A.NORERO', date: '2025-08-01', deliveryDate: '2025-08-01', status: 'Despachado', items: [
+        { client: 'LORENA AGUILAR', product: 'SCHWARZBROT', quantity: 5, type: 'MERMA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'LANDBROT', quantity: 2, type: 'MERMA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+    ]},
+    { id: 'PED002', salesperson: 'VENDEDOR 2', deliveryPerson: 'MARCELO', responsiblePerson: 'VENDEDOR 2', date: '2025-07-29', deliveryDate: '2025-07-30', status: 'Pendiente', items: [
+        { client: 'BETTER FOOD', product: 'CRUTONES 7MM', quantity: 10, type: 'PROD', deliveryAddress: 'AGREGAR COSTO DE DESPACHO...' }
+    ]},
 ];
 
 
@@ -94,6 +98,11 @@ export default function SalesPage() {
         from: subMonths(new Date(2025, 6, 29), 1),
         to: new Date(2025, 6, 29)
     });
+    
+     const [requestDateRange, setRequestDateRange] = useState<DateRange | undefined>({
+        from: subMonths(new Date(2025, 7, 1), 1),
+        to: new Date(2025, 8, 0)
+    });
 
     const filteredOrders = useMemo(() => {
         if (!dateRange?.from) return orders;
@@ -105,6 +114,18 @@ export default function SalesPage() {
             return orderDate >= fromDate && orderDate <= toDate;
         });
     }, [orders, dateRange]);
+    
+    const filteredRequests = useMemo(() => {
+        if (!requestDateRange?.from) return salespersonRequests;
+        const fromDate = requestDateRange.from;
+        const toDate = requestDateRange.to || fromDate;
+
+        return salespersonRequests.filter(req => {
+            const reqDate = new Date(req.date);
+            return reqDate >= fromDate && reqDate <= toDate;
+        });
+    }, [salespersonRequests, requestDateRange]);
+
 
     const summaryTotals = useMemo(() => {
         return {
@@ -115,6 +136,14 @@ export default function SalesPage() {
             total: filteredOrders.filter(o => o.status !== 'Cancelado').reduce((acc, o) => acc + o.amount, 0),
         }
     }, [filteredOrders]);
+
+     const requestSummaryTotals = useMemo(() => {
+        return {
+            total: filteredRequests.length,
+            dispatched: filteredRequests.filter(r => r.status === 'Despachado').length,
+            pending: filteredRequests.filter(r => r.status === 'Pendiente').length
+        };
+    }, [filteredRequests]);
 
 
     const getOrderDetailsAsString = (items: OrderItem[]): string => {
@@ -165,14 +194,17 @@ export default function SalesPage() {
         const newRequest: SalespersonRequest = {
             id: `PED${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
             salesperson: data.salesperson,
-            date: new Date().toISOString().split('T')[0],
+            deliveryPerson: data.deliveryPerson,
+            responsiblePerson: data.responsiblePerson,
+            date: data.date,
+            deliveryDate: data.deliveryDate,
             items: data.items,
             status: 'Pendiente',
         };
         setSalespersonRequests(prev => [newRequest, ...prev]);
         setNewRequestModalOpen(false);
         toast({
-            title: "Pedido de Vendedor Creado",
+            title: "Pedido General Creado",
             description: `Se ha registrado el pedido para ${data.salesperson}.`
         });
     };
@@ -424,12 +456,85 @@ export default function SalesPage() {
             </TabsContent>
             
             <TabsContent value="salesperson" className="space-y-6 mt-6">
-                 <div className="flex justify-end">
+                 <div className="flex flex-wrap justify-between items-center gap-4">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                id="date-request"
+                                variant={"outline"}
+                                className={cn(
+                                "w-full sm:w-[300px] justify-start text-left font-normal",
+                                !requestDateRange && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {requestDateRange?.from ? (
+                                requestDateRange.to ? (
+                                    <>
+                                    {format(requestDateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                                    {format(requestDateRange.to, "LLL dd, y", { locale: es })}
+                                    </>
+                                ) : (
+                                    format(requestDateRange.from, "LLL dd, y", { locale: es })
+                                )
+                                ) : (
+                                <span>Selecciona un rango</span>
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={requestDateRange?.from}
+                                selected={requestDateRange}
+                                onSelect={setRequestDateRange}
+                                numberOfMonths={2}
+                                locale={es}
+                            />
+                        </PopoverContent>
+                    </Popover>
                     <Button onClick={() => setNewRequestModalOpen(true)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Nuevo Pedido General
                     </Button>
                 </div>
+                 {requestDateRange?.from && (
+                    <div>
+                        <h3 className="text-lg font-headline font-semibold mb-4">
+                            Resumen de Pedidos Generales
+                        </h3>
+                        <div className="grid gap-4 md:grid-cols-3">
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Total Pedidos</CardTitle>
+                                    <FileBarChart className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{requestSummaryTotals.total}</div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Despachados</CardTitle>
+                                    <Truck className="h-4 w-4 text-green-600" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold text-green-600">{requestSummaryTotals.dispatched}</div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
+                                    <Clock className="h-4 w-4 text-yellow-500" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold text-yellow-500">{requestSummaryTotals.pending}</div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                )}
                 <Card>
                     <CardHeader>
                         <CardTitle className="font-headline">Listado de Pedidos Generales</CardTitle>
@@ -440,18 +545,20 @@ export default function SalesPage() {
                                 <TableRow>
                                     <TableHead>ID Pedido</TableHead>
                                     <TableHead>Vendedor</TableHead>
-                                    <TableHead>Fecha</TableHead>
-                                    <TableHead>Ítems</TableHead>
+                                    <TableHead>Fecha Pedido</TableHead>
+                                    <TableHead>Fecha Entrega</TableHead>
+                                    <TableHead>Líneas</TableHead>
                                     <TableHead>Estado</TableHead>
                                     <TableHead><span className="sr-only">Acciones</span></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {salespersonRequests.map((req) => (
+                                {filteredRequests.map((req) => (
                                     <TableRow key={req.id}>
                                         <TableCell>{req.id}</TableCell>
                                         <TableCell>{req.salesperson}</TableCell>
                                         <TableCell>{new Date(req.date).toLocaleDateString('es-CL')}</TableCell>
+                                        <TableCell>{new Date(req.deliveryDate).toLocaleDateString('es-CL')}</TableCell>
                                         <TableCell>{req.items.length}</TableCell>
                                         <TableCell>
                                             <Badge variant={req.status === 'Despachado' ? 'default' : 'secondary'}>
@@ -502,17 +609,18 @@ export default function SalesPage() {
       
        {/* Modal Nuevo Pedido de Vendedor */}
        <Dialog open={isNewRequestModalOpen} onOpenChange={setNewRequestModalOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle className="font-headline">Crear Pedido General</DialogTitle>
             <DialogDescription className="font-body">
-              Registra los productos solicitados por un vendedor.
+              Registra los productos solicitados por un vendedor para sus clientes.
             </DialogDescription>
           </DialogHeader>
            <SalespersonRequestForm
                 onSubmit={handleCreateSalespersonRequest}
                 onCancel={() => setNewRequestModalOpen(false)}
                 recipes={recipes}
+                customers={initialCustomers}
             />
         </DialogContent>
       </Dialog>
@@ -591,5 +699,3 @@ export default function SalesPage() {
     </AppLayout>
   );
 }
-
-    

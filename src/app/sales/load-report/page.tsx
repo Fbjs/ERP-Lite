@@ -17,13 +17,6 @@ import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Logo from '@/components/logo';
 
-const reportProducts = [
-    "Schwarzbrot", "Chocoso Centeno", "Grob", "Rustico Linaza", "Rustico Multi",
-    "Roggenbrot", "Schrobtrot", "Integral Light", "Pan Int Rallado", "Landbrot 500",
-    "Pumpernickel 500", "Crostini Oregano", "Sin Orilla 10x10.5", "Vollkorn Cracker",
-    "G. Blancas 16x16", "G. Integral 16x16"
-];
-
 function LoadReportPageContent() {
     const reportRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
@@ -33,23 +26,6 @@ function LoadReportPageContent() {
     const requestData: SalespersonRequest | undefined = useMemo(() => {
         return initialSalespersonRequests.find(req => req.id === requestId);
     }, [requestId]);
-
-    const reportTableData = useMemo(() => {
-        if (!requestData) return [];
-        return reportProducts.map(productName => {
-            const requestedItem = requestData.items.find(item => item.product === productName);
-            return {
-                product: productName,
-                requested: requestedItem ? requestedItem.quantity : null,
-            };
-        });
-    }, [requestData]);
-
-     const totalRequested = useMemo(() => {
-        if (!requestData) return 0;
-        return requestData.items.reduce((sum, item) => sum + item.quantity, 0);
-    }, [requestData]);
-
 
     const handleDownloadPdf = async () => {
         const input = reportRef.current;
@@ -107,87 +83,51 @@ function LoadReportPageContent() {
         );
     }
 
+    const { items } = requestData;
+
     return (
         <AppLayout pageTitle={`Pedido de ${requestData.salesperson}`}>
-             <div className="fixed -left-[9999px] top-0 p-2 bg-white text-black" style={{ width: '210mm', height: '297mm' }}>
+             <div className="fixed -left-[9999px] top-0 p-2 bg-white text-black" style={{ width: '210mm' }}>
                 <div ref={reportRef} className="p-4 border-2 border-black h-full flex flex-col">
-                    <header className="grid grid-cols-3 gap-2 border-b-2 border-black pb-1">
-                        <div className="col-span-1">
+                    <header className="grid grid-cols-12 gap-2 border-b-2 border-black pb-1 text-sm">
+                        <div className="col-span-3 flex items-center">
                             <Logo className="w-32" />
                         </div>
-                        <div className="col-span-2 text-center">
-                            <h2 className="text-xl font-bold font-headline">REGISTRO PEDIDO POR VENDEDOR</h2>
-                            <div className="grid grid-cols-2 text-sm mt-1">
-                                <p><span className="font-semibold">PREPARADO POR:</span></p>
-                                <p><span className="font-semibold">ENTREGADO POR:</span></p>
+                        <div className="col-span-9">
+                            <h2 className="text-xl font-bold font-headline text-center">HOJA DE CARGA Y DESPACHO</h2>
+                             <div className="grid grid-cols-2 text-xs mt-1 border-t border-b border-black py-1">
+                                <p><span className="font-semibold">RESPONSABLE REGISTRO:</span> {requestData.responsiblePerson}</p>
+                                <p><span className="font-semibold">ENTREGA:</span> {requestData.deliveryPerson}</p>
+                                <p><span className="font-semibold">F. PEDIDO:</span> {format(parseISO(requestData.date), 'dd-MM-yyyy')}</p>
+                                <p><span className="font-semibold">F. ENTREGA:</span> {format(parseISO(requestData.deliveryDate), 'dd-MM-yyyy')}</p>
                             </div>
                         </div>
                     </header>
-                    <section className="grid grid-cols-3 gap-2 border-b-2 border-black py-1 text-sm">
-                       <div className="col-span-1">
-                            <p><span className="font-semibold">VENDEDOR:</span> {requestData.salesperson.toUpperCase()}</p>
-                       </div>
-                       <div className="col-span-1 border-x-2 border-black px-1">
-                            <p><span className="font-semibold">FECHA:</span> {format(parseISO(requestData.date), 'dd-MM-yyyy')}</p>
-                       </div>
-                       <div className="col-span-1">
-                            <p>Código: S.LOG.R.10</p>
-                            <p>Versión: 03</p>
-                            <p>Fecha: 28-01-2022</p>
-                       </div>
-                    </section>
-                    <main className="flex-grow grid grid-cols-12 gap-1 text-xs">
-                        <div className="col-span-4 border-r-2 border-black">
-                            <Table className="w-full">
-                                <TableHeader>
-                                    <TableRow className="border-b-2 border-black">
-                                        <TableHead className="h-auto p-1 font-bold text-black w-2/3">VENDEDOR</TableHead>
-                                        <TableHead className="h-auto p-1 font-bold text-black text-center">(+/-) PED</TableHead>
+                    <main className="flex-grow text-xs">
+                        <Table className="w-full">
+                            <TableHeader>
+                                <TableRow className="border-b-2 border-black">
+                                    <TableHead className="h-auto p-1 font-bold text-black border-r">ITEM</TableHead>
+                                    <TableHead className="h-auto p-1 font-bold text-black border-r">CLIENTE</TableHead>
+                                    <TableHead className="h-auto p-1 font-bold text-black border-r">PAN</TableHead>
+                                    <TableHead className="h-auto p-1 font-bold text-black border-r text-center">CANTIDAD</TableHead>
+                                    <TableHead className="h-auto p-1 font-bold text-black border-r">TIPO</TableHead>
+                                    <TableHead className="h-auto p-1 font-bold text-black">DIRECCION/COMENTARIOS</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {items.map((item, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell className="p-1 border-r">{item.type.startsWith("FACT") || item.type.startsWith("BOLETA") ? item.type : ""}</TableCell>
+                                        <TableCell className="p-1 border-r font-semibold">{item.client}</TableCell>
+                                        <TableCell className="p-1 border-r">{item.product}</TableCell>
+                                        <TableCell className="p-1 border-r text-center">{item.quantity}</TableCell>
+                                        <TableCell className="p-1 border-r">{item.type}</TableCell>
+                                        <TableCell className="p-1">{item.deliveryAddress}</TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {reportTableData.map(item => (
-                                        <TableRow key={item.product}>
-                                            <TableCell className="p-1 font-semibold border-b">{item.product.toUpperCase()}</TableCell>
-                                            <TableCell className="p-1 text-center border-b font-bold">{item.requested}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                    <TableRow>
-                                        <TableCell className="p-1 font-semibold">TOTAL</TableCell>
-                                        <TableCell className="p-1 text-center font-bold">{totalRequested}</TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
-                        <div className="col-span-8">
-                             <Table className="w-full h-full">
-                                <TableHeader>
-                                    <TableRow className="border-b-2 border-black">
-                                        <TableHead colSpan={2} className="h-auto p-1 font-bold text-black text-center border-r">CAJAS DESPACHO</TableHead>
-                                        <TableHead colSpan={6} className="h-auto p-1 font-bold text-black text-center">CAJAS RETORNO</TableHead>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableHead className="h-auto p-1 font-bold text-black border-r">FACTURAS</TableHead>
-                                        <TableHead className="h-auto p-1 font-bold text-black border-r">ENTREGA CANT</TableHead>
-                                        <TableHead className="h-auto p-1 font-bold text-black border-r">FRANCISCA</TableHead>
-                                        <TableHead className="h-auto p-1 font-bold text-black border-r">INTEGRAL</TableHead>
-                                        <TableHead className="h-auto p-1 font-bold text-black border-r">CANT</TableHead>
-                                        <TableHead className="h-auto p-1 font-bold text-black border-r">LOTE</TableHead>
-                                        <TableHead className="h-auto p-1 font-bold text-black border-r">CANT</TableHead>
-                                        <TableHead className="h-auto p-1 font-bold text-black">LOTE</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {Array.from({ length: reportProducts.length + 1 }).map((_, rowIndex) => (
-                                        <TableRow key={`row-${rowIndex}`}>
-                                            {Array.from({ length: 8 }).map((_, colIndex) => (
-                                                <TableCell key={`cell-${rowIndex}-${colIndex}`} className="p-1 border-b border-r h-[22px]"></TableCell>
-                                            ))}
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </main>
                 </div>
              </div>
@@ -196,8 +136,8 @@ function LoadReportPageContent() {
                 <CardHeader>
                     <div className="flex justify-between items-center">
                         <div>
-                            <CardTitle className="font-headline">Reporte de Carga de Vendedor: {requestData.salesperson}</CardTitle>
-                            <CardDescription className="font-body">Pedido del {format(parseISO(requestData.date), "PPP", { locale: es })}</CardDescription>
+                            <CardTitle className="font-headline">Reporte de Carga: {requestData.id}</CardTitle>
+                            <CardDescription className="font-body">Pedido de {requestData.salesperson} para el {format(parseISO(requestData.deliveryDate), "PPP", { locale: es })}</CardDescription>
                         </div>
                         <div className="flex gap-2">
                              <Button asChild variant="outline">
@@ -215,86 +155,59 @@ function LoadReportPageContent() {
                 </CardHeader>
                 <CardContent>
                     <p className="text-lg font-semibold mb-4">Vista Previa del Reporte</p>
-                    <div className="overflow-x-auto border rounded-lg p-4 bg-gray-50">
-                         <div className="w-[1000px] h-[1414px] bg-white shadow-lg scale-[0.5] -translate-x-1/4 -translate-y-1/4">
-                             <div ref={reportRef} className="p-4 border-2 border-black h-full flex flex-col">
-                                <header className="grid grid-cols-3 gap-2 border-b-2 border-black pb-1">
-                                    <div className="col-span-1">
+                    <div className="overflow-x-auto border rounded-lg p-4 bg-gray-50 flex justify-center">
+                         <div className="w-[210mm] h-[297mm] bg-white shadow-lg scale-[0.7] origin-top">
+                           <div ref={reportRef} className="p-4 border-2 border-black h-full flex flex-col">
+                                <header className="grid grid-cols-12 gap-2 border-b-2 border-black pb-1 text-sm">
+                                    <div className="col-span-3 flex items-center">
                                         <Logo className="w-32" />
                                     </div>
-                                    <div className="col-span-2 text-center">
-                                        <h2 className="text-xl font-bold font-headline">REGISTRO PEDIDO POR VENDEDOR</h2>
-                                        <div className="grid grid-cols-2 text-sm mt-1">
-                                            <p><span className="font-semibold">PREPARADO POR:</span></p>
-                                            <p><span className="font-semibold">ENTREGADO POR:</span></p>
+                                    <div className="col-span-9">
+                                        <h2 className="text-xl font-bold font-headline text-center">HOJA DE CARGA Y DESPACHO</h2>
+                                        <div className="grid grid-cols-2 text-xs mt-1 border-t border-b border-black py-1">
+                                            <p><span className="font-semibold">RESPONSABLE REGISTRO:</span> {requestData.responsiblePerson}</p>
+                                            <p><span className="font-semibold">ENTREGA:</span> {requestData.deliveryPerson}</p>
+                                            <p><span className="font-semibold">F. PEDIDO:</span> {format(parseISO(requestData.date), 'dd-MM-yyyy')}</p>
+                                            <p><span className="font-semibold">F. ENTREGA:</span> {format(parseISO(requestData.deliveryDate), 'dd-MM-yyyy')}</p>
                                         </div>
                                     </div>
                                 </header>
-                                <section className="grid grid-cols-3 gap-2 border-b-2 border-black py-1 text-sm">
-                                   <div className="col-span-1">
-                                        <p><span className="font-semibold">VENDEDOR:</span> {requestData.salesperson.toUpperCase()}</p>
-                                   </div>
-                                   <div className="col-span-1 border-x-2 border-black px-1">
-                                        <p><span className="font-semibold">FECHA:</span> {format(parseISO(requestData.date), 'dd-MM-yyyy')}</p>
-                                   </div>
-                                   <div className="col-span-1">
-                                        <p>Código: S.LOG.R.10</p>
-                                        <p>Versión: 03</p>
-                                        <p>Fecha: 28-01-2022</p>
-                                   </div>
-                                </section>
-                                <main className="flex-grow grid grid-cols-12 gap-1 text-xs">
-                                    <div className="col-span-4 border-r-2 border-black">
-                                        <Table className="w-full">
-                                            <TableHeader>
-                                                <TableRow className="border-b-2 border-black">
-                                                    <TableHead className="h-auto p-1 font-bold text-black w-2/3">VENDEDOR</TableHead>
-                                                    <TableHead className="h-auto p-1 font-bold text-black text-center">(+/-) PED</TableHead>
+                                <main className="flex-grow text-xs">
+                                    <Table className="w-full">
+                                        <TableHeader>
+                                            <TableRow className="border-b-2 border-black">
+                                                <TableHead className="h-auto p-1 font-bold text-black border-r w-[10%]">ITEM</TableHead>
+                                                <TableHead className="h-auto p-1 font-bold text-black border-r w-[15%]">CLIENTE</TableHead>
+                                                <TableHead className="h-auto p-1 font-bold text-black border-r w-[15%]">PAN</TableHead>
+                                                <TableHead className="h-auto p-1 font-bold text-black border-r text-center w-[5%]">CANT</TableHead>
+                                                <TableHead className="h-auto p-1 font-bold text-black border-r w-[15%]">TIPO</TableHead>
+                                                <TableHead className="h-auto p-1 font-bold text-black w-[40%]">DIRECCION/COMENTARIOS</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {items.map((item, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="p-1 border-r">{item.type.startsWith("FACT") || item.type.startsWith("BOLETA") ? item.type : ""}</TableCell>
+                                                    <TableCell className="p-1 border-r font-semibold">{item.client}</TableCell>
+                                                    <TableCell className="p-1 border-r">{item.product}</TableCell>
+                                                    <TableCell className="p-1 border-r text-center">{item.quantity}</TableCell>
+                                                    <TableCell className="p-1 border-r">{item.type}</TableCell>
+                                                    <TableCell className="p-1">{item.deliveryAddress}</TableCell>
                                                 </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {reportTableData.map(item => (
-                                                    <TableRow key={item.product}>
-                                                        <TableCell className="p-1 font-semibold border-b">{item.product.toUpperCase()}</TableCell>
-                                                        <TableCell className="p-1 text-center border-b font-bold">{item.requested}</TableCell>
-                                                    </TableRow>
-                                                ))}
-                                                <TableRow>
-                                                    <TableCell className="p-1 font-semibold">TOTAL</TableCell>
-                                                    <TableCell className="p-1 text-center font-bold">{totalRequested}</TableCell>
+                                            ))}
+                                             {/* Add empty rows to fill page */}
+                                            {Array.from({ length: Math.max(0, 35 - items.length) }).map((_, index) => (
+                                                <TableRow key={`empty-${index}`}>
+                                                    <TableCell className="p-1 border-r h-6">&nbsp;</TableCell>
+                                                    <TableCell className="p-1 border-r"></TableCell>
+                                                    <TableCell className="p-1 border-r"></TableCell>
+                                                    <TableCell className="p-1 border-r text-center"></TableCell>
+                                                    <TableCell className="p-1 border-r"></TableCell>
+                                                    <TableCell className="p-1"></TableCell>
                                                 </TableRow>
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                    <div className="col-span-8">
-                                         <Table className="w-full h-full">
-                                            <TableHeader>
-                                                <TableRow className="border-b-2 border-black">
-                                                    <TableHead colSpan={2} className="h-auto p-1 font-bold text-black text-center border-r">CAJAS DESPACHO</TableHead>
-                                                    <TableHead colSpan={6} className="h-auto p-1 font-bold text-black text-center">CAJAS RETORNO</TableHead>
-                                                </TableRow>
-                                                <TableRow>
-                                                    <TableHead className="h-auto p-1 font-bold text-black border-r">FACTURAS</TableHead>
-                                                    <TableHead className="h-auto p-1 font-bold text-black border-r">ENTREGA CANT</TableHead>
-                                                    <TableHead className="h-auto p-1 font-bold text-black border-r">FRANCISCA</TableHead>
-                                                    <TableHead className="h-auto p-1 font-bold text-black border-r">INTEGRAL</TableHead>
-                                                    <TableHead className="h-auto p-1 font-bold text-black border-r">CANT</TableHead>
-                                                    <TableHead className="h-auto p-1 font-bold text-black border-r">LOTE</TableHead>
-                                                    <TableHead className="h-auto p-1 font-bold text-black border-r">CANT</TableHead>
-                                                    <TableHead className="h-auto p-1 font-bold text-black">LOTE</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {Array.from({ length: reportProducts.length + 1 }).map((_, rowIndex) => (
-                                                    <TableRow key={`row-${rowIndex}`}>
-                                                        {Array.from({ length: 8 }).map((_, colIndex) => (
-                                                            <TableCell key={`cell-${rowIndex}-${colIndex}`} className="p-1 border-b border-r h-[22px]"></TableCell>
-                                                        ))}
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
                                 </main>
                             </div>
                         </div>
@@ -312,5 +225,3 @@ export default function Page() {
     </Suspense>
   );
 }
-
-    
