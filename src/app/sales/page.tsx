@@ -60,7 +60,19 @@ export const initialOrders: Order[] = [
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
-    { id: 'PED001', salesperson: 'Vendedor 1', date: '2025-07-29', items: [{product: 'Pain au Levain', quantity: 20}, {product: 'Baguette Tradition', quantity: 40}], status: 'Despachado' },
+    { id: 'PED001', salesperson: 'Francisca', date: '2025-08-29', items: [
+        {product: 'Schwarzbrot', quantity: 94},
+        {product: 'Chocoso Centeno', quantity: 20},
+        {product: 'Grob', quantity: 20},
+        {product: 'Rustico Linaza', quantity: 8},
+        {product: 'Rustico Multi', quantity: 12},
+        {product: 'Roggenbrot', quantity: 24},
+        {product: 'Schrobtrot', quantity: 12},
+        {product: 'Integral Light', quantity: 12},
+        {product: 'Landbrot 500', quantity: 14},
+        {product: 'Vollkorn Cracker', quantity: 34},
+        {product: 'G. Blancas 16x16', quantity: 6},
+    ], status: 'Despachado' },
     { id: 'PED002', salesperson: 'Vendedor 2', date: '2025-07-29', items: [{product: 'Croissant au Beurre', quantity: 100}, {product: 'Ciabatta', quantity: 50}], status: 'Pendiente' },
 ];
 
@@ -244,7 +256,7 @@ export default function SalesPage() {
                         </div>
                         <TabsList>
                             <TabsTrigger value="industrial">Ventas Industriales</TabsTrigger>
-                            <TabsTrigger value="salesperson">Pedidos de Vendedores</TabsTrigger>
+                            <TabsTrigger value="salesperson">Pedidos Generales</TabsTrigger>
                         </TabsList>
                     </div>
                 </CardHeader>
@@ -415,12 +427,12 @@ export default function SalesPage() {
                  <div className="flex justify-end">
                     <Button onClick={() => setNewRequestModalOpen(true)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Nuevo Pedido de Vendedor
+                        Nuevo Pedido General
                     </Button>
                 </div>
                 <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline">Listado de Pedidos de Vendedores</CardTitle>
+                        <CardTitle className="font-headline">Listado de Pedidos Generales</CardTitle>
                     </CardHeader>
                      <CardContent>
                         <Table>
@@ -431,6 +443,7 @@ export default function SalesPage() {
                                     <TableHead>Fecha</TableHead>
                                     <TableHead>Ítems</TableHead>
                                     <TableHead>Estado</TableHead>
+                                    <TableHead><span className="sr-only">Acciones</span></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -439,11 +452,26 @@ export default function SalesPage() {
                                         <TableCell>{req.id}</TableCell>
                                         <TableCell>{req.salesperson}</TableCell>
                                         <TableCell>{new Date(req.date).toLocaleDateString('es-CL')}</TableCell>
-                                        <TableCell>{req.items.map(i => `${i.quantity} x ${i.product}`).join(', ')}</TableCell>
+                                        <TableCell>{req.items.length}</TableCell>
                                         <TableCell>
                                             <Badge variant={req.status === 'Despachado' ? 'default' : 'secondary'}>
                                                 {req.status}
                                             </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={`/sales/load-report?requestId=${req.id}`}>Generar Reporte de Carga</Link>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -476,7 +504,7 @@ export default function SalesPage() {
        <Dialog open={isNewRequestModalOpen} onOpenChange={setNewRequestModalOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">Crear Pedido de Vendedor</DialogTitle>
+            <DialogTitle className="font-headline">Crear Pedido General</DialogTitle>
             <DialogDescription className="font-body">
               Registra los productos solicitados por un vendedor.
             </DialogDescription>
@@ -563,3 +591,5 @@ export default function SalesPage() {
     </AppLayout>
   );
 }
+
+    
