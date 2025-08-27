@@ -6,13 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Download, ArrowLeft } from 'lucide-react';
-import { useRef } from 'react';
+import { useRef, useMemo, Suspense } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { initialOrders } from '@/app/sales/page';
+import { initialRecipes } from '@/app/recipes/page';
+import { format, parseISO } from 'date-fns';
 
-type ReportData = {
+type ReportRow = {
     customer: string;
     purchaseOrder: string;
     orderDate: string;
@@ -20,22 +24,55 @@ type ReportData = {
     whiteBread: number | null;
     wholeWheatBread: number | null;
     product: string;
-    productDetail: string; // Formato de entrega
-    dispatcher: string;
-    comments: string;
+    productDetail: string;
+    dispatcher: string; // This will be empty for now
+    comments: string;   // This will be empty for now
 };
 
-const reportData: ReportData[] = [
-    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '27-02-2025', deliveryDate: 'N/A', whiteBread: null, wholeWheatBread: 10, product: 'GUAGUA INTEGRAL 13X13', productDetail: 'S/O - 11 mm', dispatcher: '', comments: '' },
-    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '08-10-2024', deliveryDate: '11-10-2024', whiteBread: 18, wholeWheatBread: null, product: 'GUAGUA BLANCA 14X14', productDetail: 'S/O - 9,5 mm', dispatcher: 'RENE', comments: 'AGREGAR COSTO DE DESPACHO FACT. MENOR' },
-    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '08-10-2024', deliveryDate: '11-10-2024', whiteBread: 8, wholeWheatBread: null, product: 'GUAGUA BLANCA 13x13', productDetail: 'S/O - 9,5 mm', dispatcher: '', comments: '' },
-    { customer: 'Hotel Holiday Inn - Pudahuel', purchaseOrder: 'FACT', orderDate: '08-10-2024', deliveryDate: '11-10-2024', whiteBread: null, wholeWheatBread: 8, product: 'GUAGUA MULTICEREAL 14X10', productDetail: 'C/O - 9,5 mm', dispatcher: '', comments: '' },
-    { customer: 'CAFÉ FILOMENA SPA', purchaseOrder: 'FACT', orderDate: '30-12-2024', deliveryDate: '03-01-2025', whiteBread: 3, wholeWheatBread: null, product: 'GUAGUA BLANCA 16X16', productDetail: 'S/O - 11 mm', dispatcher: 'MARCELO', comments: 'Direccion: Los clarines 3136 depto 603- Macul' },
-];
-
-export default function IndustrialReportPage() {
+function IndustrialReportPageContent() {
     const reportRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
+    const searchParams = useSearchParams();
+
+    const fromDate = searchParams.get('from');
+    const toDate = searchParams.get('to');
+
+    const reportData: ReportRow[] = useMemo(() => {
+        const filteredOrders = initialOrders.filter(order => {
+            if (!fromDate || !toDate) return true; // Show all if no dates
+            const orderDate = parseISO(order.date);
+            return orderDate >= parseISO(fromDate) && orderDate <= parseISO(toDate);
+        });
+
+        const data: ReportRow[] = [];
+
+        filteredOrders.forEach(order => {
+            order.items.forEach(item => {
+                const recipe = initialRecipes.find(r => r.id === item.recipeId);
+                const formatInfo = recipe?.formats.find(f => f.sku === item.formatSku);
+                
+                if (recipe) {
+                    const isWhite = !recipe.name.toLowerCase().includes('integral') && !recipe.name.toLowerCase().includes('cereal');
+                    const isWholeWheat = recipe.name.toLowerCase().includes('integral') || recipe.name.toLowerCase().includes('cereal');
+
+                    data.push({
+                        customer: order.customer,
+                        purchaseOrder: 'FACT', // Placeholder
+                        orderDate: format(parseISO(order.date), 'dd-MM-yyyy'),
+                        deliveryDate: format(parseISO(order.deliveryDate), 'dd-MM-yyyy'),
+                        whiteBread: isWhite ? item.quantity : null,
+                        wholeWheatBread: isWholeWheat ? item.quantity : null,
+                        product: recipe.name,
+                        productDetail: formatInfo?.name || item.formatSku,
+                        dispatcher: '', // Placeholder
+                        comments: '' // Placeholder
+                    });
+                }
+            });
+        });
+
+        return data;
+    }, [fromDate, toDate]);
 
     const handleDownloadPdf = async () => {
         const input = reportRef.current;
@@ -117,7 +154,7 @@ export default function IndustrialReportPage() {
                     <div className="flex justify-between items-center">
                         <div>
                             <CardTitle className="font-headline">Reporte de Producto Industrial</CardTitle>
-                            <CardDescription className="font-body">Vista detallada de los pedidos industriales.</CardDescription>
+                            <CardDescription className="font-body">Vista detallada de los pedidos industriales para el período seleccionado.</CardDescription>
                         </div>
                         <div className="flex gap-2">
                              <Button asChild variant="outline">
@@ -140,27 +177,29 @@ export default function IndustrialReportPage() {
                                 <TableRow>
                                     <TableHead>Cliente</TableHead>
                                     <TableHead>F. Pedido</TableHead>
+                                    <TableHead>F. Entrega</TableHead>
                                     <TableHead>Blanca</TableHead>
                                     <TableHead>Integrales</TableHead>
                                     <TableHead>Producto</TableHead>
                                     <TableHead>Formato Entrega</TableHead>
-                                    <TableHead>Encargado</TableHead>
-                                    <TableHead>Comentarios</TableHead>
                                 </TableRow>
                             </TableHeader>
                              <TableBody>
-                                {reportData.map((row, index) => (
+                                {reportData.length > 0 ? reportData.map((row, index) => (
                                     <TableRow key={index}>
                                         <TableCell className="font-medium">{row.customer}</TableCell>
                                         <TableCell>{row.orderDate}</TableCell>
+                                        <TableCell>{row.deliveryDate}</TableCell>
                                         <TableCell className="text-center">{row.whiteBread || '-'}</TableCell>
                                         <TableCell className="text-center">{row.wholeWheatBread || '-'}</TableCell>
                                         <TableCell>{row.product}</TableCell>
                                         <TableCell>{row.productDetail}</TableCell>
-                                        <TableCell>{row.dispatcher}</TableCell>
-                                        <TableCell>{row.comments}</TableCell>
                                     </TableRow>
-                                ))}
+                                )) : (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="text-center h-24">No hay datos para el período seleccionado.</TableCell>
+                                    </TableRow>
+                                )}
                             </TableBody>
                         </Table>
                     </div>
@@ -169,3 +208,12 @@ export default function IndustrialReportPage() {
         </AppLayout>
     );
 }
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Cargando reporte...</div>}>
+      <IndustrialReportPageContent />
+    </Suspense>
+  );
+}
+

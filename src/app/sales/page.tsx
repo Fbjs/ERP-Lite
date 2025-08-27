@@ -291,7 +291,7 @@ export default function SalesPage() {
                             </PopoverContent>
                         </Popover>
                          <Button asChild variant="outline">
-                            <Link href="/sales/industrial-report">
+                            <Link href={`/sales/industrial-report?from=${dateRange?.from?.toISOString()}&to=${dateRange?.to?.toISOString()}`}>
                                 <FileBarChart className="mr-2 h-4 w-4" />
                                 Ver Reporte Industrial
                             </Link>
