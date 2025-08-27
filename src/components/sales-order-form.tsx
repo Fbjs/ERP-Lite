@@ -42,6 +42,7 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 2));
   const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1 }]);
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
+  const [openProductCombobox, setOpenProductCombobox] = useState<number | null>(null);
 
   const handleItemChange = (index: number, field: keyof OrderItem, value: string | number) => {
     const newItems = [...items];
@@ -168,16 +169,50 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
                 const availableFormats = getAvailableFormats(item.recipeId);
                 return (
                  <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                    <Select value={item.recipeId} onValueChange={(value) => handleItemChange(index, 'recipeId', value)}>
-                        <SelectTrigger className="col-span-5">
-                            <SelectValue placeholder="Producto" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {recipes.map(recipe => (
-                                <SelectItem key={recipe.id} value={recipe.id}>{recipe.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Popover open={openProductCombobox === index} onOpenChange={(isOpen) => setOpenProductCombobox(isOpen ? index : null)}>
+                        <PopoverTrigger asChild>
+                             <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={openProductCombobox === index}
+                                className="col-span-5 justify-between font-normal"
+                            >
+                                {item.recipeId
+                                    ? recipes.find((r) => r.id === item.recipeId)?.name
+                                    : "Producto"}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                             <Command>
+                                <CommandInput placeholder="Buscar producto..." />
+                                <CommandEmpty>No se encontró el producto.</CommandEmpty>
+                                <CommandList>
+                                     <CommandGroup>
+                                        {recipes.map(recipe => (
+                                            <CommandItem
+                                                key={recipe.id}
+                                                value={recipe.name}
+                                                onSelect={() => {
+                                                    handleItemChange(index, 'recipeId', recipe.id);
+                                                    setOpenProductCombobox(null);
+                                                }}
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        item.recipeId === recipe.id ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                {recipe.name}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </CommandList>
+                            </Command>
+                        </PopoverContent>
+                    </Popover>
+
                      <Select value={item.formatSku} onValueChange={(value) => handleItemChange(index, 'formatSku', value)} disabled={!item.recipeId}>
                         <SelectTrigger className="col-span-4">
                             <SelectValue placeholder="Formato" />
