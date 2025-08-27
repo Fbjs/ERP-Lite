@@ -33,7 +33,7 @@ type SalespersonRequestFormProps = {
   customers: Customer[];
 };
 
-const initialItem: SalespersonRequestItem = { client: '', product: '', quantity: 1, type: 'PROD', deliveryAddress: '' };
+const initialItem: SalespersonRequestItem = { client: '', product: '', quantity: 1, type: 'PROD', itemType: 'CONFIRMADO', deliveryAddress: '' };
 
 const ComboboxInput = ({ value, onSelect, placeholder, options }: { value: string, onSelect: (value: string) => void, placeholder: string, options: string[] }) => {
     const [open, setOpen] = useState(false);
@@ -162,16 +162,16 @@ export default function SalespersonRequestForm({ onSubmit, onCancel, recipes, cu
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
+                <Label htmlFor="responsiblePerson">Registro del</Label>
+                 <ComboboxInput value={responsiblePerson} onSelect={setResponsiblePerson} placeholder="Registrado por..." options={uniqueResponsiblePersons} />
+            </div>
+             <div className="space-y-2">
                 <Label htmlFor="salesperson">Responsable</Label>
                 <ComboboxInput value={salesperson} onSelect={setSalesperson} placeholder="Vendedor..." options={uniqueSalespersons} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="deliveryPerson">Entrega</Label>
                  <ComboboxInput value={deliveryPerson} onSelect={setDeliveryPerson} placeholder="Repartidor..." options={uniqueDeliveryPersons} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="responsiblePerson">Registro</Label>
-                 <ComboboxInput value={responsiblePerson} onSelect={setResponsiblePerson} placeholder="Registrado por..." options={uniqueResponsiblePersons} />
             </div>
         </div>
       
@@ -230,7 +230,7 @@ export default function SalespersonRequestForm({ onSubmit, onCancel, recipes, cu
                             </Popover>
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="space-y-2">
                             <Label>Cantidad</Label>
                             <Input type="number" value={item.quantity} onChange={e => handleItemChange(index, 'quantity', e.target.value)} required min="1" />
@@ -238,6 +238,10 @@ export default function SalespersonRequestForm({ onSubmit, onCancel, recipes, cu
                          <div className="space-y-2">
                             <Label>Tipo</Label>
                             <Input value={item.type} onChange={e => handleItemChange(index, 'type', e.target.value)} placeholder="Ej: PROD, MERMA" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Item</Label>
+                            <Input value={item.itemType} onChange={e => handleItemChange(index, 'itemType', e.target.value)} placeholder="Ej: FACT, BOLETA" />
                         </div>
                     </div>
                     <div className="space-y-2">

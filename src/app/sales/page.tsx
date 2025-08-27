@@ -45,17 +45,18 @@ export type SalespersonRequestItem = {
     client: string;
     product: string;
     quantity: number;
-    type: string;
+    type: string; // Corresponde a la columna TIPO del reporte (ej: PROD, MERMA)
+    itemType: string; // Corresponde a la columna ITEM del reporte (ej: FACT, BOLETA, CONFIRMADO)
     deliveryAddress: string;
 };
 
 export type SalespersonRequest = {
   id: string;
-  salesperson: string;
-  deliveryPerson: string;
-  responsiblePerson: string;
-  date: string;
-  deliveryDate: string;
+  salesperson: string; // Corresponde a 'Responsable'
+  deliveryPerson: string; // Corresponde a 'Entrega'
+  responsiblePerson: string; // Corresponde a 'Registro del'
+  date: string; // F. PEDIDO
+  deliveryDate: string; // F. ENTREGA
   status: 'Pendiente' | 'Despachado';
   items: SalespersonRequestItem[];
 };
@@ -72,11 +73,11 @@ export const initialOrders: Order[] = [
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
     { id: 'PED001', salesperson: 'A.NORERO', deliveryPerson: 'RODRIGO', responsiblePerson: 'A.NORERO', date: '2025-08-01', deliveryDate: '2025-08-01', status: 'Despachado', items: [
-        { client: 'LORENA AGUILAR', product: 'SCHWARZBROT', quantity: 5, type: 'MERMA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
-        { client: 'LORENA AGUILAR', product: 'LANDBROT', quantity: 2, type: 'MERMA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'SCHWARZBROT', quantity: 5, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'LANDBROT', quantity: 2, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
     ]},
     { id: 'PED002', salesperson: 'VENDEDOR 2', deliveryPerson: 'MARCELO', responsiblePerson: 'VENDEDOR 2', date: '2025-07-29', deliveryDate: '2025-07-30', status: 'Pendiente', items: [
-        { client: 'BETTER FOOD', product: 'CRUTONES 7MM', quantity: 10, type: 'PROD', deliveryAddress: 'AGREGAR COSTO DE DESPACHO...' }
+        { client: 'BETTER FOOD', product: 'CRUTONES 7MM', quantity: 10, type: 'PROD', itemType: 'FACTURA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO...' }
     ]},
 ];
 
@@ -457,43 +458,51 @@ export default function SalesPage() {
             
             <TabsContent value="salesperson" className="space-y-6 mt-6">
                  <div className="flex flex-wrap justify-between items-center gap-4">
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                id="date-request"
-                                variant={"outline"}
-                                className={cn(
-                                "w-full sm:w-[300px] justify-start text-left font-normal",
-                                !requestDateRange && "text-muted-foreground"
-                                )}
-                            >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {requestDateRange?.from ? (
-                                requestDateRange.to ? (
-                                    <>
-                                    {format(requestDateRange.from, "LLL dd, y", { locale: es })} -{" "}
-                                    {format(requestDateRange.to, "LLL dd, y", { locale: es })}
-                                    </>
-                                ) : (
-                                    format(requestDateRange.from, "LLL dd, y", { locale: es })
-                                )
-                                ) : (
-                                <span>Selecciona un rango</span>
-                                )}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                initialFocus
-                                mode="range"
-                                defaultMonth={requestDateRange?.from}
-                                selected={requestDateRange}
-                                onSelect={setRequestDateRange}
-                                numberOfMonths={2}
-                                locale={es}
-                            />
-                        </PopoverContent>
-                    </Popover>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    id="date-request"
+                                    variant={"outline"}
+                                    className={cn(
+                                    "w-full sm:w-[300px] justify-start text-left font-normal",
+                                    !requestDateRange && "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {requestDateRange?.from ? (
+                                    requestDateRange.to ? (
+                                        <>
+                                        {format(requestDateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                                        {format(requestDateRange.to, "LLL dd, y", { locale: es })}
+                                        </>
+                                    ) : (
+                                        format(requestDateRange.from, "LLL dd, y", { locale: es })
+                                    )
+                                    ) : (
+                                    <span>Selecciona un rango</span>
+                                    )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                    initialFocus
+                                    mode="range"
+                                    defaultMonth={requestDateRange?.from}
+                                    selected={requestDateRange}
+                                    onSelect={setRequestDateRange}
+                                    numberOfMonths={2}
+                                    locale={es}
+                                />
+                            </PopoverContent>
+                        </Popover>
+                         <Button asChild variant="outline">
+                            <Link href={`/sales/general-report?from=${requestDateRange?.from?.toISOString()}&to=${requestDateRange?.to?.toISOString()}`}>
+                                <FileBarChart className="mr-2 h-4 w-4" />
+                                Ver Reporte General
+                            </Link>
+                        </Button>
+                    </div>
                     <Button onClick={() => setNewRequestModalOpen(true)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Nuevo Pedido General
@@ -544,7 +553,7 @@ export default function SalesPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>ID Pedido</TableHead>
-                                    <TableHead>Vendedor</TableHead>
+                                    <TableHead>Responsable</TableHead>
                                     <TableHead>Fecha Pedido</TableHead>
                                     <TableHead>Fecha Entrega</TableHead>
                                     <TableHead>Líneas</TableHead>
@@ -575,7 +584,7 @@ export default function SalesPage() {
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                                                     <DropdownMenuItem asChild>
-                                                        <Link href={`/sales/load-report?requestId=${req.id}`}>Generar Reporte de Carga</Link>
+                                                        <Link href={`/sales/load-report?requestId=${req.id}`}>Generar Hoja de Carga</Link>
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
