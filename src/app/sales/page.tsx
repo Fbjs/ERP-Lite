@@ -21,6 +21,8 @@ import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import SalespersonRequestForm, { SalespersonRequestFormData } from '@/components/salesperson-request-form';
 
 export type OrderItem = {
   recipeId: string;
@@ -38,6 +40,14 @@ export type Order = {
   items: OrderItem[];
 };
 
+export type SalespersonRequest = {
+  id: string;
+  salesperson: string;
+  date: string;
+  items: { product: string; quantity: number }[];
+  status: 'Pendiente' | 'Despachado';
+};
+
 
 export const initialOrders: Order[] = [
   { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-700', quantity: 100 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }] },
@@ -48,10 +58,18 @@ export const initialOrders: Order[] = [
   { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210000, status: 'En Preparación', date: '2025-07-29', deliveryDate: '2025-07-31', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 100 }] },
 ];
 
+export const initialSalespersonRequests: SalespersonRequest[] = [
+    { id: 'PED001', salesperson: 'Vendedor 1', date: '2025-07-29', items: [{product: 'Pain au Levain', quantity: 20}, {product: 'Baguette Tradition', quantity: 40}], status: 'Despachado' },
+    { id: 'PED002', salesperson: 'Vendedor 2', date: '2025-07-29', items: [{product: 'Croissant au Beurre', quantity: 100}, {product: 'Ciabatta', quantity: 50}], status: 'Pendiente' },
+];
+
+
 export default function SalesPage() {
     const [orders, setOrders] = useState<Order[]>(initialOrders);
+    const [salespersonRequests, setSalespersonRequests] = useState<SalespersonRequest[]>(initialSalespersonRequests);
     const [recipes] = useState<Recipe[]>(initialRecipes);
     const [isNewOrderModalOpen, setNewOrderModalOpen] = useState(false);
+    const [isNewRequestModalOpen, setNewRequestModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isUpdateStatusModalOpen, setUpdateStatusModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -129,6 +147,22 @@ export default function SalesPage() {
             description: `Se ha creado una nueva orden para ${newOrder.customer}.`,
         });
     };
+    
+    const handleCreateSalespersonRequest = (data: SalespersonRequestFormData) => {
+        const newRequest: SalespersonRequest = {
+            id: `PED${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+            salesperson: data.salesperson,
+            date: new Date().toISOString().split('T')[0],
+            items: data.items,
+            status: 'Pendiente',
+        };
+        setSalespersonRequests(prev => [newRequest, ...prev]);
+        setNewRequestModalOpen(false);
+        toast({
+            title: "Pedido de Vendedor Creado",
+            description: `Se ha registrado el pedido para ${data.salesperson}.`
+        });
+    };
 
     const handleOpenDetails = (order: Order) => {
         setSelectedOrder(order);
@@ -199,174 +233,219 @@ export default function SalesPage() {
 
   return (
     <AppLayout pageTitle="Ventas">
-        <div className="space-y-6">
+        <Tabs defaultValue="industrial">
             <Card>
                 <CardHeader>
                     <div className="flex flex-wrap justify-between items-center gap-4">
                         <div>
-                            <CardTitle className="font-headline">Órdenes de Venta</CardTitle>
-                            <CardDescription className="font-body">Ingresa nuevas órdenes de venta y rastrea las existentes.</CardDescription>
+                            <CardTitle className="font-headline">Gestión de Ventas</CardTitle>
+                            <CardDescription className="font-body">Ingresa y gestiona las órdenes de venta y los pedidos de los vendedores.</CardDescription>
                         </div>
-                        <div className="flex items-center flex-wrap gap-2">
-                             <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        id="date"
-                                        variant={"outline"}
-                                        className={cn(
-                                        "w-full sm:w-[300px] justify-start text-left font-normal",
-                                        !dateRange && "text-muted-foreground"
-                                        )}
-                                    >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {dateRange?.from ? (
-                                        dateRange.to ? (
-                                            <>
-                                            {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
-                                            {format(dateRange.to, "LLL dd, y", { locale: es })}
-                                            </>
-                                        ) : (
-                                            format(dateRange.from, "LLL dd, y", { locale: es })
-                                        )
-                                        ) : (
-                                        <span>Selecciona un rango</span>
-                                        )}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="end">
-                                    <Calendar
-                                        initialFocus
-                                        mode="range"
-                                        defaultMonth={dateRange?.from}
-                                        selected={dateRange}
-                                        onSelect={setDateRange}
-                                        numberOfMonths={2}
-                                        locale={es}
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                            <Button onClick={() => setNewOrderModalOpen(true)}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Nueva Orden
-                            </Button>
-                        </div>
+                        <TabsList>
+                            <TabsTrigger value="industrial">Ventas Industriales</TabsTrigger>
+                            <TabsTrigger value="salesperson">Pedidos de Vendedores</TabsTrigger>
+                        </TabsList>
                     </div>
                 </CardHeader>
             </Card>
 
-            {dateRange?.from && (
-                <div>
-                    <h3 className="text-lg font-headline font-semibold mb-4">
-                        Resumen para el Período Seleccionado
-                    </h3>
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Total en Ventas</CardTitle>
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">${summaryTotals.total.toLocaleString('es-CL')}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Completadas</CardTitle>
-                                <FileCheck className="h-4 w-4 text-green-600" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-green-600">${summaryTotals.completed.toLocaleString('es-CL')}</div>
-                            </CardContent>
-                        </Card>
-                         <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Pendientes y en Prep.</CardTitle>
-                                <Clock className="h-4 w-4 text-yellow-500" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-yellow-500">${(summaryTotals.pending).toLocaleString('es-CL')}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Canceladas</CardTitle>
-                                <Ban className="h-4 w-4 text-red-600" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-red-600">${summaryTotals.cancelled.toLocaleString('es-CL')}</div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            )}
-
-           <Card>
-            <CardHeader>
-                <CardTitle className="font-headline">Listado de Órdenes de Venta</CardTitle>
-                <CardDescription className="font-body">
-                    {dateRange?.from ? 'Mostrando órdenes para el período seleccionado.' : 'Mostrando todas las órdenes.'}
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table className="responsive-table">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID de Orden</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead className="text-right">Monto</TableHead>
-                    <TableHead>Fecha Entrega</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead><span className="sr-only">Acciones</span></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredOrders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell data-label="ID Orden" className="font-medium">{order.id}</TableCell>
-                      <TableCell data-label="Cliente">{order.customer}</TableCell>
-                      <TableCell data-label="Monto" className="text-left sm:text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
-                      <TableCell data-label="Fecha Entrega">{new Date(order.deliveryDate).toLocaleDateString('es-CL')}</TableCell>
-                      <TableCell data-label="Estado">
-                         <Badge 
-                            variant={
-                                order.status === 'Completado' ? 'default' :
-                                order.status === 'Enviado' ? 'secondary' :
-                                order.status === 'Cancelado' ? 'destructive' :
-                                'outline'
-                            }
-                        >
-                            {order.status}
-                        </Badge>
-                      </TableCell>
-                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">Menú</span>
+            <TabsContent value="industrial" className="space-y-6 mt-6">
+                <div className="flex flex-wrap justify-between items-center gap-4">
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant={"outline"}
+                                className={cn(
+                                "w-full sm:w-[300px] justify-start text-left font-normal",
+                                !dateRange && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {dateRange?.from ? (
+                                dateRange.to ? (
+                                    <>
+                                    {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                                    {format(dateRange.to, "LLL dd, y", { locale: es })}
+                                    </>
+                                ) : (
+                                    format(dateRange.from, "LLL dd, y", { locale: es })
+                                )
+                                ) : (
+                                <span>Selecciona un rango</span>
+                                )}
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Orden</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleOpenUpdateStatus(order)}>Actualizar Estado</DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                               <Link href={`/accounting?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(getOrderDetailsAsString(order.items))}`}>
-                                    Generar Factura
-                                </Link>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={dateRange?.from}
+                                selected={dateRange}
+                                onSelect={setDateRange}
+                                numberOfMonths={2}
+                                locale={es}
+                            />
+                        </PopoverContent>
+                    </Popover>
+                    <Button onClick={() => setNewOrderModalOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Nueva Orden Industrial
+                    </Button>
+                </div>
+                
+                {dateRange?.from && (
+                    <div>
+                        <h3 className="text-lg font-headline font-semibold mb-4">
+                            Resumen para el Período Seleccionado
+                        </h3>
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Total en Ventas</CardTitle>
+                                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">${summaryTotals.total.toLocaleString('es-CL')}</div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Completadas</CardTitle>
+                                    <FileCheck className="h-4 w-4 text-green-600" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold text-green-600">${summaryTotals.completed.toLocaleString('es-CL')}</div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Pendientes y en Prep.</CardTitle>
+                                    <Clock className="h-4 w-4 text-yellow-500" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold text-yellow-500">${(summaryTotals.pending).toLocaleString('es-CL')}</div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Canceladas</CardTitle>
+                                    <Ban className="h-4 w-4 text-red-600" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold text-red-600">${summaryTotals.cancelled.toLocaleString('es-CL')}</div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                )}
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline">Listado de Órdenes de Venta</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                    <Table className="responsive-table">
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>ID de Orden</TableHead>
+                            <TableHead>Cliente</TableHead>
+                            <TableHead className="text-right">Monto</TableHead>
+                            <TableHead>Fecha Entrega</TableHead>
+                            <TableHead>Estado</TableHead>
+                            <TableHead><span className="sr-only">Acciones</span></TableHead>
+                        </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        {filteredOrders.map((order) => (
+                            <TableRow key={order.id}>
+                            <TableCell data-label="ID Orden" className="font-medium">{order.id}</TableCell>
+                            <TableCell data-label="Cliente">{order.customer}</TableCell>
+                            <TableCell data-label="Monto" className="text-left sm:text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
+                            <TableCell data-label="Fecha Entrega">{new Date(order.deliveryDate).toLocaleDateString('es-CL')}</TableCell>
+                            <TableCell data-label="Estado">
+                                <Badge 
+                                    variant={
+                                        order.status === 'Completado' ? 'default' :
+                                        order.status === 'Enviado' ? 'secondary' :
+                                        order.status === 'Cancelado' ? 'destructive' :
+                                        'outline'
+                                    }
+                                >
+                                    {order.status}
+                                </Badge>
+                            </TableCell>
+                            <TableCell>
+                                <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Menú</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                    <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Orden</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleOpenUpdateStatus(order)}>Actualizar Estado</DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                    <Link href={`/accounting?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(getOrderDetailsAsString(order.items))}`}>
+                                            Generar Factura
+                                        </Link>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                                </DropdownMenu>
+                            </TableCell>
+                            </TableRow>
+                        ))}
+                        </TableBody>
+                    </Table>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+            
+            <TabsContent value="salesperson" className="space-y-6 mt-6">
+                 <div className="flex justify-end">
+                    <Button onClick={() => setNewRequestModalOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Nuevo Pedido de Vendedor
+                    </Button>
+                </div>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="font-headline">Listado de Pedidos de Vendedores</CardTitle>
+                    </CardHeader>
+                     <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>ID Pedido</TableHead>
+                                    <TableHead>Vendedor</TableHead>
+                                    <TableHead>Fecha</TableHead>
+                                    <TableHead>Ítems</TableHead>
+                                    <TableHead>Estado</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {salespersonRequests.map((req) => (
+                                    <TableRow key={req.id}>
+                                        <TableCell>{req.id}</TableCell>
+                                        <TableCell>{req.salesperson}</TableCell>
+                                        <TableCell>{new Date(req.date).toLocaleDateString('es-CL')}</TableCell>
+                                        <TableCell>{req.items.map(i => `${i.quantity} x ${i.product}`).join(', ')}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={req.status === 'Despachado' ? 'default' : 'secondary'}>
+                                                {req.status}
+                                            </Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </TabsContent>
+        </Tabs>
 
-      {/* Modal Nueva Orden */}
+      {/* Modal Nueva Orden Industrial */}
       <Dialog open={isNewOrderModalOpen} onOpenChange={setNewOrderModalOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
@@ -379,6 +458,23 @@ export default function SalesPage() {
             onSubmit={handleCreateOrder}
             onCancel={() => setNewOrderModalOpen(false)}
             recipes={recipes}
+            />
+        </DialogContent>
+      </Dialog>
+      
+       {/* Modal Nuevo Pedido de Vendedor */}
+       <Dialog open={isNewRequestModalOpen} onOpenChange={setNewRequestModalOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="font-headline">Crear Pedido de Vendedor</DialogTitle>
+            <DialogDescription className="font-body">
+              Registra los productos solicitados por un vendedor.
+            </DialogDescription>
+          </DialogHeader>
+           <SalespersonRequestForm
+                onSubmit={handleCreateSalespersonRequest}
+                onCancel={() => setNewRequestModalOpen(false)}
+                recipes={recipes}
             />
         </DialogContent>
       </Dialog>
