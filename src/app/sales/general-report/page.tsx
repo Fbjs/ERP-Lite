@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { initialSalespersonRequests } from '@/app/sales/page';
 import { format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 function GeneralReportPageContent() {
     const reportRef = useRef<HTMLDivElement>(null);

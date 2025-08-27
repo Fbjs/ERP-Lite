@@ -8,7 +8,7 @@ import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarS
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import SalesOrderForm, { OrderFormData } from '@/components/sales-order-form';
 import { Recipe, initialRecipes } from '@/app/recipes/page';
 import Link from 'next/link';
@@ -95,18 +95,23 @@ export default function SalesPage() {
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
     
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: subMonths(new Date(2025, 6, 29), 1),
-        to: new Date(2025, 6, 29)
-    });
-    
-     const [requestDateRange, setRequestDateRange] = useState<DateRange | undefined>({
-        from: subMonths(new Date(2025, 7, 1), 1),
-        to: new Date(2025, 8, 0)
-    });
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+    const [requestDateRange, setRequestDateRange] = useState<DateRange | undefined>(undefined);
+
+    useEffect(() => {
+        // Set initial date ranges only on the client to avoid hydration mismatch
+        setDateRange({
+            from: subMonths(new Date(), 1),
+            to: new Date()
+        });
+        setRequestDateRange({
+            from: subMonths(new Date(), 1),
+            to: addDays(new Date(), 30)
+        });
+    }, []);
 
     const filteredOrders = useMemo(() => {
-        if (!dateRange?.from) return orders;
+        if (!dateRange?.from) return [];
         const fromDate = dateRange.from;
         const toDate = dateRange.to || fromDate;
 
@@ -117,7 +122,7 @@ export default function SalesPage() {
     }, [orders, dateRange]);
     
     const filteredRequests = useMemo(() => {
-        if (!requestDateRange?.from) return salespersonRequests;
+        if (!requestDateRange?.from) return [];
         const fromDate = requestDateRange.from;
         const toDate = requestDateRange.to || fromDate;
 
@@ -415,7 +420,7 @@ export default function SalesPage() {
                             <TableCell data-label="ID Orden" className="font-medium">{order.id}</TableCell>
                             <TableCell data-label="Cliente">{order.customer}</TableCell>
                             <TableCell data-label="Monto" className="text-left sm:text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
-                            <TableCell data-label="Fecha Entrega">{new Date(order.deliveryDate).toLocaleDateString('es-CL')}</TableCell>
+                            <TableCell data-label="Fecha Entrega">{new Date(order.deliveryDate + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
                             <TableCell data-label="Estado">
                                 <Badge 
                                     variant={
@@ -566,8 +571,8 @@ export default function SalesPage() {
                                     <TableRow key={req.id}>
                                         <TableCell>{req.id}</TableCell>
                                         <TableCell>{req.salesperson}</TableCell>
-                                        <TableCell>{new Date(req.date).toLocaleDateString('es-CL')}</TableCell>
-                                        <TableCell>{new Date(req.deliveryDate).toLocaleDateString('es-CL')}</TableCell>
+                                        <TableCell>{new Date(req.date + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
+                                        <TableCell>{new Date(req.deliveryDate + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
                                         <TableCell>{req.items.length}</TableCell>
                                         <TableCell>
                                             <Badge variant={req.status === 'Despachado' ? 'default' : 'secondary'}>
@@ -649,9 +654,9 @@ export default function SalesPage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 font-body mb-6">
                         <div><p className="font-semibold text-gray-600">ID Orden:</p><p>{selectedOrder.id}</p></div>
-                        <div><p className="font-semibold text-gray-600">Fecha de Emisión:</p><p>{new Date(selectedOrder.date).toLocaleDateString('es-ES')}</p></div>
+                        <div><p className="font-semibold text-gray-600">Fecha de Emisión:</p><p>{new Date(selectedOrder.date + 'T00:00:00').toLocaleDateString('es-ES')}</p></div>
                         <div><p className="font-semibold text-gray-600">Cliente:</p><p>{selectedOrder.customer}</p></div>
-                        <div><p className="font-semibold text-gray-600">Fecha de Entrega:</p><p>{new Date(selectedOrder.deliveryDate).toLocaleDateString('es-ES')}</p></div>
+                        <div><p className="font-semibold text-gray-600">Fecha de Entrega:</p><p>{new Date(selectedOrder.deliveryDate + 'T00:00:00').toLocaleDateString('es-ES')}</p></div>
                         <div><p className="font-semibold text-gray-600">Monto Total:</p><p>${selectedOrder.amount.toLocaleString('es-CL')}</p></div>
                         <div><p className="font-semibold text-gray-600">Estado:</p><p>{selectedOrder.status}</p></div>
                         <div className="sm:col-span-2"><p className="font-semibold text-gray-600">Detalles del Pedido:</p><p className="whitespace-pre-wrap">{getOrderDetailsAsString(selectedOrder.items)}</p></div>

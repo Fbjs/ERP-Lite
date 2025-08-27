@@ -62,10 +62,16 @@ function AccountingPageContent() {
     const reportContentRef = useRef<HTMLDivElement>(null);
     const [generationDate, setGenerationDate] = useState<Date | null>(null);
 
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: subMonths(new Date(2025, 6, 29), 1),
-        to: new Date(2025, 6, 29)
-    });
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+
+    useEffect(() => {
+        // Set initial date ranges only on the client to avoid hydration mismatch
+        setDateRange({
+            from: subMonths(new Date(), 1),
+            to: new Date()
+        });
+        setGenerationDate(new Date());
+    }, []);
 
     const filteredDocuments = useMemo(() => {
         if (!dateRange?.from) return documents;
@@ -102,8 +108,6 @@ function AccountingPageContent() {
 
 
     useEffect(() => {
-        setGenerationDate(new Date());
-        
         const client = searchParams.get('client');
         const amount = searchParams.get('amount');
         const details = searchParams.get('details');
@@ -285,7 +289,7 @@ function AccountingPageContent() {
                       {filteredDocuments.map((doc) => (
                           <TableRow key={doc.id} className="border-b border-gray-200">
                               <TableCell className="p-3">{doc.id}</TableCell>
-                              <TableCell className="p-3">{format(new Date(doc.date), "P", { locale: es })}</TableCell>
+                              <TableCell className="p-3">{new Date(doc.date + 'T00:00:00').toLocaleDateString('es-CL', { timeZone: 'UTC' })}</TableCell>
                               <TableCell className="p-3">{doc.client}</TableCell>
                               <TableCell className="p-3">{doc.status}</TableCell>
                               <TableCell className="text-right p-3">${doc.total.toLocaleString('es-CL')}</TableCell>
@@ -505,7 +509,7 @@ function AccountingPageContent() {
                         <TableRow key={doc.id}>
                         <TableCell>
                             <div className="font-medium">{doc.id}</div>
-                            <div className="text-sm text-muted-foreground">{new Date(doc.date).toLocaleDateString('es-CL')}</div>
+                            <div className="text-sm text-muted-foreground">{new Date(doc.date + 'T00:00:00').toLocaleDateString('es-CL', { timeZone: 'UTC' })}</div>
                         </TableCell>
                         <TableCell>{doc.client}</TableCell>
                         <TableCell className="text-muted-foreground">{doc.createdBy}</TableCell>
@@ -626,7 +630,7 @@ function AccountingPageContent() {
                         <div className="text-right">
                              <div className="mb-2">
                                 <span className="font-semibold text-gray-600">Fecha de Emisión: </span>
-                                <span>{new Date(selectedDocument.date).toLocaleDateString('es-ES')}</span>
+                                <span>{new Date(selectedDocument.date + 'T00:00:00').toLocaleDateString('es-ES', { timeZone: 'UTC' })}</span>
                             </div>
                             <div>
                                 <span className="font-semibold text-gray-600">Estado: </span>

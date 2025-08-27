@@ -1,3 +1,4 @@
+
 "use client";
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import EmployeeForm from '@/components/employee-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,6 +18,8 @@ import { GenerateHrDocumentOutput } from '@/ai/schemas/hr-document-schemas';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 type Document = {
     name: string;
@@ -61,6 +64,11 @@ export default function StaffPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const { toast } = useToast();
     const pdfContentRef = useRef<HTMLDivElement>(null);
+    const [generationDate, setGenerationDate] = useState<Date | null>(null);
+
+    useEffect(() => {
+        setGenerationDate(new Date());
+    }, []);
 
 
     const handleCreateEmployee = (newEmployeeData: Omit<Employee, 'id' | 'status' | 'documents'>) => {
@@ -205,7 +213,7 @@ export default function StaffPage() {
         <div className="p-6 bg-white text-black" style={{ width: '8.5in', minHeight: '11in'}}>
             <div className="border-b-2 border-gray-200 pb-4 mb-4">
                 <h2 className="text-2xl font-bold text-gray-800 font-headline">Nómina de Trabajadores</h2>
-                <p className="text-sm text-gray-500 font-body">Vollkorn ERP - {new Date().toLocaleDateString('es-ES')}</p>
+                {generationDate && <p className="text-sm text-gray-500 font-body">Vollkorn ERP - {format(generationDate, "P", { locale: es })}</p>}
             </div>
             <table className="w-full text-left text-sm">
                 <thead className="border-b bg-gray-50">
@@ -234,7 +242,7 @@ export default function StaffPage() {
                 </tbody>
             </table>
              <div className="border-t-2 border-gray-200 pt-4 mt-4 text-center text-xs text-gray-500">
-                <p>Documento generado el {new Date().toLocaleDateString('es-ES')} a las {new Date().toLocaleTimeString('es-ES')}</p>
+                {generationDate && <p>Documento generado el {format(generationDate, "Pp", { locale: es })}</p>}
             </div>
         </div>
       </div>
