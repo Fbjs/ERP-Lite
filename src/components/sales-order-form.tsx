@@ -72,7 +72,7 @@ const ComboboxInput = ({ value, onSelect, placeholder, options }: { value: strin
 
 export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers }: SalesOrderFormProps) {
   const [customer, setCustomer] = useState('');
-  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 2));
+  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 3));
   const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1 }]);
   const [dispatcher, setDispatcher] = useState('');
   const [comments, setComments] = useState('');
