@@ -27,7 +27,7 @@ export type Recipe = {
   id: string; // Internal ID for the recipe, corresponds to "Nombre FAMILIA"
   name: string; // "Nombre FAMILIA"
   ingredients: Ingredient[];
-  formats: ProductFormat[]; // Each format is a specific product from "Descripción"
+  formats: ProductFormat[]; // Each format is a specific product from "nombre producto"
   lastUpdated: string;
 };
 
@@ -324,8 +324,8 @@ export default function RecipesPage() {
                              <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead className="text-black font-semibold">SKU</TableHead>
-                                        <TableHead className="text-black font-semibold">Descripción Producto</TableHead>
+                                        <TableHead className="text-black font-semibold">Código</TableHead>
+                                        <TableHead className="text-black font-semibold">Nombre Producto</TableHead>
                                         <TableHead className="text-right text-black font-semibold">Costo</TableHead>
                                     </TableRow>
                                 </TableHeader>

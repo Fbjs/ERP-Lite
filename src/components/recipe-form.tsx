@@ -74,11 +74,11 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
         </div>
         
         <div className="space-y-4 pt-4 border-t">
-            <h3 className="font-semibold text-lg">Productos (Formatos de Venta)</h3>
+            <h3 className="font-semibold text-lg">Productos</h3>
             {formats.map((format, index) => (
                 <div key={index} className="grid grid-cols-12 gap-2 items-center">
                     <Input placeholder="Código (SKU)" value={format.sku} onChange={(e) => handleFormatChange(index, 'sku', e.target.value)} className="col-span-3" required />
-                    <Input placeholder="Descripción (Nombre Producto)" value={format.name} onChange={(e) => handleFormatChange(index, 'name', e.target.value)} className="col-span-5" required />
+                    <Input placeholder="Nombre Producto" value={format.name} onChange={(e) => handleFormatChange(index, 'name', e.target.value)} className="col-span-5" required />
                     <Input type="number" placeholder="Costo" value={format.cost || ''} onChange={(e) => handleFormatChange(index, 'cost', Number(e.target.value))} className="col-span-3" required />
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeFormat(index)} className="col-span-1 h-8 w-8" disabled={formats.length <= 1}>
                         <Trash2 className="h-4 w-4 text-destructive" />
@@ -118,3 +118,5 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
     </form>
   );
 }
+
+    
