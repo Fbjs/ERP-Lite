@@ -33,92 +33,76 @@ export type Recipe = {
 
 export const initialRecipes: Recipe[] = [
   {
-    id: 'ENVASADO', name: 'ENVASADO', ingredients: [],
+    id: 'PAN BLANCO', name: 'PAN BLANCO', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.6, unit: 'L'}],
     formats: [
-      { sku: 'CA-JA-150', name: 'CAJA CARTON 150x150x150CD', cost: 100 },
-      { sku: 'CA-JA-1515', name: 'Caja Carton 150x150x15190', cost: 110 },
-      { sku: 'CA-JA-642', name: 'CAJA CARTON 600x400x200', cost: 250 },
-      { sku: 'CA-JA150', name: 'CAJA CARTON 150x150x150', cost: 100 },
-      { sku: 'CA-JA180', name: 'CAJA CARTON 180x180x300', cost: 150 },
-      { sku: 'CA-JA210', name: 'CAJA CARTON 190x190x210CD', cost: 160 },
-      { sku: 'CA-JA230', name: 'Caja Carton 230x230x190CD CA-JA230', cost: 170 },
-      { sku: 'CA-JA400', name: 'CAJA CARTON 180x180x400', cost: 180 },
-      { sku: 'CAJ-150', name: 'CAJA CARTON 150x150x150CD', cost: 100 },
-      { sku: 'CAJ-230', name: 'CAJA CARTON 230X230X190 CD', cost: 170 },
+      { sku: '400100', name: 'PAN BCO SIN GLUTEN', cost: 2000 },
+      { sku: 'PSO10X10', name: 'PAN BLANCO SIN ORILLAS 10X105', cost: 1800 },
     ],
     lastUpdated: '2023-10-28'
   },
-  { 
-    id: 'PAN BLANCO', name: 'PAN BLANCO', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.6, unit: 'L'}], 
+  {
+    id: 'PAN CENTENO', name: 'PAN CENTENO', ingredients: [{name: 'Harina de Centeno', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.75, unit: 'L'}],
     formats: [
-        { sku: '400100', name: 'PAN BCO SIN GLUTEN', cost: 2000 },
-        { sku: 'PSO10X10', name: 'PAN BLANCO SIN ORILLAS 10X105', cost: 1800 },
-    ], 
-    lastUpdated: '2023-10-28' 
+      { sku: 'CERE0003', name: 'PAN LINAZA 500 GRS', cost: 2500 },
+      { sku: 'CERE0027', name: 'PAN CHOCOSO CENTENO 500 GRS', cost: 2700 },
+      { sku: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', cost: 3000 },
+      { sku: 'CERE0058', name: 'PAN GROB 100 INTEGRAL 750 GRS', cost: 3200 },
+      { sku: 'CERE0065', name: 'PAN ROGGENBROT 600 GRS', cost: 2800 },
+      { sku: 'CERE0188', name: 'PAN MULTICEREAL 500 GRS', cost: 2600 },
+      { sku: 'CERE0607', name: 'PAN LANDBROT 500 GRS', cost: 2600 },
+      { sku: 'PANPRUEBA', name: 'PAN PRUEBA', cost: 1000 },
+    ],
+    lastUpdated: '2023-10-28'
   },
-  { 
-    id: 'PAN CENTENO', name: 'PAN CENTENO', ingredients: [{name: 'Harina de Centeno', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.75, unit: 'L'}], 
+  {
+    id: 'PAN INDUSTRIAL', name: 'PAN INDUSTRIAL', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}],
     formats: [
-        { sku: 'CERE0003', name: 'PAN LINAZA 500 GRS', cost: 2500 },
-        { sku: 'CERE0027', name: 'PAN CHOCOSO CENTEΝΟ 500 GRS', cost: 2700 },
-        { sku: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', cost: 3000 },
-        { sku: 'CERE0058', name: 'PAN GROB 100 INTEGRAL 750 GRS', cost: 3200 },
-        { sku: 'CERE0065', name: 'PAN ROGGENBROT 600 GRS', cost: 2800 },
-        { sku: 'CERE0188', name: 'PAN MULTICEREAL 500 GRS', cost: 2600 },
-        { sku: 'CERE0607', name: 'PAN LANDBROT 500 GRS', cost: 2600 },
-        { sku: 'PANPRUEBA', name: 'PAN PRUEBA', cost: 1000 },
-    ], 
-    lastUpdated: '2023-10-28' 
+      { sku: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', cost: 4000 },
+      { sku: 'GUAINT16', name: 'PAN GUAGUA INTEGRAL 16X16', cost: 4200 },
+      { sku: 'GUAMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4500 },
+      { sku: 'GUBL1332', name: 'PAN GUAGUA BLANCA 13X13', cost: 3800 },
+      { sku: 'GUBL1432', name: 'PAN GUAGUA BLANCA 14X14', cost: 3900 },
+      { sku: 'GUIN1332', name: 'PAN GUAGUA INTEGRAL 13X13', cost: 4100 },
+      { sku: 'GUIN1432', name: 'PAN GUAGUA INTEGRAL MORENA 14X14', cost: 4300 },
+      { sku: 'GUMC1438', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4500 },
+      { sku: 'MIGAARG22', name: 'PAN MIGA DE ARGENTINO', cost: 3500 },
+      { sku: 'PANMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4500 },
+    ],
+    lastUpdated: '2023-10-28'
   },
-  { 
-    id: 'PAN INDUSTRIAL', name: 'PAN INDUSTRIAL', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}], 
+  {
+    id: 'PAN INTEGRAL', name: 'PAN INTEGRAL', ingredients: [{name: 'Harina Integral', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}],
     formats: [
-        { sku: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', cost: 4000 },
-        { sku: 'GUAINT16', name: 'PAN GUAGUA INTEGRAL 16X16', cost: 4200 },
-        { sku: 'GUAMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4500 },
-        { sku: 'GUBL1332', name: 'PAN GUAGUA BLANCA 13X13', cost: 3800 },
-        { sku: 'GUBL1432', name: 'PAN GUAGUA BLANCA 14X14', cost: 3900 },
-        { sku: 'GUIN1332', name: 'PAN GUAGUA INTEGRAL 13X13', cost: 4100 },
-        { sku: 'GUIN1432', name: 'PAN GUAGUA INTEGRAL MORENA 14X14', cost: 4300 },
-        { sku: 'GUMC1438', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4500 },
-        { sku: 'MIGAARG22', name: 'PAN MIGA DE ARGENTINO', cost: 3500 },
-        { sku: 'PANMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4500 },
-    ], 
-    lastUpdated: '2023-10-28' 
+      { sku: 'ININ0232', name: 'PAN INTEGRAL LIGHT 550 GRS', cost: 2400 },
+      { sku: 'SCHINT10', name: 'PAN SCHROTBROT 100 INTEGRAL 550 GRS', cost: 2800 },
+    ],
+    lastUpdated: '2023-10-28'
   },
-  { 
-    id: 'PAN INTEGRAL', name: 'PAN INTEGRAL', ingredients: [{name: 'Harina Integral', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}], 
+  {
+    id: 'PASTELERIA', name: 'PASTELERIA', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Azucar', quantity: 0.5, unit: 'kg'}],
     formats: [
-        { sku: 'ININ0232', name: 'PAN INTEGRAL LIGHT 550 GRS', cost: 2400 },
-        { sku: 'SCHINT10', name: 'PAN SCHROTBROT 100 INTEGRAL 550 GRS', cost: 2800 },
-    ], 
-    lastUpdated: '2023-10-28' 
+      { sku: 'TIPA0500', name: 'PAN PUMPERNICKEL 500 GRS', cost: 3500 },
+      { sku: 'TIPA2700', name: 'PAN PUMPERNICKEL 1 K', cost: 6500 },
+    ],
+    lastUpdated: '2023-10-28'
   },
-  { 
-    id: 'PASTELERIA', name: 'PASTELERIA', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Azucar', quantity: 0.5, unit: 'kg'}], 
+  {
+    id: 'TOSTADAS', name: 'TOSTADAS', ingredients: [{name: 'Pan Sobrante', quantity: 1, unit: 'kg'}],
     formats: [
-        { sku: 'TIPA0500', name: 'PAN PUMPERNICKEL 500 GRS', cost: 3500 },
-        { sku: 'TIPA2700', name: 'PAN PUMPERNICKEL 1 K', cost: 6500 },
-    ], 
-    lastUpdated: '2023-10-28' 
-  },
-  { 
-    id: 'TOSTADAS', name: 'TOSTADAS', ingredients: [{name: 'Pan Sobrante', quantity: 1, unit: 'kg'}], 
-    formats: [
-        { sku: 'CROSMOL', name: 'TOSTADAS CROSTINI MERKEN', cost: 1500 },
-        { sku: 'CROSOOL', name: 'TOSTADAS CROSTINI OREGANO', cost: 1500 },
-        { sku: 'CRUT11MM', name: 'CRUTONES HOREADOS 1KG 11mm', cost: 4000 },
-        { sku: 'CRUT11MM5', name: 'CRUTON HORNEADO 5KG 11MM', cost: 18000 },
-        { sku: 'CRUT7MM', name: 'CRUTONES HORNEADOS 1KG 7mm', cost: 4000 },
-        { sku: 'CRUT7MM5', name: 'CRUTONES HORNEADOS 5KG 7mm', cost: 18000 },
-        { sku: 'CRUTOGRA', name: 'CRUTONES 1 K', cost: 4000 },
-        { sku: 'GALLSEM', name: 'TOSTADAS VOLLKORN CRACKER', cost: 2500 },
-        { sku: 'ININ0584', name: 'PAN RALLADO INTEGRAL 500 GRS', cost: 1500 },
-        { sku: 'RALLADBCO', name: 'PAN RALLADO 1 K', cost: 2800 },
-        { sku: 'RALLADBCO5', name: 'PAN RALLADO 5 KG', cost: 12000 },
-        { sku: 'TOSTCOCKT', name: 'TOSTADAS COCKTAIL', cost: 2000 },
-    ], 
-    lastUpdated: '2023-10-28' 
+      { sku: 'CROSMOL', name: 'TOSTADAS CROSTINI MERKEN', cost: 1500 },
+      { sku: 'CROSOOL', name: 'TOSTADAS CROSTINI OREGANO', cost: 1500 },
+      { sku: 'CRUT11MM', name: 'CRUTONES HOREADOS 1KG 11mm', cost: 4000 },
+      { sku: 'CRUT11MM5', name: 'CRUTON HORNEADO 5KG 11MM', cost: 18000 },
+      { sku: 'CRUT7MM', name: 'CRUTONES HORNEADOS 1KG 7mm', cost: 4000 },
+      { sku: 'CRUT7MM5', name: 'CRUTONES HORNEADOS 5KG 7mm', cost: 18000 },
+      { sku: 'CRUTOGRA', name: 'CRUTONES 1 K', cost: 4000 },
+      { sku: 'GALLSEM', name: 'TOSTADAS VOLLKORN CRACKER', cost: 2500 },
+      { sku: 'ININ0584', name: 'PAN RALLADO INTEGRAL 500 GRS', cost: 1500 },
+      { sku: 'RALLADBCO', name: 'PAN RALLADO 1 K', cost: 2800 },
+      { sku: 'RALLADBCO5', name: 'PAN RALLADO 5 KG', cost: 12000 },
+      { sku: 'TOSTCOCKT', name: 'TOSTADAS COCKTAIL', cost: 2000 },
+    ],
+    lastUpdated: '2023-10-28'
   },
 ];
 
