@@ -67,9 +67,9 @@ export type SalespersonRequest = {
 
 
 export const initialOrders: Order[] = [
-  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'CERE0003', formatSku: '', quantity: 100 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
-  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'CRUT11MM', formatSku: '', quantity: 200 }], dispatcher: 'MARCELO', comments: '' },
-  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'TIPA2700', formatSku: '', quantity: 50 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
+    { id: 'SALE881', customer: 'Cafe Central', amount: 270000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'CERE0003', formatSku: 'CERE0003-7MM', quantity: 100 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
+    { id: 'SALE882', customer: 'Supermercado del Sur', amount: 820000, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM', quantity: 200 }], dispatcher: 'MARCELO', comments: '' },
+    { id: 'SALE883', customer: 'Panaderia San Jose', amount: 330000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'TIPA2700', formatSku: 'TIPA2700', quantity: 50 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
