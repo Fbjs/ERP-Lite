@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Recipe, ProductFormat } from '@/app/recipes/page';
+import { Recipe } from '@/app/recipes/page';
 import { PlusCircle, Trash2, Calendar as CalendarIcon, ChevronsUpDown, Check } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -21,7 +21,6 @@ import { Textarea } from './ui/textarea';
 
 type OrderItem = {
     recipeId: string;
-    formatSku: string;
     quantity: number;
 };
 
@@ -73,7 +72,7 @@ const ComboboxInput = ({ value, onSelect, placeholder, options }: { value: strin
 export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers }: SalesOrderFormProps) {
   const [customer, setCustomer] = useState('');
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 3));
-  const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1 }]);
+  const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', quantity: 1 }]);
   const [dispatcher, setDispatcher] = useState('');
   const [comments, setComments] = useState('');
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
@@ -85,24 +84,16 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
     const newItems = [...items];
     const oldItem = newItems[index];
     
-    if (field === 'recipeId') {
-        // Reset formatSku when recipe changes
-        newItems[index] = { ...oldItem, recipeId: value as string, formatSku: '' };
-    } else if (field === 'quantity') {
+    if (field === 'quantity') {
         newItems[index] = { ...oldItem, quantity: Number(value) };
     } else {
-        newItems[index] = { ...oldItem, [field]: value };
+        newItems[index] = { ...oldItem, [field]: value as string };
     }
     setItems(newItems);
   };
 
-  const getAvailableFormats = (recipeId: string): ProductFormat[] => {
-    const recipe = recipes.find(r => r.id === recipeId);
-    return recipe?.formats || [];
-  };
-
   const addItem = () => {
-    setItems([...items, { recipeId: '', formatSku: '', quantity: 1 }]);
+    setItems([...items, { recipeId: '', quantity: 1 }]);
   };
 
   const removeItem = (index: number) => {
@@ -203,7 +194,6 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
         <div className="space-y-4 border-t pt-4">
             <Label>Productos</Label>
             {items.map((item, index) => {
-                const availableFormats = getAvailableFormats(item.recipeId);
                 return (
                  <div key={index} className="grid grid-cols-12 gap-2 items-center">
                     <Popover open={openProductCombobox === index} onOpenChange={(isOpen) => setOpenProductCombobox(isOpen ? index : null)}>
@@ -212,54 +202,43 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
                                 variant="outline"
                                 role="combobox"
                                 aria-expanded={openProductCombobox === index}
-                                className="col-span-5 justify-between font-normal"
+                                className="col-span-9 justify-between font-normal"
                             >
                                 {item.recipeId
                                     ? recipes.find((r) => r.id === item.recipeId)?.name
-                                    : "Producto"}
+                                    : "Seleccionar Producto..."}
                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                              <Command>
                                 <CommandInput placeholder="Buscar producto..." />
-                                <CommandEmpty>No se encontró el producto.</CommandEmpty>
-                                <CommandList>
-                                     <CommandGroup>
-                                        {recipes.map(recipe => (
-                                            <CommandItem
-                                                key={recipe.id}
-                                                value={recipe.name}
-                                                onSelect={() => {
-                                                    handleItemChange(index, 'recipeId', recipe.id);
-                                                    setOpenProductCombobox(null);
-                                                }}
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        "mr-2 h-4 w-4",
-                                                        item.recipeId === recipe.id ? "opacity-100" : "opacity-0"
-                                                    )}
-                                                />
-                                                {recipe.name}
-                                            </CommandItem>
-                                        ))}
-                                    </CommandGroup>
+                                <CommandList><CommandEmpty>No se encontró el producto.</CommandEmpty>
+                                <CommandGroup>
+                                    {recipes.map(recipe => (
+                                        <CommandItem
+                                            key={recipe.id}
+                                            value={recipe.name}
+                                            onSelect={() => {
+                                                handleItemChange(index, 'recipeId', recipe.id);
+                                                setOpenProductCombobox(null);
+                                            }}
+                                        >
+                                            <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    item.recipeId === recipe.id ? "opacity-100" : "opacity-0"
+                                                )}
+                                            />
+                                            {recipe.name}
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
                                 </CommandList>
                             </Command>
                         </PopoverContent>
                     </Popover>
 
-                     <Select value={item.formatSku} onValueChange={(value) => handleItemChange(index, 'formatSku', value)} disabled={!item.recipeId}>
-                        <SelectTrigger className="col-span-4">
-                            <SelectValue placeholder="Formato" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableFormats.map(format => (
-                                <SelectItem key={format.sku} value={format.sku}>{format.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
                     <Input
                         type="number"
                         placeholder="Cant."

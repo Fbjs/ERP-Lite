@@ -188,7 +188,7 @@ export default function ProductionPage() {
 
     const selectedOrderRecipe = useMemo(() => {
         if (!selectedOrder) return null;
-        return initialRecipes.find(r => r.formats.some(f => f.name === selectedOrder.product)) || null;
+        return initialRecipes.find(r => r.name === selectedOrder.product) || null;
     }, [selectedOrder]);
 
     const requiredMaterials = useMemo(() => {
@@ -235,11 +235,11 @@ export default function ProductionPage() {
         });
         
         return Object.values(needs).map(need => {
-            const inventoryItems = initialInventoryItems.filter(
+            const inventoryItem = initialInventoryItems.find(
                 invItem => invItem.category === 'Producto Terminado' && 
-                           need.recipe.formats.some(f => f.sku === invItem.sku)
+                           invItem.sku === need.recipe.id
             );
-            const inventoryStock = inventoryItems.reduce((acc, item) => acc + item.stock, 0);
+            const inventoryStock = inventoryItem?.stock || 0;
             const netToProduce = Math.max(0, need.totalDemand - inventoryStock);
             return { ...need, inventoryStock, netToProduce };
         });

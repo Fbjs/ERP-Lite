@@ -27,7 +27,6 @@ import { initialCustomers } from '@/app/admin/customers/page';
 
 export type OrderItem = {
   recipeId: string;
-  formatSku: string;
   quantity: number;
 };
 
@@ -67,15 +66,15 @@ export type SalespersonRequest = {
 
 
 export const initialOrders: Order[] = [
-  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'REC-PAN-CENTENO', formatSku: 'CERE0003', quantity: 100 }, { recipeId: 'REC-PAN-INDUSTRIAL', formatSku: 'GUABCO16', quantity: 50 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
-  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'REC-TOSTADAS', formatSku: 'CRUT11MM', quantity: 200 }, { recipeId: 'REC-TOSTADAS', formatSku: 'GALLSEM', quantity: 150 }], dispatcher: 'MARCELO', comments: '' },
-  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'REC-PASTELERIA', formatSku: 'TIPA2700', quantity: 50 }, { recipeId: 'REC-PAN-BLANCO', formatSku: 'PSO10X10', quantity: 50 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
+  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'CERE0003', quantity: 100 }, { recipeId: 'GUABCO16', quantity: 50 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
+  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'CRUT11MM', quantity: 200 }, { recipeId: 'GALLSEM', quantity: 150 }], dispatcher: 'MARCELO', comments: '' },
+  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'TIPA2700', quantity: 50 }, { recipeId: 'PSO10X10', quantity: 50 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
     { id: 'PED001', salesperson: 'FRANCISCA', deliveryPerson: 'RODRIGO', responsiblePerson: 'FRANCISCA', date: '2025-08-29', deliveryDate: '2025-08-29', status: 'Despachado', items: [
-        { client: 'LORENA AGUILAR', product: 'SCHWARZBROT', quantity: 94, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
-        { client: 'LORENA AGUILAR', product: 'RUSTICO LINAZA', quantity: 20, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'PAN SCHWARZBROT 750 GRS', quantity: 94, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'PAN LINAZA 500 GRS', quantity: 20, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
     ], amount: 350000},
     { id: 'PED002', salesperson: 'VENDEDOR 2', deliveryPerson: 'MARCELO', responsiblePerson: 'VENDEDOR 2', date: '2025-07-29', deliveryDate: '2025-07-30', status: 'Pendiente', items: [
         { client: 'BETTER FOOD', product: 'CRUTONES 1 K', quantity: 10, type: 'PROD', itemType: 'FACTURA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO...' }
@@ -156,13 +155,7 @@ export default function SalesPage() {
     const getOrderDetailsAsString = (items: OrderItem[]): string => {
         return items.map(item => {
             const recipe = recipes.find(r => r.id === item.recipeId);
-            if (recipe) {
-                const format = recipe.formats.find(f => f.sku === item.formatSku);
-                if (format) {
-                    return `${item.quantity} x ${recipe.name} (${format.name})`;
-                }
-            }
-            return 'Ítem no encontrado';
+            return `${item.quantity} x ${recipe?.name || 'Ítem no encontrado'}`;
         }).join(', ');
     };
 
@@ -173,10 +166,7 @@ export default function SalesPage() {
         newOrderData.items.forEach(item => {
             const recipe = recipes.find(r => r.id === item.recipeId);
             if (recipe) {
-                const format = recipe.formats.find(f => f.sku === item.formatSku);
-                if (format) {
-                    totalAmount += item.quantity * format.cost;
-                }
+                totalAmount += item.quantity * recipe.cost;
             }
         });
 

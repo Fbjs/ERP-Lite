@@ -17,6 +17,7 @@ export type Ingredient = {
     unit: string;
 };
 
+// DEPRECATED - Formats will be handled differently.
 export type ProductFormat = {
   sku: string;
   name: string;
@@ -24,124 +25,54 @@ export type ProductFormat = {
 };
 
 export type Recipe = {
-  id: string; // Internal ID for the recipe, corresponds to "Nombre FAMILIA"
-  name: string; // "Nombre FAMILIA"
+  id: string; // SKU from the sheet, e.g., '400100'
+  name: string; // "nombre producto" from the sheet, e.g., 'PAN BCO SIN GLUTEN'
+  family: string; // "Nombre FAMILIA" from the sheet, e.g., 'PAN BLANCO'
+  cost: number;
   ingredients: Ingredient[];
-  formats: ProductFormat[]; // Each format is a specific product from "nombre producto"
+  formats: []; // This is now empty as per user request.
   lastUpdated: string;
 };
 
-export const initialRecipes: Recipe[] = [
-  {
-    id: 'PAN_BLANCO',
-    name: 'PAN BLANCO',
-    ingredients: [
-      { name: 'Harina de Trigo', quantity: 1, unit: 'kg' },
-      { name: 'Agua', quantity: 0.6, unit: 'L' },
-      { name: 'Levadura Fresca', quantity: 0.02, unit: 'kg'},
-      { name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}
-    ],
-    formats: [
-      { sku: '400100', name: 'PAN BCO SIN GLUTEN', cost: 2100 },
-      { sku: 'PSO10X10', name: 'PAN BLANCO SIN ORILLAS 10X105', cost: 1900 },
-    ],
-    lastUpdated: '2023-10-28',
-  },
-  {
-    id: 'PAN_CENTENO',
-    name: 'PAN CENTENO',
-    ingredients: [
-      { name: 'Harina de Centeno', quantity: 1, unit: 'kg' },
-      { name: 'Agua', quantity: 0.75, unit: 'L' },
-      { name: 'Levadura Fresca', quantity: 0.02, unit: 'kg'},
-      { name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}
-    ],
-    formats: [
-      { sku: 'CERE0003', name: 'PAN LINAZA 500 GRS', cost: 2600 },
-      { sku: 'CERE0027', name: 'PAN CHOCOSO CENTENO 500 GRS', cost: 2800 },
-      { sku: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', cost: 3100 },
-      { sku: 'CERE0058', name: 'PAN GROB 100 INTEGRAL 750 GRS', cost: 3300 },
-      { sku: 'CERE0065', name: 'PAN ROGGENBROT 600 GRS', cost: 2900 },
-      { sku: 'CERE0188', name: 'PAN MULTICEREAL 500 GRS', cost: 2700 },
-      { sku: 'CERE0607', name: 'PAN LANDBROT 500 GRS', cost: 2700 },
-      { sku: 'PANPRUEBA', name: 'PAN PRUEBA', cost: 1100 },
-    ],
-    lastUpdated: '2023-10-28',
-  },
-  {
-    id: 'PAN_INDUSTRIAL',
-    name: 'PAN INDUSTRIAL',
-    ingredients: [
-      { name: 'Harina de Trigo', quantity: 1, unit: 'kg' },
-      { name: 'Agua', quantity: 0.65, unit: 'L' },
-      { name: 'Levadura Fresca', quantity: 0.025, unit: 'kg'},
-      { name: 'Sal de Mar', quantity: 0.018, unit: 'kg'}
-    ],
-    formats: [
-      { sku: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', cost: 4100 },
-      { sku: 'GUAINT16', name: 'PAN GUAGUA INTEGRAL 16X16', cost: 4300 },
-      { sku: 'GUAMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4600 },
-      { sku: 'GUBL1332', name: 'PAN GUAGUA BLANCA 13X13', cost: 3900 },
-      { sku: 'GUBL1432', name: 'PAN GUAGUA BLANCA 14X14', cost: 4000 },
-      { sku: 'GUIN1332', name: 'PAN GUAGUA INTEGRAL 13X13', cost: 4200 },
-      { sku: 'GUIN1432', name: 'PAN GUAGUA INTEGRAL MORENA 14X14', cost: 4400 },
-      { sku: 'GUMC1438', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4600 },
-      { sku: 'MIGAARG22', name: 'PAN MIGA DE ARGENTINO', cost: 3600 },
-      { sku: 'PANMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4600 },
-    ],
-    lastUpdated: '2023-10-28',
-  },
-  {
-    id: 'PAN_INTEGRAL',
-    name: 'PAN INTEGRAL',
-    ingredients: [
-      { name: 'Harina Integral', quantity: 1, unit: 'kg' },
-      { name: 'Agua', quantity: 0.8, unit: 'L' },
-      { name: 'Levadura Fresca', quantity: 0.02, unit: 'kg'},
-      { name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}
-    ],
-    formats: [
-      { sku: 'ININ0232', name: 'PAN INTEGRAL LIGHT 550 GRS', cost: 2500 },
-      { sku: 'SCHINT10', name: 'PAN SCHROTBROT 100 INTEGRAL 550 GRS', cost: 2900 },
-    ],
-    lastUpdated: '2023-10-28',
-  },
-  {
-    id: 'PASTELERIA',
-    name: 'PASTELERIA',
-    ingredients: [
-      { name: 'Harina de Trigo', quantity: 1, unit: 'kg' },
-      { name: 'Azucar', quantity: 0.5, unit: 'kg' },
-      { name: 'Levadura Fresca', quantity: 0.05, unit: 'kg'}
-    ],
-    formats: [
-      { sku: 'TIPA0500', name: 'PAN PUMPERNICKEL 500 GRS', cost: 3600 },
-      { sku: 'TIPA2700', name: 'PAN PUMPERNICKEL 1 K', cost: 6600 },
-    ],
-    lastUpdated: '2023-10-28',
-  },
-  {
-    id: 'TOSTADAS',
-    name: 'TOSTADAS',
-    ingredients: [{ name: 'Pan Sobrante', quantity: 1, unit: 'kg' }],
-    formats: [
-      { sku: 'CROSMOL', name: 'TOSTADAS CROSTINI MERKEN', cost: 1600 },
-      { sku: 'CROSOOL', name: 'TOSTADAS CROSTINI OREGANO', cost: 1600 },
-      { sku: 'CRUT11MM', name: 'CRUTONES HOREADOS 1KG 11mm', cost: 4100 },
-      { sku: 'CRUT11MM5', name: 'CRUTON HORNEADO 5KG 11MM', cost: 18100 },
-      { sku: 'CRUT7MM', name: 'CRUTONES HORNEADOS 1KG 7mm', cost: 4100 },
-      { sku: 'CRUT7MM5', name: 'CRUTONES HORNEADOS 5KG 7mm', cost: 18100 },
-      { sku: 'CRUTOGRA', name: 'CRUTONES 1 K', cost: 4100 },
-      { sku: 'GALLSEM', name: 'TOSTADAS VOLLKORN CRACKER', cost: 2600 },
-      { sku: 'ININ0584', name: 'PAN RALLADO INTEGRAL 500 GRS', cost: 1600 },
-      { sku: 'RALLADBCO', name: 'PAN RALLADO 1 K', cost: 2900 },
-      { sku: 'RALLADBCO5', name: 'PAN RALLADO 5 KG', cost: 12100 },
-      { sku: 'TOSTCOCKT', name: 'TOSTADAS COCKTAIL', cost: 2100 },
-    ],
-    lastUpdated: '2023-10-28',
-  },
-];
 
+export const initialRecipes: Recipe[] = [
+  { id: '400100', name: 'PAN BCO SIN GLUTEN', family: 'PAN BLANCO', cost: 2100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'PSO10X10', name: 'PAN BLANCO SIN ORILLAS 10X105', family: 'PAN BLANCO', cost: 1900, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CERE0003', name: 'PAN LINAZA 500 GRS', family: 'PAN CENTENO', cost: 2600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CERE0027', name: 'PAN CHOCOSO CENTENO 500 GRS', family: 'PAN CENTENO', cost: 2800, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', family: 'PAN CENTENO', cost: 3100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CERE0058', name: 'PAN GROB 100 INTEGRAL 750 GRS', family: 'PAN CENTENO', cost: 3300, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CERE0065', name: 'PAN ROGGENBROT 600 GRS', family: 'PAN CENTENO', cost: 2900, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CERE0188', name: 'PAN MULTICEREAL 500 GRS', family: 'PAN CENTENO', cost: 2700, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CERE0607', name: 'PAN LANDBROT 500 GRS', family: 'PAN CENTENO', cost: 2700, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'PANPRUEBA', name: 'PAN PRUEBA', family: 'PAN CENTENO', cost: 1100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', family: 'PAN INDUSTRIAL', cost: 4100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'GUAINT16', name: 'PAN GUAGUA INTEGRAL 16X16', family: 'PAN INDUSTRIAL', cost: 4300, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'GUAMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', family: 'PAN INDUSTRIAL', cost: 4600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'GUBL1332', name: 'PAN GUAGUA BLANCA 13X13', family: 'PAN INDUSTRIAL', cost: 3900, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'GUBL1432', name: 'PAN GUAGUA BLANCA 14X14', family: 'PAN INDUSTRIAL', cost: 4000, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'GUIN1332', name: 'PAN GUAGUA INTEGRAL 13X13', family: 'PAN INDUSTRIAL', cost: 4200, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'GUIN1432', name: 'PAN GUAGUA INTEGRAL MORENA 14X14', family: 'PAN INDUSTRIAL', cost: 4400, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'GUMC1438', name: 'PAN GUAGUA MULTICEREAL 14X10', family: 'PAN INDUSTRIAL', cost: 4600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'MIGAARG22', name: 'PAN MIGA DE ARGENTINO', family: 'PAN INDUSTRIAL', cost: 3600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'PANMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', family: 'PAN INDUSTRIAL', cost: 4600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'ININ0232', name: 'PAN INTEGRAL LIGHT 550 GRS', family: 'PAN INTEGRAL', cost: 2500, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'SCHINT10', name: 'PAN SCHROTBROT 100 INTEGRAL 550 GRS', family: 'PAN INTEGRAL', cost: 2900, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'TIPA0500', name: 'PAN PUMPERNICKEL 500 GRS', family: 'PASTELERIA', cost: 3600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'TIPA2700', name: 'PAN PUMPERNICKEL 1 K', family: 'PASTELERIA', cost: 6600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CROSMOL', name: 'TOSTADAS CROSTINI MERKEN', family: 'TOSTADAS', cost: 1600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CROSOOL', name: 'TOSTADAS CROSTINI OREGANO', family: 'TOSTADAS', cost: 1600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CRUT11MM', name: 'CRUTONES HOREADOS 1KG 11mm', family: 'TOSTADAS', cost: 4100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CRUT11MM5', name: 'CRUTON HORNEADO 5KG 11MM', family: 'TOSTADAS', cost: 18100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CRUT7MM', name: 'CRUTONES HORNEADOS 1KG 7mm', family: 'TOSTADAS', cost: 4100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CRUT7MM5', name: 'CRUTONES HORNEADOS 5KG 7mm', family: 'TOSTADAS', cost: 18100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'CRUTOGRA', name: 'CRUTONES 1 K', family: 'TOSTADAS', cost: 4100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'GALLSEM', name: 'TOSTADAS VOLLKORN CRACKER', family: 'TOSTADAS', cost: 2600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'ININ0584', name: 'PAN RALLADO INTEGRAL 500 GRS', family: 'TOSTADAS', cost: 1600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'RALLADBCO', name: 'PAN RALLADO 1 K', family: 'TOSTADAS', cost: 2900, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'RALLADBCO5', name: 'PAN RALLADO 5 KG', family: 'TOSTADAS', cost: 12100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
+  { id: 'TOSTCOCKT', name: 'TOSTADAS COCKTAIL', family: 'TOSTADAS', cost: 2100, ingredients: [], formats: [], lastUpdated: '2023-10-28' }
+];
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
@@ -151,35 +82,37 @@ export default function RecipesPage() {
   const detailsModalContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
+  const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'id' | 'lastUpdated' | 'formats'>) => {
     const newRecipe: Recipe = {
       ...newRecipeData,
       id: newRecipeData.name.toUpperCase().replace(/\s/g, '_'),
       lastUpdated: new Date().toISOString().split('T')[0],
+      formats: [], // Empty as requested
     };
     setRecipes(prev => [newRecipe, ...prev]);
     setFormModalOpen(false);
     toast({
-        title: "Familia Creada",
-        description: `La familia de productos ${newRecipe.name} ha sido creada.`,
+        title: "Receta Creada",
+        description: `La receta ${newRecipe.name} ha sido creada.`,
     });
   };
   
-  const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
+  const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'id' | 'lastUpdated' | 'formats'>) => {
       if (!selectedRecipe) return;
       
       const updatedRecipe: Recipe = {
           ...updatedRecipeData,
           id: selectedRecipe.id,
           lastUpdated: new Date().toISOString().split('T')[0],
+          formats: [], // Empty as requested
       };
       
       setRecipes(recipes.map(r => r.id === selectedRecipe.id ? updatedRecipe : r));
       setFormModalOpen(false);
       setSelectedRecipe(null);
       toast({
-          title: "Familia Actualizada",
-          description: `La familia ${updatedRecipe.name} ha sido actualizada.`,
+          title: "Receta Actualizada",
+          description: `La receta ${updatedRecipe.name} ha sido actualizada.`,
       });
   }
 
@@ -232,12 +165,12 @@ export default function RecipesPage() {
         <CardHeader>
             <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
-                    <CardTitle className="font-headline">Familias de Productos y Recetas</CardTitle>
-                    <CardDescription className="font-body">Gestiona las familias de productos, sus recetas base y los distintos formatos de venta.</CardDescription>
+                    <CardTitle className="font-headline">Recetas y Productos</CardTitle>
+                    <CardDescription className="font-body">Gestiona los productos, sus recetas base y categorías (familias).</CardDescription>
                 </div>
                 <Button onClick={() => handleOpenForm(null)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Nueva Familia
+                    Nueva Receta
                 </Button>
             </div>
         </CardHeader>
@@ -245,9 +178,9 @@ export default function RecipesPage() {
           <Table className="responsive-table">
             <TableHeader>
               <TableRow>
-                <TableHead>Nombre Familia</TableHead>
-                <TableHead>Nº de Productos</TableHead>
-                <TableHead>Nº Ingredientes Base</TableHead>
+                <TableHead>SKU / Código</TableHead>
+                <TableHead>Nombre Producto (Receta)</TableHead>
+                <TableHead>Familia</TableHead>
                 <TableHead>Última Actualización</TableHead>
                 <TableHead>
                   <span className="sr-only">Acciones</span>
@@ -257,9 +190,9 @@ export default function RecipesPage() {
             <TableBody>
               {recipes.map((recipe) => (
                 <TableRow key={recipe.id} className="hover:bg-muted/50">
+                  <TableCell data-label="SKU" className="font-mono">{recipe.id}</TableCell>
                   <TableCell data-label="Nombre" className="font-medium">{recipe.name}</TableCell>
-                  <TableCell data-label="Formatos">{recipe.formats.length}</TableCell>
-                  <TableCell data-label="Nº Ingredientes">{recipe.ingredients.length}</TableCell>
+                  <TableCell data-label="Familia">{recipe.family}</TableCell>
                   <TableCell data-label="Actualizado">{new Date(recipe.lastUpdated + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -288,9 +221,9 @@ export default function RecipesPage() {
       <Dialog open={isFormModalOpen} onOpenChange={setFormModalOpen}>
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">{selectedRecipe ? 'Editar Familia y Receta' : 'Crear Nueva Familia y Receta'}</DialogTitle>
+            <DialogTitle className="font-headline">{selectedRecipe ? 'Editar Receta de Producto' : 'Crear Nueva Receta de Producto'}</DialogTitle>
             <DialogDescription className="font-body">
-              {selectedRecipe ? 'Modifica los detalles de la familia, su receta y sus productos.' : 'Define una nueva familia, su receta base y sus productos asociados.'}
+              {selectedRecipe ? `Modifica los detalles para "${selectedRecipe.name}".` : 'Define un nuevo producto, su familia y su receta base.'}
             </DialogDescription>
           </DialogHeader>
           <RecipeForm
@@ -307,60 +240,42 @@ export default function RecipesPage() {
           <DialogHeader>
             <DialogTitle className="font-headline">{selectedRecipe?.name}</DialogTitle>
              <DialogDescription className="font-body">
-                Ficha de Familia de Productos - {selectedRecipe?.id}
+                Ficha de Producto - {selectedRecipe?.id}
             </DialogDescription>
           </DialogHeader>
           {selectedRecipe && (
              <div ref={detailsModalContentRef} className="max-h-[70vh] overflow-y-auto font-body p-1 bg-white text-black rounded-md">
                 <div className="p-6">
                     <div className="mb-6 text-center">
-                        <p className="font-semibold text-gray-600">Última Actualización:</p>
-                        <p>{new Date(selectedRecipe.lastUpdated + 'T00:00:00').toLocaleDateString('es-CL')}</p>
+                        <p className="font-semibold text-gray-600">Familia:</p>
+                        <p className="text-lg font-bold font-headline">{selectedRecipe.family}</p>
                     </div>
 
                     <div className="space-y-6">
-                        <div>
-                            <h3 className="font-headline text-xl mb-2 border-b pb-2">Productos (Formatos)</h3>
-                             <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="text-black font-semibold">Código</TableHead>
-                                        <TableHead className="text-black font-semibold">Nombre Producto</TableHead>
-                                        <TableHead className="text-right text-black font-semibold">Costo</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {selectedRecipe.formats.map((format) => (
-                                        <TableRow key={format.sku} className="border-gray-200">
-                                            <TableCell className="font-mono">{format.sku}</TableCell>
-                                            <TableCell className="font-medium">{format.name}</TableCell>
-                                            <TableCell className="text-right">${format.cost.toLocaleString('es-CL')}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-                        
-                        <div>
+                       <div>
                             <h3 className="font-headline text-xl mb-2 border-b pb-2">Receta Base</h3>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="text-black font-semibold">Ingrediente</TableHead>
-                                        <TableHead className="text-right text-black font-semibold">Cantidad</TableHead>
-                                        <TableHead className="text-black font-semibold">Unidad</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {selectedRecipe.ingredients.map((ing, index) => (
-                                        <TableRow key={index} className="border-gray-200">
-                                            <TableCell className="font-medium">{ing.name}</TableCell>
-                                            <TableCell className="text-right">{ing.quantity}</TableCell>
-                                            <TableCell>{ing.unit}</TableCell>
+                            {selectedRecipe.ingredients.length > 0 ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="text-black font-semibold">Ingrediente</TableHead>
+                                            <TableHead className="text-right text-black font-semibold">Cantidad</TableHead>
+                                            <TableHead className="text-black font-semibold">Unidad</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {selectedRecipe.ingredients.map((ing, index) => (
+                                            <TableRow key={index} className="border-gray-200">
+                                                <TableCell className="font-medium">{ing.name}</TableCell>
+                                                <TableCell className="text-right">{ing.quantity}</TableCell>
+                                                <TableCell>{ing.unit}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center py-4">No hay ingredientes definidos para esta receta.</p>
+                            )}
                         </div>
                     </div>
                     
@@ -383,5 +298,3 @@ export default function RecipesPage() {
     </AppLayout>
   );
 }
-
-    
