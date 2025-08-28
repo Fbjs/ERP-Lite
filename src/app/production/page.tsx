@@ -135,49 +135,29 @@ const emptyProcessControl: ProcessControl = {
 };
 
 const emptyPortioningControl: PortioningControl = {
-    startTime: '',
-    rawCut1Gr: 0,
-    rawCut2Gr: 0,
-    leftoverDoughGr: 0,
-    endTime: '',
-    numCarts: 0,
-    roomTemp: 0,
-    observations: ''
+    startTime: '', rawCut1Gr: 0, rawCut2Gr: 0, leftoverDoughGr: 0, endTime: '',
+    numCarts: 0, roomTemp: 0, observations: ''
 };
 
 const emptyFermentationControl: FermentationControl = {
-    chamber: '',
-    entryTime: '',
-    exitTime: '',
-    totalTimeMin: 0,
-    chamberTemp: 0,
-    chamberRh: 0
+    chamber: '', entryTime: '', exitTime: '', totalTimeMin: 0, chamberTemp: 0, chamberRh: 0
 };
 
 const emptyBakingControl: BakingControl = {
-    oven: '',
-    numFloors: 0,
-    loadStartTime: '',
-    unloadEndTime: '',
-    bakingTime: 0,
-    ovenTemp: 0,
-    observations: ''
+    oven: '', numFloors: 0, loadStartTime: '', unloadEndTime: '', bakingTime: 0,
+    ovenTemp: 0, observations: ''
 };
 
 const emptyBakingRecord: BakingRecord = {
-    ovenTemp: 0,
-    thermalCenterTemp: 0,
-    correctiveAction: '',
-    verification: '',
-    observations: ''
+    ovenTemp: 0, thermalCenterTemp: 0, correctiveAction: '', verification: '', observations: ''
 };
 
 
 export const initialOrders: Order[] = [
-  { id: 'PROD021', product: 'Pain au Levain', quantity: 200, status: 'En Progreso', stage: 'Horneando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
-  { id: 'PROD022', product: 'Baguette Tradition', quantity: 500, status: 'Completado', stage: 'Empaquetado', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [{ type: 'Por Forma', quantity: 10, reason: 'Mal formado' }] },
-  { id: 'PROD023', product: 'Croissant au Beurre', quantity: 1000, status: 'En Cola', stage: 'Mezclando', date: '2023-10-29', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
-  { id: 'PROD024', product: 'Ciabatta', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
+  { id: 'PROD021', product: 'PAN LINAZA 500 GRS', quantity: 80, status: 'En Progreso', stage: 'Horneando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
+  { id: 'PROD022', product: 'PAN GUAGUA BLANCA 16X16', quantity: 200, status: 'Completado', stage: 'Empaquetado', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [{ type: 'Por Forma', quantity: 10, reason: 'Mal formado' }] },
+  { id: 'PROD023', product: 'CRUTONES HOREADOS 1KG 11mm', quantity: 120, status: 'En Cola', stage: 'Mezclando', date: '2023-10-29', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
+  { id: 'PROD024', product: 'TOSTADAS CROSTINI OREGANO', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
 ];
 
 type ProductionNeeds = {
@@ -208,7 +188,7 @@ export default function ProductionPage() {
 
     const selectedOrderRecipe = useMemo(() => {
         if (!selectedOrder) return null;
-        return initialRecipes.find(r => r.name === selectedOrder.product) || null;
+        return initialRecipes.find(r => r.formats.some(f => f.name === selectedOrder.product)) || null;
     }, [selectedOrder]);
 
     const requiredMaterials = useMemo(() => {
@@ -323,7 +303,7 @@ export default function ProductionPage() {
                     
                     const newOrder: Order = {
                         id: `PROD${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
-                        product: need.recipe.name,
+                        product: need.recipe.name, // The product name here is the recipe name
                         quantity: quantityForThisOrder,
                         status: 'En Cola',
                         stage: 'Pendiente',

@@ -18,25 +18,37 @@ import { useToast } from '@/hooks/use-toast';
 export type InventoryItem = {
   sku: string;
   name: string;
-  category: 'Materia Prima' | 'Insumo' | 'Producto Terminado';
+  category: 'Materia Prima' | 'Insumo' | 'Producto Terminado' | 'ENVASADO';
   stock: number;
   unit: string;
   location: string;
 };
 
 export const initialInventoryItems: InventoryItem[] = [
+  // Materias Primas
   { sku: 'HAR-001', name: 'Harina de Trigo', category: 'Materia Prima', stock: 1500, unit: 'kg', location: 'Bodega A-1' },
+  { sku: 'HAR-CEN-001', name: 'Harina de Centeno', category: 'Materia Prima', stock: 500, unit: 'kg', location: 'Bodega A-1' },
+  { sku: 'HAR-INT-001', name: 'Harina Integral', category: 'Materia Prima', stock: 700, unit: 'kg', location: 'Bodega A-1' },
   { sku: 'LEV-002', name: 'Levadura Fresca', category: 'Materia Prima', stock: 250, unit: 'kg', location: 'Refrigerador 2' },
   { sku: 'SAL-003', name: 'Sal de Mar', category: 'Materia Prima', stock: 500, unit: 'kg', location: 'Bodega A-2' },
-  { sku: 'MAN-004', name: 'Mantequilla', category: 'Materia Prima', stock: 300, unit: 'kg', location: 'Refrigerador 1' },
-  { sku: 'AZU-005', name: 'Azucar', category: 'Materia Prima', stock: 400, unit: 'kg', location: 'Bodega A-2' },
-  { sku: 'AGU-006', name: 'Agua', category: 'Materia Prima', stock: 1000, unit: 'L', location: 'Estanque' },
-  { sku: 'MM-007', name: 'Masa Madre', category: 'Materia Prima', stock: 50, unit: 'kg', location: 'Refrigerador 3' },
-  { sku: 'LEC-008', name: 'Leche', category: 'Materia Prima', stock: 200, unit: 'L', location: 'Refrigerador 1' },
-  { sku: 'PROD-PL-01', name: 'Pain au Levain', category: 'Producto Terminado', stock: 200, unit: 'unidades', location: 'Zona Despacho' },
-  { sku: 'PROD-BG-01', name: 'Baguette Tradition', category: 'Producto Terminado', stock: 350, unit: 'unidades', location: 'Zona Despacho' },
-  { sku: 'PROD-CB-01', name: 'Ciabatta', category: 'Producto Terminado', stock: 250, unit: 'unidades', location: 'Zona Despacho' },
-  { sku: 'PROD-CR-01', name: 'Croissant au Beurre', category: 'Producto Terminado', stock: 500, unit: 'unidades', location: 'Zona Despacho' },
+  { sku: 'PAN-SOB-001', name: 'Pan Sobrante', category: 'Materia Prima', stock: 100, unit: 'kg', location: 'Contenedor Mermas' },
+  
+  // Productos Terminados
+  { sku: 'PSO10X10', name: 'PAN BLANCO SIN ORILLAS 10X105', category: 'Producto Terminado', stock: 150, unit: 'Un', location: 'Zona Despacho' },
+  { sku: 'CERE0003', name: 'PAN LINAZA 500 GRS', category: 'Producto Terminado', stock: 80, unit: 'Un', location: 'Zona Despacho' },
+  { sku: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', category: 'Producto Terminado', stock: 60, unit: 'Un', location: 'Zona Despacho' },
+  { sku: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', category: 'Producto Terminado', stock: 200, unit: 'Un', location: 'Zona Despacho' },
+  { sku: 'GUAINT16', name: 'PAN GUAGUA INTEGRAL 16X16', category: 'Producto Terminado', stock: 180, unit: 'Un', location: 'Zona Despacho' },
+  { sku: 'ININ0232', name: 'PAN INTEGRAL LIGHT 550 GRS', category: 'Producto Terminado', stock: 90, unit: 'Un', location: 'Zona Despacho' },
+  { sku: 'TIPA0500', name: 'PAN PUMPERNICKEL 500 GRS', category: 'Producto Terminado', stock: 40, unit: 'Un', location: 'Zona Despacho' },
+  { sku: 'CROSMOL', name: 'TOSTADAS CROSTINI MERKEN', category: 'Producto Terminado', stock: 300, unit: 'Un', location: 'Zona Despacho' },
+  { sku: 'CRUT11MM', name: 'CRUTONES HOREADOS 1KG 11mm', category: 'Producto Terminado', stock: 120, unit: 'Un', location: 'Zona Despacho' },
+  { sku: 'GALLSEM', name: 'TOSTADAS VOLLKORN CRACKER', category: 'Producto Terminado', stock: 250, unit: 'Un', location: 'Zona Despacho' },
+  { sku: 'RALLADBCO', name: 'PAN RALLADO 1 K', category: 'Producto Terminado', stock: 100, unit: 'Un', location: 'Zona Despacho' },
+  
+  // Insumos y Envasado
+  { sku: 'CA-JA-150', name: 'CAJA CARTON 150x150x150CD', category: 'ENVASADO', stock: 5000, unit: 'Un', location: 'Estante B-3' },
+  { sku: 'CA-JA-642', name: 'CAJA CARTON 600x400x200', category: 'ENVASADO', stock: 2000, unit: 'Un', location: 'Estante B-4' },
   { sku: 'INS-EM-01', name: 'Bolsas de Papel', category: 'Insumo', stock: 5000, unit: 'unidades', location: 'Estante B-3' },
 ];
 

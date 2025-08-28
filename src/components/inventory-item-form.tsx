@@ -57,6 +57,7 @@ export default function InventoryItemForm({ onSubmit, onCancel, initialData }: I
                 <SelectItem value="Materia Prima">Materia Prima</SelectItem>
                 <SelectItem value="Insumo">Insumo</SelectItem>
                 <SelectItem value="Producto Terminado">Producto Terminado</SelectItem>
+                <SelectItem value="ENVASADO">Envasado</SelectItem>
             </SelectContent>
         </Select>
       </div>
@@ -66,7 +67,7 @@ export default function InventoryItemForm({ onSubmit, onCancel, initialData }: I
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="unit" className="text-right">Unidad</Label>
-        <Input id="unit" value={unit} onChange={(e) => setUnit(e.target.value)} className="col-span-3" placeholder="ej: kg, unidades, L" required />
+        <Input id="unit" value={unit} onChange={(e) => setUnit(e.target.value)} className="col-span-3" placeholder="ej: kg, Un, L" required />
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
         <Label htmlFor="location" className="text-right">Ubicación</Label>

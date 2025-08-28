@@ -25,43 +25,87 @@ export type ProductFormat = {
 
 export type Recipe = {
   id: string; // Internal ID for the recipe
-  name: string; // Base product name
+  name: string; // Base product name (from "Nombre FAMILIA")
   ingredients: Ingredient[];
   formats: ProductFormat[];
   lastUpdated: string;
 };
 
 export const initialRecipes: Recipe[] = [
-  { id: 'REC-001', name: 'Pain au Levain', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.7, unit: 'L'}, {name: 'Masa Madre', quantity: 0.2, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], 
+  { 
+    id: 'REC-PAN-BLANCO', name: 'PAN BLANCO', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.6, unit: 'L'}], 
     formats: [
-        { sku: 'PROD-PL-700', name: 'Unidad de 700g', cost: 2500 },
-        { sku: 'PROD-PL-1400', name: 'Unidad de 1400g', cost: 4800 },
+        { sku: '400100', name: 'PAN BCO SIN GLUTEN', cost: 2000 },
+        { sku: 'PSO10X10', name: 'PAN BLANCO SIN ORILLAS 10X105', cost: 1800 },
     ], 
-    lastUpdated: '2023-10-26' 
+    lastUpdated: '2023-10-28' 
   },
-  { id: 'REC-002', name: 'Baguette Tradition', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.01, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], 
+  { 
+    id: 'REC-PAN-CENTENO', name: 'PAN CENTENO', ingredients: [{name: 'Harina de Centeno', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.75, unit: 'L'}], 
     formats: [
-        { sku: 'PROD-BG-250', name: 'Unidad de 250g', cost: 1800 },
-    ],
-    lastUpdated: '2023-10-25' },
-  { id: 'REC-003', name: 'Croissant au Beurre', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Mantequilla', quantity: 0.5, unit: 'kg'}, {name: 'Azucar', quantity: 0.1, unit: 'kg'}, {name: 'Leche', quantity: 0.4, unit: 'L'}], 
+        { sku: 'CERE0003', name: 'PAN LINAZA 500 GRS', cost: 2500 },
+        { sku: 'CERE0027', name: 'PAN CHOCOSO CENTENO 500 GRS', cost: 2700 },
+        { sku: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', cost: 3000 },
+        { sku: 'CERE0058', name: 'PAN GROB 100 INTEGRAL 750 GRS', cost: 3200 },
+        { sku: 'CERE0065', name: 'PAN ROGGENBROT 600 GRS', cost: 2800 },
+        { sku: 'CERE0188', name: 'PAN MULTICEREAL 500 GRS', cost: 2600 },
+        { sku: 'CERE0607', name: 'PAN LANDBROT 500 GRS', cost: 2600 },
+        { sku: 'PANPRUEBA', name: 'PAN PRUEBA', cost: 1000 },
+    ], 
+    lastUpdated: '2023-10-28' 
+  },
+   { 
+    id: 'REC-PAN-INDUSTRIAL', name: 'PAN INDUSTRIAL', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}], 
     formats: [
-        { sku: 'PROD-CR-U', name: 'Unidad', cost: 3100 },
-    ],
-    lastUpdated: '2023-10-27' },
-  { id: 'REC-004', name: 'Ciabatta', ingredients: [{name: 'Harina de Trigo', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}, {name: 'Levadura Fresca', quantity: 0.005, unit: 'kg'}, {name: 'Sal de Mar', quantity: 0.02, unit: 'kg'}], 
+        { sku: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', cost: 4000 },
+        { sku: 'GUAINT16', name: 'PAN GUAGUA INTEGRAL 16X16', cost: 4200 },
+        { sku: 'GUAMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4500 },
+        { sku: 'GUBL1332', name: 'PAN GUAGUA BLANCA 13X13', cost: 3800 },
+        { sku: 'GUBL1432', name: 'PAN GUAGUA BLANCA 14X14', cost: 3900 },
+        { sku: 'GUIN1332', name: 'PAN GUAGUA INTEGRAL 13X13', cost: 4100 },
+        { sku: 'GUIN1432', name: 'PAN GUAGUA INTEGRAL MORENA 14X14', cost: 4300 },
+        { sku: 'GUMC1438', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4500 },
+        { sku: 'MIGAARG22', name: 'PAN MIGA DE ARGENTINO', cost: 3500 },
+        { sku: 'PANMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', cost: 4500 },
+    ], 
+    lastUpdated: '2023-10-28' 
+  },
+   { 
+    id: 'REC-PAN-INTEGRAL', name: 'PAN INTEGRAL', ingredients: [{name: 'Harina Integral', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}], 
     formats: [
-        { sku: 'PROD-CB-300', name: 'Unidad de 300g', cost: 2200 },
-    ],
-    lastUpdated: '2023-10-24' },
-  { id: 'REC-005', name: 'Pan Rallado', ingredients: [{name: 'Pan Sobrante', quantity: 1, unit: 'kg'}],
+        { sku: 'ININ0232', name: 'PAN INTEGRAL LIGHT 550 GRS', cost: 2400 },
+        { sku: 'SCHINT10', name: 'PAN SCHROTBROT 100 INTEGRAL 550 GRS', cost: 2800 },
+    ], 
+    lastUpdated: '2023-10-28' 
+  },
+   { 
+    id: 'REC-PASTELERIA', name: 'PASTELERIA', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Azucar', quantity: 0.5, unit: 'kg'}], 
     formats: [
-        { sku: 'PROD-PR-500', name: 'Bolsa 500g', cost: 1500 },
-        { sku: 'PROD-PR-1000', name: 'Bolsa 1kg', cost: 2800 },
+        { sku: 'TIPA0500', name: 'PAN PUMPERNICKEL 500 GRS', cost: 3500 },
+        { sku: 'TIPA2700', name: 'PAN PUMPERNICKEL 1 K', cost: 6500 },
+    ], 
+    lastUpdated: '2023-10-28' 
+  },
+   { 
+    id: 'REC-TOSTADAS', name: 'TOSTADAS', ingredients: [{name: 'Pan Sobrante', quantity: 1, unit: 'kg'}], 
+    formats: [
+        { sku: 'CROSMOL', name: 'TOSTADAS CROSTINI MERKEN', cost: 1500 },
+        { sku: 'CROSOOL', name: 'TOSTADAS CROSTINI OREGANO', cost: 1500 },
+        { sku: 'CRUT11MM', name: 'CRUTONES HOREADOS 1KG 11mm', cost: 4000 },
+        { sku: 'CRUT11MM5', name: 'CRUTON HORNEADO 5KG 11MM', cost: 18000 },
+        { sku: 'CRUT7MM', name: 'CRUTONES HORNEADOS 1KG 7mm', cost: 4000 },
+        { sku: 'CRUT7MM5', name: 'CRUTONES HORNEADOS 5KG 7mm', cost: 18000 },
+        { sku: 'CRUTOGRA', name: 'CRUTONES 1 K', cost: 4000 },
+        { sku: 'GALLSEM', name: 'TOSTADAS VOLLKORN CRACKER', cost: 2500 },
+        { sku: 'ININ0584', name: 'PAN RALLADO INTEGRAL 500 GRS', cost: 1500 },
+        { sku: 'RALLADBCO', name: 'PAN RALLADO 1 K', cost: 2800 },
+        { sku: 'RALLADBCO5', name: 'PAN RALLADO 5 KG', cost: 12000 },
+        { sku: 'TOSTCOCKT', name: 'TOSTADAS COCKTAIL', cost: 2000 },
     ], 
     lastUpdated: '2023-10-28' 
   },
 ];
+
 
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
@@ -74,7 +118,7 @@ export default function RecipesPage() {
   const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
     const newRecipe: Recipe = {
       ...newRecipeData,
-      id: `REC-${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+      id: `REC-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
       lastUpdated: new Date().toISOString().split('T')[0],
     };
     setRecipes(prev => [newRecipe, ...prev]);
@@ -165,7 +209,7 @@ export default function RecipesPage() {
           <Table className="responsive-table">
             <TableHeader>
               <TableRow>
-                <TableHead>Nombre del Producto</TableHead>
+                <TableHead>Nombre Familia</TableHead>
                 <TableHead>Formatos de Venta</TableHead>
                 <TableHead>Nº Ingredientes</TableHead>
                 <TableHead>Última Actualización</TableHead>

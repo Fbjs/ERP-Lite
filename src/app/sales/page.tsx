@@ -67,24 +67,18 @@ export type SalespersonRequest = {
 
 
 export const initialOrders: Order[] = [
-  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-700', quantity: 100 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
-  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'REC-003', formatSku: 'PROD-CR-U', quantity: 200 }, { recipeId: 'REC-004', formatSku: 'PROD-CB-300', quantity: 150 }], dispatcher: 'MARCELO', comments: '' },
-  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-1400', quantity: 50 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
-  { id: 'SALE884', customer: 'Panaderia Central', amount: 320750, status: 'Completado', date: '2025-07-26', deliveryDate: '2025-07-27', items: [{ recipeId: 'REC-005', formatSku: 'PROD-PR-500', quantity: 300 }], dispatcher: 'RODRIGO', comments: '' },
-  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950000, status: 'Cancelado', date: '2025-07-25', deliveryDate: '2025-07-26', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 500 }], dispatcher: 'N/A', comments: 'Cliente cancela por sobrestock.' },
-  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210000, status: 'En Preparación', date: '2025-07-29', deliveryDate: '2025-07-31', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 100 }], dispatcher: 'MARCELO', comments: '' },
+  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'REC-PAN-CENTENO', formatSku: 'CERE0003', quantity: 100 }, { recipeId: 'REC-PAN-INDUSTRIAL', formatSku: 'GUABCO16', quantity: 50 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
+  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'REC-TOSTADAS', formatSku: 'CRUT11MM', quantity: 200 }, { recipeId: 'REC-TOSTADAS', formatSku: 'GALLSEM', quantity: 150 }], dispatcher: 'MARCELO', comments: '' },
+  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'REC-PASTELERIA', formatSku: 'TIPA2700', quantity: 50 }, { recipeId: 'REC-PAN-BLANCO', formatSku: 'PSO10X10', quantity: 50 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
     { id: 'PED001', salesperson: 'FRANCISCA', deliveryPerson: 'RODRIGO', responsiblePerson: 'FRANCISCA', date: '2025-08-29', deliveryDate: '2025-08-29', status: 'Despachado', items: [
         { client: 'LORENA AGUILAR', product: 'SCHWARZBROT', quantity: 94, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
         { client: 'LORENA AGUILAR', product: 'RUSTICO LINAZA', quantity: 20, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
-        { client: 'LORENA AGUILAR', product: 'G. BLANCAS 16X16', quantity: 6, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
-        { client: 'LORENA AGUILAR', product: 'PUMPERNICKEL 500', quantity: 12, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
-        { client: 'LORENA AGUILAR', product: 'CROSTINI OREGANO', quantity: 14, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
     ], amount: 350000},
     { id: 'PED002', salesperson: 'VENDEDOR 2', deliveryPerson: 'MARCELO', responsiblePerson: 'VENDEDOR 2', date: '2025-07-29', deliveryDate: '2025-07-30', status: 'Pendiente', items: [
-        { client: 'BETTER FOOD', product: 'CRUTONES 7MM', quantity: 10, type: 'PROD', itemType: 'FACTURA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO...' }
+        { client: 'BETTER FOOD', product: 'CRUTONES 1 K', quantity: 10, type: 'PROD', itemType: 'FACTURA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO...' }
     ], amount: 80000},
 ];
 
