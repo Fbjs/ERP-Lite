@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
-import { Ingredient, Recipe } from '@/app/recipes/page';
+import { Ingredient, Recipe, ProductFormat } from '@/app/recipes/page';
 import { Trash2, PlusCircle } from 'lucide-react';
 
-type RecipeFormData = Omit<Recipe, 'id' | 'lastUpdated' | 'formats'>;
+type RecipeFormData = Omit<Recipe, 'id' | 'lastUpdated'>;
 
 type RecipeFormProps = {
   onSubmit: (data: RecipeFormData) => void;
@@ -18,12 +18,14 @@ type RecipeFormProps = {
 };
 
 const defaultIngredient: Ingredient = { name: '', quantity: 0, unit: '' };
+const defaultFormat: ProductFormat = { sku: '', name: '', cost: 0 };
 
 export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFormProps) {
   const [name, setName] = useState('');
   const [family, setFamily] = useState('');
   const [cost, setCost] = useState(0);
   const [ingredients, setIngredients] = useState<Ingredient[]>([defaultIngredient]);
+  const [formats, setFormats] = useState<ProductFormat[]>([defaultFormat]);
   
   const isEditing = !!initialData;
 
@@ -33,11 +35,13 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
       setFamily(initialData.family || '');
       setCost(initialData.cost || 0);
       setIngredients(initialData.ingredients?.length > 0 ? initialData.ingredients : [defaultIngredient]);
+      setFormats(initialData.formats?.length > 0 ? initialData.formats : [defaultFormat]);
     } else {
       setName('');
       setFamily('');
       setCost(0);
       setIngredients([defaultIngredient]);
+      setFormats([defaultFormat]);
     }
   }, [initialData]);
 
@@ -47,15 +51,25 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
     setIngredients(newIngredients);
   };
   
-  const addIngredient = () => setIngredients([...ingredients, { name: '', quantity: 0, unit: '' }]);
+  const addIngredient = () => setIngredients([...ingredients, { ...defaultIngredient }]);
   const removeIngredient = (index: number) => {
     if (ingredients.length > 1) setIngredients(ingredients.filter((_, i) => i !== index));
   };
   
+  const handleFormatChange = (index: number, field: keyof ProductFormat, value: string | number) => {
+    const newFormats = [...formats];
+    newFormats[index] = { ...newFormats[index], [field]: value };
+    setFormats(newFormats);
+  };
+  
+  const addFormat = () => setFormats([...formats, { ...defaultFormat }]);
+  const removeFormat = (index: number) => {
+    if (formats.length > 1) setFormats(formats.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const id = initialData?.id || name.toUpperCase().replace(/\s/g, '_');
-    onSubmit({ name, family, cost, ingredients });
+    onSubmit({ name, family, cost, ingredients, formats });
   };
 
   return (
@@ -69,8 +83,26 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
             <Input id="family" value={family} onChange={(e) => setFamily(e.target.value)} className="col-span-3" required placeholder="Ej: PAN CENTENO" />
         </div>
          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="cost" className="text-right">Costo</Label>
+            <Label htmlFor="cost" className="text-right">Costo Base</Label>
             <Input id="cost" type="number" value={cost || ''} onChange={(e) => setCost(Number(e.target.value))} className="col-span-3" required />
+        </div>
+        
+        <div className="space-y-4 pt-4 border-t">
+            <h3 className="font-semibold text-lg">Formatos de Venta</h3>
+            {formats.map((format, index) => (
+                <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                    <Input placeholder="SKU Formato" value={format.sku} onChange={(e) => handleFormatChange(index, 'sku', e.target.value)} className="col-span-3" required />
+                    <Input placeholder="Nombre Formato" value={format.name} onChange={(e) => handleFormatChange(index, 'name', e.target.value)} className="col-span-5" required />
+                    <Input type="number" placeholder="Costo" value={format.cost || ''} onChange={(e) => handleFormatChange(index, 'cost', Number(e.target.value))} className="col-span-3" required />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeFormat(index)} className="col-span-1 h-8 w-8" disabled={formats.length <= 1}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                </div>
+            ))}
+            <Button type="button" variant="outline" onClick={addFormat} className="w-full">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Añadir Formato de Venta
+            </Button>
         </div>
         
         <div className="space-y-4 pt-4 border-t">

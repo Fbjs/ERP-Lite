@@ -17,7 +17,6 @@ export type Ingredient = {
     unit: string;
 };
 
-// DEPRECATED - Formats will be handled differently.
 export type ProductFormat = {
   sku: string;
   name: string;
@@ -30,7 +29,7 @@ export type Recipe = {
   family: string; // "Nombre FAMILIA" from the sheet, e.g., 'PAN BLANCO'
   cost: number;
   ingredients: Ingredient[];
-  formats: []; // This is now empty as per user request.
+  formats: ProductFormat[];
   lastUpdated: string;
 };
 
@@ -82,12 +81,11 @@ export default function RecipesPage() {
   const detailsModalContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'id' | 'lastUpdated' | 'formats'>) => {
+  const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
     const newRecipe: Recipe = {
       ...newRecipeData,
       id: newRecipeData.name.toUpperCase().replace(/\s/g, '_'),
       lastUpdated: new Date().toISOString().split('T')[0],
-      formats: [], // Empty as requested
     };
     setRecipes(prev => [newRecipe, ...prev]);
     setFormModalOpen(false);
@@ -97,14 +95,13 @@ export default function RecipesPage() {
     });
   };
   
-  const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'id' | 'lastUpdated' | 'formats'>) => {
+  const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
       if (!selectedRecipe) return;
       
       const updatedRecipe: Recipe = {
           ...updatedRecipeData,
           id: selectedRecipe.id,
           lastUpdated: new Date().toISOString().split('T')[0],
-          formats: [], // Empty as requested
       };
       
       setRecipes(recipes.map(r => r.id === selectedRecipe.id ? updatedRecipe : r));

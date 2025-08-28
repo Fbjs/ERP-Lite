@@ -21,6 +21,7 @@ import { Textarea } from './ui/textarea';
 
 type OrderItem = {
     recipeId: string;
+    formatSku: string;
     quantity: number;
 };
 
@@ -72,7 +73,7 @@ const ComboboxInput = ({ value, onSelect, placeholder, options }: { value: strin
 export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers }: SalesOrderFormProps) {
   const [customer, setCustomer] = useState('');
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 3));
-  const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', quantity: 1 }]);
+  const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1 }]);
   const [dispatcher, setDispatcher] = useState('');
   const [comments, setComments] = useState('');
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
@@ -89,11 +90,16 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
     } else {
         newItems[index] = { ...oldItem, [field]: value as string };
     }
+    
+    if(field === 'recipeId') {
+        newItems[index].formatSku = '';
+    }
+
     setItems(newItems);
   };
 
   const addItem = () => {
-    setItems([...items, { recipeId: '', quantity: 1 }]);
+    setItems([...items, { recipeId: '', formatSku: '', quantity: 1 }]);
   };
 
   const removeItem = (index: number) => {
@@ -110,6 +116,11 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
         return;
     }
     onSubmit({ customer, deliveryDate: format(deliveryDate, 'yyyy-MM-dd'), items, dispatcher, comments });
+  };
+  
+  const availableFormats = (recipeId: string) => {
+    const recipe = recipes.find(r => r.id === recipeId);
+    return recipe?.formats || [];
   };
 
   return (
@@ -196,48 +207,26 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
             {items.map((item, index) => {
                 return (
                  <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                    <Popover open={openProductCombobox === index} onOpenChange={(isOpen) => setOpenProductCombobox(isOpen ? index : null)}>
-                        <PopoverTrigger asChild>
-                             <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={openProductCombobox === index}
-                                className="col-span-9 justify-between font-normal"
-                            >
-                                {item.recipeId
-                                    ? recipes.find((r) => r.id === item.recipeId)?.name
-                                    : "Seleccionar Producto..."}
-                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                             <Command>
-                                <CommandInput placeholder="Buscar producto..." />
-                                <CommandList><CommandEmpty>No se encontró el producto.</CommandEmpty>
-                                <CommandGroup>
-                                    {recipes.map(recipe => (
-                                        <CommandItem
-                                            key={recipe.id}
-                                            value={recipe.name}
-                                            onSelect={() => {
-                                                handleItemChange(index, 'recipeId', recipe.id);
-                                                setOpenProductCombobox(null);
-                                            }}
-                                        >
-                                            <Check
-                                                className={cn(
-                                                    "mr-2 h-4 w-4",
-                                                    item.recipeId === recipe.id ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                            {recipe.name}
-                                        </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                                </CommandList>
-                            </Command>
-                        </PopoverContent>
-                    </Popover>
+                    <Select onValueChange={(value) => handleItemChange(index, 'recipeId', value)} value={item.recipeId}>
+                        <SelectTrigger className="col-span-5">
+                            <SelectValue placeholder="Producto/Receta"/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            {recipes.map(recipe => (
+                                <SelectItem key={recipe.id} value={recipe.id}>{recipe.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                     <Select onValueChange={(value) => handleItemChange(index, 'formatSku', value)} value={item.formatSku} disabled={!item.recipeId}>
+                        <SelectTrigger className="col-span-4">
+                            <SelectValue placeholder="Formato"/>
+                        </SelectTrigger>
+                        <SelectContent>
+                            {availableFormats(item.recipeId).map(format => (
+                                <SelectItem key={format.sku} value={format.sku}>{format.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
                     <Input
                         type="number"
