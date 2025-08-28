@@ -25,8 +25,8 @@ type ReportRow = {
     wholeWheatBread: number | null;
     product: string;
     productDetail: string;
-    dispatcher: string; // This will be empty for now
-    comments: string;   // This will be empty for now
+    dispatcher: string;
+    comments: string;
 };
 
 function IndustrialReportPageContent() {
@@ -64,8 +64,8 @@ function IndustrialReportPageContent() {
                         wholeWheatBread: isWholeWheat ? item.quantity : null,
                         product: recipe.name,
                         productDetail: formatInfo?.name || item.formatSku,
-                        dispatcher: '', // Placeholder
-                        comments: '' // Placeholder
+                        dispatcher: order.dispatcher,
+                        comments: order.comments,
                     });
                 }
             });
@@ -181,7 +181,9 @@ function IndustrialReportPageContent() {
                                     <TableHead>Blanca</TableHead>
                                     <TableHead>Integrales</TableHead>
                                     <TableHead>Producto</TableHead>
-                                    <TableHead>Formato Entrega</TableHead>
+                                    <TableHead>Formato</TableHead>
+                                    <TableHead>Encargado</TableHead>
+                                    <TableHead>Comentarios</TableHead>
                                 </TableRow>
                             </TableHeader>
                              <TableBody>
@@ -194,10 +196,12 @@ function IndustrialReportPageContent() {
                                         <TableCell className="text-center">{row.wholeWheatBread || '-'}</TableCell>
                                         <TableCell>{row.product}</TableCell>
                                         <TableCell>{row.productDetail}</TableCell>
+                                        <TableCell>{row.dispatcher}</TableCell>
+                                        <TableCell>{row.comments}</TableCell>
                                     </TableRow>
                                 )) : (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center h-24">No hay datos para el período seleccionado.</TableCell>
+                                        <TableCell colSpan={9} className="text-center h-24">No hay datos para el período seleccionado.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -216,4 +220,3 @@ export default function Page() {
     </Suspense>
   );
 }
-

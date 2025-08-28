@@ -39,6 +39,8 @@ export type Order = {
   date: string;
   deliveryDate: string;
   items: OrderItem[];
+  dispatcher: string;
+  comments: string;
 };
 
 export type SalespersonRequestItem = {
@@ -65,12 +67,12 @@ export type SalespersonRequest = {
 
 
 export const initialOrders: Order[] = [
-  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-700', quantity: 100 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }] },
-  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'REC-003', formatSku: 'PROD-CR-U', quantity: 200 }, { recipeId: 'REC-004', formatSku: 'PROD-CB-300', quantity: 150 }] },
-  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-1400', quantity: 50 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }] },
-  { id: 'SALE884', customer: 'Panaderia Central', amount: 320750, status: 'Completado', date: '2025-07-26', deliveryDate: '2025-07-27', items: [{ recipeId: 'REC-005', formatSku: 'PROD-PR-500', quantity: 300 }] },
-  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950000, status: 'Cancelado', date: '2025-07-25', deliveryDate: '2025-07-26', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 500 }] },
-  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210000, status: 'En Preparación', date: '2025-07-29', deliveryDate: '2025-07-31', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 100 }] },
+  { id: 'SALE881', customer: 'Cafe Del Sol', amount: 450000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-700', quantity: 100 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
+  { id: 'SALE882', customer: 'La Esquina Market', amount: 1200500, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'REC-003', formatSku: 'PROD-CR-U', quantity: 200 }, { recipeId: 'REC-004', formatSku: 'PROD-CB-300', quantity: 150 }], dispatcher: 'MARCELO', comments: '' },
+  { id: 'SALE883', customer: 'Hotel Grand Vista', amount: 875000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'REC-001', formatSku: 'PROD-PL-1400', quantity: 50 }, { recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 50 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
+  { id: 'SALE884', customer: 'Panaderia Central', amount: 320750, status: 'Completado', date: '2025-07-26', deliveryDate: '2025-07-27', items: [{ recipeId: 'REC-005', formatSku: 'PROD-PR-500', quantity: 300 }], dispatcher: 'RODRIGO', comments: '' },
+  { id: 'SALE885', customer: 'Supermercado del Sur', amount: 950000, status: 'Cancelado', date: '2025-07-25', deliveryDate: '2025-07-26', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 500 }], dispatcher: 'N/A', comments: 'Cliente cancela por sobrestock.' },
+  { id: 'SALE886', customer: 'Restaurante El Tenedor', amount: 210000, status: 'En Preparación', date: '2025-07-29', deliveryDate: '2025-07-31', items: [{ recipeId: 'REC-002', formatSku: 'PROD-BG-250', quantity: 100 }], dispatcher: 'MARCELO', comments: '' },
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
@@ -192,6 +194,8 @@ export default function SalesPage() {
             customer: newOrderData.customer,
             items: newOrderData.items,
             amount: totalAmount,
+            dispatcher: newOrderData.dispatcher,
+            comments: newOrderData.comments,
         };
         setOrders(prev => [newOrder, ...prev]);
         setNewOrderModalOpen(false);

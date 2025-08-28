@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Customer } from '@/app/admin/customers/page';
+import { Textarea } from './ui/textarea';
 
 
 type OrderItem = {
@@ -28,6 +29,8 @@ export type OrderFormData = {
     customer: string;
     deliveryDate: string;
     items: OrderItem[];
+    dispatcher: string;
+    comments: string;
 };
 
 type SalesOrderFormProps = {
@@ -37,12 +40,46 @@ type SalesOrderFormProps = {
   customers: Customer[];
 };
 
+const ComboboxInput = ({ value, onSelect, placeholder, options }: { value: string, onSelect: (value: string) => void, placeholder: string, options: string[] }) => {
+    const [open, setOpen] = useState(false);
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                    {value || placeholder}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                    <CommandInput placeholder={`Buscar ${placeholder.toLowerCase()}...`} />
+                    <CommandList>
+                        <CommandEmpty>No encontrado.</CommandEmpty>
+                        <CommandGroup>
+                            {options.map(option => (
+                                <CommandItem key={option} value={option} onSelect={(currentValue) => { onSelect(currentValue.toUpperCase()); setOpen(false); }}>
+                                    <Check className={cn("mr-2 h-4 w-4", value === option ? "opacity-100" : "opacity-0")} />
+                                    {option}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    );
+};
+
 export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers }: SalesOrderFormProps) {
   const [customer, setCustomer] = useState('');
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 2));
   const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1 }]);
+  const [dispatcher, setDispatcher] = useState('');
+  const [comments, setComments] = useState('');
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
   const [openProductCombobox, setOpenProductCombobox] = useState<number | null>(null);
+
+  const dispatchers = ['RENE', 'MARCELO', 'RODRIGO', 'EXTERNO'];
 
   const handleItemChange = (index: number, field: keyof OrderItem, value: string | number) => {
     const newItems = [...items];
@@ -81,7 +118,7 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
         alert("Por favor, selecciona una fecha de entrega.");
         return;
     }
-    onSubmit({ customer, deliveryDate: format(deliveryDate, 'yyyy-MM-dd'), items });
+    onSubmit({ customer, deliveryDate: format(deliveryDate, 'yyyy-MM-dd'), items, dispatcher, comments });
   };
 
   return (
@@ -242,6 +279,29 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Añadir Producto
             </Button>
+        </div>
+
+        <div className="space-y-4 border-t pt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="dispatcher">Responsable de Entrega</Label>
+                    <ComboboxInput 
+                        value={dispatcher} 
+                        onSelect={setDispatcher} 
+                        placeholder="Seleccionar..." 
+                        options={dispatchers} 
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="comments">Comentarios</Label>
+                    <Textarea 
+                        id="comments"
+                        value={comments}
+                        onChange={(e) => setComments(e.target.value)}
+                        placeholder="Instrucciones especiales, horarios, etc."
+                    />
+                </div>
+            </div>
         </div>
 
 
