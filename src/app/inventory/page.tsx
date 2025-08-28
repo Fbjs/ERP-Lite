@@ -32,9 +32,16 @@ export const initialInventoryItems: InventoryItem[] = [
   { sku: 'LEV-002', name: 'Levadura Fresca', category: 'Materia Prima', stock: 250, unit: 'kg', location: 'Refrigerador 2' },
   { sku: 'SAL-003', name: 'Sal de Mar', category: 'Materia Prima', stock: 500, unit: 'kg', location: 'Bodega A-2' },
   { sku: 'PAN-SOB-001', name: 'Pan Sobrante', category: 'Materia Prima', stock: 100, unit: 'kg', location: 'Contenedor Mermas' },
+  { sku: 'AZU-001', name: 'Azucar', category: 'Materia Prima', stock: 300, unit: 'kg', location: 'Bodega A-2' },
   
+  // Envasado
+  { sku: 'CA-JA-150', name: 'CAJA CARTON 150x150x150CD', category: 'ENVASADO', stock: 5000, unit: 'Un', location: 'Estante B-3' },
+  { sku: 'CA-JA-642', name: 'CAJA CARTON 600x400x200', category: 'ENVASADO', stock: 2000, unit: 'Un', location: 'Estante B-4' },
+  { sku: 'INS-EM-01', name: 'Bolsas de Papel', category: 'Insumo', stock: 5000, unit: 'Un', location: 'Estante B-3' },
+
   // Productos Terminados
-  { sku: 'PSO10X10', name: 'PAN BLANCO SIN ORILLAS 10X105', category: 'Producto Terminado', stock: 150, unit: 'Un', location: 'Zona Despacho' },
+  { sku: '400100', name: 'PAN BCO SIN GLUTEN', category: 'Producto Terminado', stock: 150, unit: 'Un', location: 'Zona Despacho' },
+  { sku: 'PSO10X10', name: 'PAN BLANCO SIN ORILLAS 10X105', category: 'Producto Terminado', stock: 200, unit: 'Un', location: 'Zona Despacho' },
   { sku: 'CERE0003', name: 'PAN LINAZA 500 GRS', category: 'Producto Terminado', stock: 80, unit: 'Un', location: 'Zona Despacho' },
   { sku: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', category: 'Producto Terminado', stock: 60, unit: 'Un', location: 'Zona Despacho' },
   { sku: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', category: 'Producto Terminado', stock: 200, unit: 'Un', location: 'Zona Despacho' },
@@ -45,11 +52,6 @@ export const initialInventoryItems: InventoryItem[] = [
   { sku: 'CRUT11MM', name: 'CRUTONES HOREADOS 1KG 11mm', category: 'Producto Terminado', stock: 120, unit: 'Un', location: 'Zona Despacho' },
   { sku: 'GALLSEM', name: 'TOSTADAS VOLLKORN CRACKER', category: 'Producto Terminado', stock: 250, unit: 'Un', location: 'Zona Despacho' },
   { sku: 'RALLADBCO', name: 'PAN RALLADO 1 K', category: 'Producto Terminado', stock: 100, unit: 'Un', location: 'Zona Despacho' },
-  
-  // Insumos y Envasado
-  { sku: 'CA-JA-150', name: 'CAJA CARTON 150x150x150CD', category: 'ENVASADO', stock: 5000, unit: 'Un', location: 'Estante B-3' },
-  { sku: 'CA-JA-642', name: 'CAJA CARTON 600x400x200', category: 'ENVASADO', stock: 2000, unit: 'Un', location: 'Estante B-4' },
-  { sku: 'INS-EM-01', name: 'Bolsas de Papel', category: 'Insumo', stock: 5000, unit: 'unidades', location: 'Estante B-3' },
 ];
 
 export default function InventoryPage() {

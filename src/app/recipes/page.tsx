@@ -24,16 +24,32 @@ export type ProductFormat = {
 };
 
 export type Recipe = {
-  id: string; // Internal ID for the recipe
-  name: string; // Base product name (from "Nombre FAMILIA")
+  id: string; // Internal ID for the recipe, corresponds to "Nombre FAMILIA"
+  name: string; // "Nombre FAMILIA"
   ingredients: Ingredient[];
-  formats: ProductFormat[];
+  formats: ProductFormat[]; // Each format is a specific product from "Descripción"
   lastUpdated: string;
 };
 
 export const initialRecipes: Recipe[] = [
+  {
+    id: 'ENVASADO', name: 'ENVASADO', ingredients: [],
+    formats: [
+      { sku: 'CA-JA-150', name: 'CAJA CARTON 150x150x150CD', cost: 100 },
+      { sku: 'CA-JA-1515', name: 'Caja Carton 150x150x15190', cost: 110 },
+      { sku: 'CA-JA-642', name: 'CAJA CARTON 600x400x200', cost: 250 },
+      { sku: 'CA-JA150', name: 'CAJA CARTON 150x150x150', cost: 100 },
+      { sku: 'CA-JA180', name: 'CAJA CARTON 180x180x300', cost: 150 },
+      { sku: 'CA-JA210', name: 'CAJA CARTON 190x190x210CD', cost: 160 },
+      { sku: 'CA-JA230', name: 'Caja Carton 230x230x190CD CA-JA230', cost: 170 },
+      { sku: 'CA-JA400', name: 'CAJA CARTON 180x180x400', cost: 180 },
+      { sku: 'CAJ-150', name: 'CAJA CARTON 150x150x150CD', cost: 100 },
+      { sku: 'CAJ-230', name: 'CAJA CARTON 230X230X190 CD', cost: 170 },
+    ],
+    lastUpdated: '2023-10-28'
+  },
   { 
-    id: 'REC-PAN-BLANCO', name: 'PAN BLANCO', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.6, unit: 'L'}], 
+    id: 'PAN BLANCO', name: 'PAN BLANCO', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.6, unit: 'L'}], 
     formats: [
         { sku: '400100', name: 'PAN BCO SIN GLUTEN', cost: 2000 },
         { sku: 'PSO10X10', name: 'PAN BLANCO SIN ORILLAS 10X105', cost: 1800 },
@@ -41,10 +57,10 @@ export const initialRecipes: Recipe[] = [
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'REC-PAN-CENTENO', name: 'PAN CENTENO', ingredients: [{name: 'Harina de Centeno', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.75, unit: 'L'}], 
+    id: 'PAN CENTENO', name: 'PAN CENTENO', ingredients: [{name: 'Harina de Centeno', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.75, unit: 'L'}], 
     formats: [
         { sku: 'CERE0003', name: 'PAN LINAZA 500 GRS', cost: 2500 },
-        { sku: 'CERE0027', name: 'PAN CHOCOSO CENTENO 500 GRS', cost: 2700 },
+        { sku: 'CERE0027', name: 'PAN CHOCOSO CENTEΝΟ 500 GRS', cost: 2700 },
         { sku: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', cost: 3000 },
         { sku: 'CERE0058', name: 'PAN GROB 100 INTEGRAL 750 GRS', cost: 3200 },
         { sku: 'CERE0065', name: 'PAN ROGGENBROT 600 GRS', cost: 2800 },
@@ -54,8 +70,8 @@ export const initialRecipes: Recipe[] = [
     ], 
     lastUpdated: '2023-10-28' 
   },
-   { 
-    id: 'REC-PAN-INDUSTRIAL', name: 'PAN INDUSTRIAL', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}], 
+  { 
+    id: 'PAN INDUSTRIAL', name: 'PAN INDUSTRIAL', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.65, unit: 'L'}], 
     formats: [
         { sku: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', cost: 4000 },
         { sku: 'GUAINT16', name: 'PAN GUAGUA INTEGRAL 16X16', cost: 4200 },
@@ -70,24 +86,24 @@ export const initialRecipes: Recipe[] = [
     ], 
     lastUpdated: '2023-10-28' 
   },
-   { 
-    id: 'REC-PAN-INTEGRAL', name: 'PAN INTEGRAL', ingredients: [{name: 'Harina Integral', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}], 
+  { 
+    id: 'PAN INTEGRAL', name: 'PAN INTEGRAL', ingredients: [{name: 'Harina Integral', quantity: 1, unit: 'kg'}, {name: 'Agua', quantity: 0.8, unit: 'L'}], 
     formats: [
         { sku: 'ININ0232', name: 'PAN INTEGRAL LIGHT 550 GRS', cost: 2400 },
         { sku: 'SCHINT10', name: 'PAN SCHROTBROT 100 INTEGRAL 550 GRS', cost: 2800 },
     ], 
     lastUpdated: '2023-10-28' 
   },
-   { 
-    id: 'REC-PASTELERIA', name: 'PASTELERIA', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Azucar', quantity: 0.5, unit: 'kg'}], 
+  { 
+    id: 'PASTELERIA', name: 'PASTELERIA', ingredients: [{name: 'Harina', quantity: 1, unit: 'kg'}, {name: 'Azucar', quantity: 0.5, unit: 'kg'}], 
     formats: [
         { sku: 'TIPA0500', name: 'PAN PUMPERNICKEL 500 GRS', cost: 3500 },
         { sku: 'TIPA2700', name: 'PAN PUMPERNICKEL 1 K', cost: 6500 },
     ], 
     lastUpdated: '2023-10-28' 
   },
-   { 
-    id: 'REC-TOSTADAS', name: 'TOSTADAS', ingredients: [{name: 'Pan Sobrante', quantity: 1, unit: 'kg'}], 
+  { 
+    id: 'TOSTADAS', name: 'TOSTADAS', ingredients: [{name: 'Pan Sobrante', quantity: 1, unit: 'kg'}], 
     formats: [
         { sku: 'CROSMOL', name: 'TOSTADAS CROSTINI MERKEN', cost: 1500 },
         { sku: 'CROSOOL', name: 'TOSTADAS CROSTINI OREGANO', cost: 1500 },
@@ -118,14 +134,14 @@ export default function RecipesPage() {
   const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
     const newRecipe: Recipe = {
       ...newRecipeData,
-      id: `REC-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+      id: newRecipeData.name.toUpperCase().replace(/\s/g, '-'),
       lastUpdated: new Date().toISOString().split('T')[0],
     };
     setRecipes(prev => [newRecipe, ...prev]);
     setFormModalOpen(false);
     toast({
-        title: "Receta Creada",
-        description: `La receta para ${newRecipe.name} ha sido creada.`,
+        title: "Familia Creada",
+        description: `La familia de productos ${newRecipe.name} ha sido creada.`,
     });
   };
   
@@ -142,8 +158,8 @@ export default function RecipesPage() {
       setFormModalOpen(false);
       setSelectedRecipe(null);
       toast({
-          title: "Receta Actualizada",
-          description: `La receta para ${updatedRecipe.name} ha sido actualizada.`,
+          title: "Familia Actualizada",
+          description: `La familia ${updatedRecipe.name} ha sido actualizada.`,
       });
   }
 
@@ -196,12 +212,12 @@ export default function RecipesPage() {
         <CardHeader>
             <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
-                    <CardTitle className="font-headline">Recetas y Productos</CardTitle>
-                    <CardDescription className="font-body">Gestiona las recetas base y los distintos formatos de venta de tus productos.</CardDescription>
+                    <CardTitle className="font-headline">Familias de Productos y Recetas</CardTitle>
+                    <CardDescription className="font-body">Gestiona las familias de productos, sus recetas base y los distintos formatos de venta.</CardDescription>
                 </div>
                 <Button onClick={() => handleOpenForm(null)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Nueva Receta
+                    Nueva Familia
                 </Button>
             </div>
         </CardHeader>
@@ -210,8 +226,8 @@ export default function RecipesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre Familia</TableHead>
-                <TableHead>Formatos de Venta</TableHead>
-                <TableHead>Nº Ingredientes</TableHead>
+                <TableHead>Nº de Productos</TableHead>
+                <TableHead>Nº Ingredientes Base</TableHead>
                 <TableHead>Última Actualización</TableHead>
                 <TableHead>
                   <span className="sr-only">Acciones</span>
@@ -224,7 +240,7 @@ export default function RecipesPage() {
                   <TableCell data-label="Nombre" className="font-medium">{recipe.name}</TableCell>
                   <TableCell data-label="Formatos">{recipe.formats.length}</TableCell>
                   <TableCell data-label="Nº Ingredientes">{recipe.ingredients.length}</TableCell>
-                  <TableCell data-label="Actualizado">{recipe.lastUpdated}</TableCell>
+                  <TableCell data-label="Actualizado">{new Date(recipe.lastUpdated + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -252,9 +268,9 @@ export default function RecipesPage() {
       <Dialog open={isFormModalOpen} onOpenChange={setFormModalOpen}>
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">{selectedRecipe ? 'Editar Receta' : 'Crear Nueva Receta'}</DialogTitle>
+            <DialogTitle className="font-headline">{selectedRecipe ? 'Editar Familia y Receta' : 'Crear Nueva Familia y Receta'}</DialogTitle>
             <DialogDescription className="font-body">
-              {selectedRecipe ? 'Modifica los detalles de la receta y sus formatos de venta.' : 'Define el producto, sus ingredientes y los formatos de venta.'}
+              {selectedRecipe ? 'Modifica los detalles de la familia, su receta y sus productos.' : 'Define una nueva familia, su receta base y sus productos asociados.'}
             </DialogDescription>
           </DialogHeader>
           <RecipeForm
@@ -271,7 +287,7 @@ export default function RecipesPage() {
           <DialogHeader>
             <DialogTitle className="font-headline">{selectedRecipe?.name}</DialogTitle>
              <DialogDescription className="font-body">
-                Ficha de Receta - {selectedRecipe?.id}
+                Ficha de Familia de Productos - {selectedRecipe?.id}
             </DialogDescription>
           </DialogHeader>
           {selectedRecipe && (
@@ -279,17 +295,17 @@ export default function RecipesPage() {
                 <div className="p-6">
                     <div className="mb-6 text-center">
                         <p className="font-semibold text-gray-600">Última Actualización:</p>
-                        <p>{selectedRecipe.lastUpdated}</p>
+                        <p>{new Date(selectedRecipe.lastUpdated + 'T00:00:00').toLocaleDateString('es-CL')}</p>
                     </div>
 
                     <div className="space-y-6">
                         <div>
-                            <h3 className="font-headline text-xl mb-2 border-b pb-2">Formatos de Venta</h3>
+                            <h3 className="font-headline text-xl mb-2 border-b pb-2">Productos (Formatos)</h3>
                              <Table>
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead className="text-black font-semibold">SKU</TableHead>
-                                        <TableHead className="text-black font-semibold">Nombre Formato</TableHead>
+                                        <TableHead className="text-black font-semibold">Descripción Producto</TableHead>
                                         <TableHead className="text-right text-black font-semibold">Costo</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -306,7 +322,7 @@ export default function RecipesPage() {
                         </div>
                         
                         <div>
-                            <h3 className="font-headline text-xl mb-2 border-b pb-2">Ingredientes Base</h3>
+                            <h3 className="font-headline text-xl mb-2 border-b pb-2">Receta Base</h3>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
