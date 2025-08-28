@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import RecipeForm from '@/components/recipe-form';
 import { useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
 
 export type Ingredient = {
     name: string;
@@ -35,42 +37,42 @@ export type Recipe = {
 
 
 export const initialRecipes: Recipe[] = [
-  { id: '400100', name: 'PAN BCO SIN GLUTEN', family: 'PAN BLANCO', cost: 2100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'PSO10X10', name: 'PAN BLANCO SIN ORILLAS 10X105', family: 'PAN BLANCO', cost: 1900, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CERE0003', name: 'PAN LINAZA 500 GRS', family: 'PAN CENTENO', cost: 2600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CERE0027', name: 'PAN CHOCOSO CENTENO 500 GRS', family: 'PAN CENTENO', cost: 2800, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', family: 'PAN CENTENO', cost: 3100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CERE0058', name: 'PAN GROB 100 INTEGRAL 750 GRS', family: 'PAN CENTENO', cost: 3300, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CERE0065', name: 'PAN ROGGENBROT 600 GRS', family: 'PAN CENTENO', cost: 2900, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CERE0188', name: 'PAN MULTICEREAL 500 GRS', family: 'PAN CENTENO', cost: 2700, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CERE0607', name: 'PAN LANDBROT 500 GRS', family: 'PAN CENTENO', cost: 2700, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'PANPRUEBA', name: 'PAN PRUEBA', family: 'PAN CENTENO', cost: 1100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', family: 'PAN INDUSTRIAL', cost: 4100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'GUAINT16', name: 'PAN GUAGUA INTEGRAL 16X16', family: 'PAN INDUSTRIAL', cost: 4300, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'GUAMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', family: 'PAN INDUSTRIAL', cost: 4600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'GUBL1332', name: 'PAN GUAGUA BLANCA 13X13', family: 'PAN INDUSTRIAL', cost: 3900, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'GUBL1432', name: 'PAN GUAGUA BLANCA 14X14', family: 'PAN INDUSTRIAL', cost: 4000, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'GUIN1332', name: 'PAN GUAGUA INTEGRAL 13X13', family: 'PAN INDUSTRIAL', cost: 4200, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'GUIN1432', name: 'PAN GUAGUA INTEGRAL MORENA 14X14', family: 'PAN INDUSTRIAL', cost: 4400, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'GUMC1438', name: 'PAN GUAGUA MULTICEREAL 14X10', family: 'PAN INDUSTRIAL', cost: 4600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'MIGAARG22', name: 'PAN MIGA DE ARGENTINO', family: 'PAN INDUSTRIAL', cost: 3600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'PANMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', family: 'PAN INDUSTRIAL', cost: 4600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'ININ0232', name: 'PAN INTEGRAL LIGHT 550 GRS', family: 'PAN INTEGRAL', cost: 2500, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'SCHINT10', name: 'PAN SCHROTBROT 100 INTEGRAL 550 GRS', family: 'PAN INTEGRAL', cost: 2900, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'TIPA0500', name: 'PAN PUMPERNICKEL 500 GRS', family: 'PASTELERIA', cost: 3600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'TIPA2700', name: 'PAN PUMPERNICKEL 1 K', family: 'PASTELERIA', cost: 6600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CROSMOL', name: 'TOSTADAS CROSTINI MERKEN', family: 'TOSTADAS', cost: 1600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CROSOOL', name: 'TOSTADAS CROSTINI OREGANO', family: 'TOSTADAS', cost: 1600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CRUT11MM', name: 'CRUTONES HOREADOS 1KG 11mm', family: 'TOSTADAS', cost: 4100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CRUT11MM5', name: 'CRUTON HORNEADO 5KG 11MM', family: 'TOSTADAS', cost: 18100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CRUT7MM', name: 'CRUTONES HORNEADOS 1KG 7mm', family: 'TOSTADAS', cost: 4100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CRUT7MM5', name: 'CRUTONES HORNEADOS 5KG 7mm', family: 'TOSTADAS', cost: 18100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'CRUTOGRA', name: 'CRUTONES 1 K', family: 'TOSTADAS', cost: 4100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'GALLSEM', name: 'TOSTADAS VOLLKORN CRACKER', family: 'TOSTADAS', cost: 2600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'ININ0584', name: 'PAN RALLADO INTEGRAL 500 GRS', family: 'TOSTADAS', cost: 1600, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'RALLADBCO', name: 'PAN RALLADO 1 K', family: 'TOSTADAS', cost: 2900, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'RALLADBCO5', name: 'PAN RALLADO 5 KG', family: 'TOSTADAS', cost: 12100, ingredients: [], formats: [], lastUpdated: '2023-10-28' },
-  { id: 'TOSTCOCKT', name: 'TOSTADAS COCKTAIL', family: 'TOSTADAS', cost: 2100, ingredients: [], formats: [], lastUpdated: '2023-10-28' }
+  { id: '400100', name: 'PAN BCO SIN GLUTEN', family: 'PAN BLANCO', cost: 2100, ingredients: [], formats: [{sku: '400100', name: 'Formato Estándar', cost: 2100}], lastUpdated: '2023-10-28' },
+  { id: 'PSO10X10', name: 'PAN BLANCO SIN ORILLAS 10X105', family: 'PAN BLANCO', cost: 1900, ingredients: [], formats: [{sku: 'PSO10X10', name: 'Formato Estándar', cost: 1900}], lastUpdated: '2023-10-28' },
+  { id: 'CERE0003', name: 'PAN LINAZA 500 GRS', family: 'PAN CENTENO', cost: 2600, ingredients: [], formats: [{sku: 'CERE0003', name: '500 GRS', cost: 2600}], lastUpdated: '2023-10-28' },
+  { id: 'CERE0027', name: 'PAN CHOCOSO CENTENO 500 GRS', family: 'PAN CENTENO', cost: 2800, ingredients: [], formats: [{sku: 'CERE0027', name: '500 GRS', cost: 2800}], lastUpdated: '2023-10-28' },
+  { id: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', family: 'PAN CENTENO', cost: 3100, ingredients: [], formats: [{sku: 'CERE0041', name: '750 GRS', cost: 3100}], lastUpdated: '2023-10-28' },
+  { id: 'CERE0058', name: 'PAN GROB 100 INTEGRAL 750 GRS', family: 'PAN CENTENO', cost: 3300, ingredients: [], formats: [{sku: 'CERE0058', name: '750 GRS', cost: 3300}], lastUpdated: '2023-10-28' },
+  { id: 'CERE0065', name: 'PAN ROGGENBROT 600 GRS', family: 'PAN CENTENO', cost: 2900, ingredients: [], formats: [{sku: 'CERE0065', name: '600 GRS', cost: 2900}], lastUpdated: '2023-10-28' },
+  { id: 'CERE0188', name: 'PAN MULTICEREAL 500 GRS', family: 'PAN CENTENO', cost: 2700, ingredients: [], formats: [{sku: 'CERE0188', name: '500 GRS', cost: 2700}], lastUpdated: '2023-10-28' },
+  { id: 'CERE0607', name: 'PAN LANDBROT 500 GRS', family: 'PAN CENTENO', cost: 2700, ingredients: [], formats: [{sku: 'CERE0607', name: '500 GRS', cost: 2700}], lastUpdated: '2023-10-28' },
+  { id: 'PANPRUEBA', name: 'PAN PRUEBA', family: 'PAN CENTENO', cost: 1100, ingredients: [], formats: [{sku: 'PANPRUEBA', name: 'Formato Estándar', cost: 1100}], lastUpdated: '2023-10-28' },
+  { id: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', family: 'PAN INDUSTRIAL', cost: 4100, ingredients: [], formats: [{sku: 'GUABCO16', name: '16X16', cost: 4100}], lastUpdated: '2023-10-28' },
+  { id: 'GUAINT16', name: 'PAN GUAGUA INTEGRAL 16X16', family: 'PAN INDUSTRIAL', cost: 4300, ingredients: [], formats: [{sku: 'GUAINT16', name: '16X16', cost: 4300}], lastUpdated: '2023-10-28' },
+  { id: 'GUAMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', family: 'PAN INDUSTRIAL', cost: 4600, ingredients: [], formats: [{sku: 'GUAMUL1410', name: '14X10', cost: 4600}], lastUpdated: '2023-10-28' },
+  { id: 'GUBL1332', name: 'PAN GUAGUA BLANCA 13X13', family: 'PAN INDUSTRIAL', cost: 3900, ingredients: [], formats: [{sku: 'GUBL1332', name: '13X13', cost: 3900}], lastUpdated: '2023-10-28' },
+  { id: 'GUBL1432', name: 'PAN GUAGUA BLANCA 14X14', family: 'PAN INDUSTRIAL', cost: 4000, ingredients: [], formats: [{sku: 'GUBL1432', name: '14X14', cost: 4000}], lastUpdated: '2023-10-28' },
+  { id: 'GUIN1332', name: 'PAN GUAGUA INTEGRAL 13X13', family: 'PAN INDUSTRIAL', cost: 4200, ingredients: [], formats: [{sku: 'GUIN1332', name: '13X13', cost: 4200}], lastUpdated: '2023-10-28' },
+  { id: 'GUIN1432', name: 'PAN GUAGUA INTEGRAL MORENA 14X14', family: 'PAN INDUSTRIAL', cost: 4400, ingredients: [], formats: [{sku: 'GUIN1432', name: '14X14', cost: 4400}], lastUpdated: '2023-10-28' },
+  { id: 'GUMC1438', name: 'PAN GUAGUA MULTICEREAL 14X10', family: 'PAN INDUSTRIAL', cost: 4600, ingredients: [], formats: [{sku: 'GUMC1438', name: '14X10', cost: 4600}], lastUpdated: '2023-10-28' },
+  { id: 'MIGAARG22', name: 'PAN MIGA DE ARGENTINO', family: 'PAN INDUSTRIAL', cost: 3600, ingredients: [], formats: [{sku: 'MIGAARG22', name: 'Formato Estándar', cost: 3600}], lastUpdated: '2023-10-28' },
+  { id: 'PANMUL1410', name: 'PAN GUAGUA MULTICEREAL 14X10', family: 'PAN INDUSTRIAL', cost: 4600, ingredients: [], formats: [{sku: 'PANMUL1410', name: '14X10', cost: 4600}], lastUpdated: '2023-10-28' },
+  { id: 'ININ0232', name: 'PAN INTEGRAL LIGHT 550 GRS', family: 'PAN INTEGRAL', cost: 2500, ingredients: [], formats: [{sku: 'ININ0232', name: '550 GRS', cost: 2500}], lastUpdated: '2023-10-28' },
+  { id: 'SCHINT10', name: 'PAN SCHROTBROT 100 INTEGRAL 550 GRS', family: 'PAN INTEGRAL', cost: 2900, ingredients: [], formats: [{sku: 'SCHINT10', name: '550 GRS', cost: 2900}], lastUpdated: '2023-10-28' },
+  { id: 'TIPA0500', name: 'PAN PUMPERNICKEL 500 GRS', family: 'PASTELERIA', cost: 3600, ingredients: [], formats: [{sku: 'TIPA0500', name: '500 GRS', cost: 3600}], lastUpdated: '2023-10-28' },
+  { id: 'TIPA2700', name: 'PAN PUMPERNICKEL 1 K', family: 'PASTELERIA', cost: 6600, ingredients: [], formats: [{sku: 'TIPA2700', name: '1 K', cost: 6600}], lastUpdated: '2023-10-28' },
+  { id: 'CROSMOL', name: 'TOSTADAS CROSTINI MERKEN', family: 'TOSTADAS', cost: 1600, ingredients: [], formats: [{sku: 'CROSMOL', name: 'MERKEN', cost: 1600}], lastUpdated: '2023-10-28' },
+  { id: 'CROSOOL', name: 'TOSTADAS CROSTINI OREGANO', family: 'TOSTADAS', cost: 1600, ingredients: [], formats: [{sku: 'CROSOOL', name: 'OREGANO', cost: 1600}], lastUpdated: '2023-10-28' },
+  { id: 'CRUT11MM', name: 'CRUTONES HOREADOS 1KG 11mm', family: 'TOSTADAS', cost: 4100, ingredients: [], formats: [{sku: 'CRUT11MM', name: '11mm', cost: 4100}], lastUpdated: '2023-10-28' },
+  { id: 'CRUT11MM5', name: 'CRUTON HORNEADO 5KG 11MM', family: 'TOSTADAS', cost: 18100, ingredients: [], formats: [{sku: 'CRUT11MM5', name: '11mm', cost: 18100}], lastUpdated: '2023-10-28' },
+  { id: 'CRUT7MM', name: 'CRUTONES HORNEADOS 1KG 7mm', family: 'TOSTADAS', cost: 4100, ingredients: [], formats: [{sku: 'CRUT7MM', name: '7mm', cost: 4100}], lastUpdated: '2023-10-28' },
+  { id: 'CRUT7MM5', name: 'CRUTONES HORNEADOS 5KG 7mm', family: 'TOSTADAS', cost: 18100, ingredients: [], formats: [{sku: 'CRUT7MM5', name: '7mm', cost: 18100}], lastUpdated: '2023-10-28' },
+  { id: 'CRUTOGRA', name: 'CRUTONES 1 K', family: 'TOSTADAS', cost: 4100, ingredients: [], formats: [{sku: 'CRUTOGRA', name: 'Formato Estándar', cost: 4100}], lastUpdated: '2023-10-28' },
+  { id: 'GALLSEM', name: 'TOSTADAS VOLLKORN CRACKER', family: 'TOSTADAS', cost: 2600, ingredients: [], formats: [{sku: 'GALLSEM', name: 'Formato Estándar', cost: 2600}], lastUpdated: '2023-10-28' },
+  { id: 'ININ0584', name: 'PAN RALLADO INTEGRAL 500 GRS', family: 'TOSTADAS', cost: 1600, ingredients: [], formats: [{sku: 'ININ0584', name: '500 GRS', cost: 1600}], lastUpdated: '2023-10-28' },
+  { id: 'RALLADBCO', name: 'PAN RALLADO 1 K', family: 'TOSTADAS', cost: 2900, ingredients: [], formats: [{sku: 'RALLADBCO', name: '1 K', cost: 2900}], lastUpdated: '2023-10-28' },
+  { id: 'RALLADBCO5', name: 'PAN RALLADO 5 KG', family: 'TOSTADAS', cost: 12100, ingredients: [], formats: [{sku: 'RALLADBCO5', name: '5 KG', cost: 12100}], lastUpdated: '2023-10-28' },
+  { id: 'TOSTCOCKT', name: 'TOSTADAS COCKTAIL', family: 'TOSTADAS', cost: 2100, ingredients: [], formats: [{sku: 'TOSTCOCKT', name: 'Formato Estándar', cost: 2100}], lastUpdated: '2023-10-28' }
 ];
 
 export default function RecipesPage() {
@@ -172,45 +174,51 @@ export default function RecipesPage() {
             </div>
         </CardHeader>
         <CardContent>
-          <Table className="responsive-table">
-            <TableHeader>
-              <TableRow>
-                <TableHead>SKU / Código</TableHead>
-                <TableHead>Nombre Producto (Receta)</TableHead>
-                <TableHead>Familia</TableHead>
-                <TableHead>Última Actualización</TableHead>
-                <TableHead>
-                  <span className="sr-only">Acciones</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recipes.map((recipe) => (
-                <TableRow key={recipe.id} className="hover:bg-muted/50">
-                  <TableCell data-label="SKU" className="font-mono">{recipe.id}</TableCell>
-                  <TableCell data-label="Nombre" className="font-medium">{recipe.name}</TableCell>
-                  <TableCell data-label="Familia">{recipe.family}</TableCell>
-                  <TableCell data-label="Actualizado">{new Date(recipe.lastUpdated + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Menú</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleOpenDetails(recipe)}>Ver Detalles</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleOpenForm(recipe)}>Editar</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          <div className="border rounded-md">
+            <Table className="responsive-table relative">
+              <TableHeader className="sticky top-0 bg-background z-10">
+                <TableRow>
+                  <TableHead>SKU / Código</TableHead>
+                  <TableHead>Nombre Producto (Receta)</TableHead>
+                  <TableHead>Familia</TableHead>
+                  <TableHead>Última Actualización</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Acciones</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+            </Table>
+            <ScrollArea className="h-[calc(100vh-350px)]">
+              <Table className="responsive-table">
+                <TableBody>
+                  {recipes.map((recipe) => (
+                    <TableRow key={recipe.id} className="hover:bg-muted/50">
+                      <TableCell data-label="SKU" className="font-mono">{recipe.id}</TableCell>
+                      <TableCell data-label="Nombre" className="font-medium">{recipe.name}</TableCell>
+                      <TableCell data-label="Familia">{recipe.family}</TableCell>
+                      <TableCell data-label="Actualizado">{new Date(recipe.lastUpdated + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Menú</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleOpenDetails(recipe)}>Ver Detalles</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenForm(recipe)}>Editar</DropdownMenuItem>
+                            <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </div>
         </CardContent>
       </Card>
 
