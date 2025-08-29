@@ -97,7 +97,6 @@ export const initialSalespersonRequests: SalespersonRequest[] = [
 
 export default function SalesPage() {
     const [orders, setOrders] = useState<Order[]>(initialOrders);
-    const [recipes] = useState<Recipe[]>(initialRecipes);
     const [isNewOrderModalOpen, setNewOrderModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isUpdateStatusModalOpen, setUpdateStatusModalOpen] = useState(false);
@@ -141,7 +140,7 @@ export default function SalesPage() {
 
     const getOrderDetailsAsString = (items: OrderItem[]): string => {
         return items.map(item => {
-            const recipe = recipes.find(r => r.id === item.recipeId);
+            const recipe = initialRecipes.find(r => r.id === item.recipeId);
             const format = recipe?.formats.find(f => f.sku === item.formatSku);
             return `${item.quantity} x ${recipe?.name || 'Ítem no encontrado'} (${format?.name || 'Formato no especificado'})`;
         }).join(', ');
@@ -149,7 +148,7 @@ export default function SalesPage() {
     
     const getOrderDetailsAsTable = (items: OrderItem[]) => {
         return items.map(item => {
-            const recipe = recipes.find(r => r.id === item.recipeId);
+            const recipe = initialRecipes.find(r => r.id === item.recipeId);
             const format = recipe?.formats.find(f => f.sku === item.formatSku);
             const cost = format?.cost || 0;
             const subtotal = item.quantity * cost;
@@ -177,7 +176,7 @@ export default function SalesPage() {
         let totalAmount = 0;
         
         newOrderData.items.forEach(item => {
-            const recipe = recipes.find(r => r.id === item.recipeId);
+            const recipe = initialRecipes.find(r => r.id === item.recipeId);
             const format = recipe?.formats.find(f => f.sku === item.formatSku);
             if (recipe && format) {
                 totalAmount += item.quantity * format.cost;
@@ -213,7 +212,7 @@ export default function SalesPage() {
 
         let totalAmount = 0;
         updatedOrderData.items.forEach(item => {
-            const recipe = recipes.find(r => r.id === item.recipeId);
+            const recipe = initialRecipes.find(r => r.id === item.recipeId);
             const format = recipe?.formats.find(f => f.sku === item.formatSku);
             if (recipe && format) {
                 totalAmount += item.quantity * format.cost;
@@ -319,71 +318,95 @@ export default function SalesPage() {
 
   return (
     <AppLayout pageTitle="Ventas">
-        <Card>
-            <CardHeader>
-                <div className="flex flex-wrap justify-between items-center gap-4">
-                    <div>
-                        <CardTitle className="font-headline">Gestión de Órdenes de Venta</CardTitle>
-                        <CardDescription className="font-body">Ingresa, edita y gestiona todas las órdenes de venta.</CardDescription>
-                    </div>
-                     <div className="flex flex-wrap items-center gap-4">
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    id="date"
-                                    variant={"outline"}
-                                    className={cn(
-                                    "w-full sm:w-[300px] justify-start text-left font-normal",
-                                    !dateRange && "text-muted-foreground"
-                                    )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {dateRange?.from ? (
-                                    dateRange.to ? (
-                                        <>
-                                        {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
-                                        {format(dateRange.to, "LLL dd, y", { locale: es })}
-                                        </>
-                                    ) : (
-                                        format(dateRange.from, "LLL dd, y", { locale: es })
-                                    )
-                                    ) : (
-                                    <span>Selecciona un rango</span>
-                                    )}
+        <Tabs defaultValue="industrial">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="industrial">Ventas Industriales</TabsTrigger>
+                <TabsTrigger value="general">Pedidos Generales</TabsTrigger>
+            </TabsList>
+            <TabsContent value="industrial">
+                 <Card className="mt-4">
+                    <CardHeader>
+                        <div className="flex flex-wrap justify-between items-center gap-4">
+                            <div>
+                                <CardTitle className="font-headline">Gestión de Órdenes de Venta</CardTitle>
+                                <CardDescription className="font-body">Ingresa, edita y gestiona todas las órdenes de venta.</CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                 <Button asChild variant="outline">
+                                    <Link href={`/sales/industrial-report?from=${dateRange?.from?.toISOString()}&to=${dateRange?.to?.toISOString()}`}>
+                                        <FileBarChart className="mr-2 h-4 w-4" />
+                                        Reporte Industrial
+                                    </Link>
                                 </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    initialFocus
-                                    mode="range"
-                                    defaultMonth={dateRange?.from}
-                                    selected={dateRange}
-                                    onSelect={setDateRange}
-                                    numberOfMonths={2}
-                                    locale={es}
-                                />
-                            </PopoverContent>
-                        </Popover>
-                         <Button asChild variant="outline">
-                            <Link href={`/sales/industrial-report?from=${dateRange?.from?.toISOString()}&to=${dateRange?.to?.toISOString()}`}>
-                                <FileBarChart className="mr-2 h-4 w-4" />
-                                Reporte Industrial
-                            </Link>
-                        </Button>
-                         <Button asChild variant="outline">
-                            <Link href={`/sales/general-report`}>
-                                <FileBarChart className="mr-2 h-4 w-4" />
-                                Reporte General
-                            </Link>
-                        </Button>
-                    </div>
-                    <Button onClick={() => handleOpenForm(null)}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Nueva Orden 
+                                <Button onClick={() => handleOpenForm(null)}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Nueva Orden 
+                                </Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+                </Card>
+            </TabsContent>
+             <TabsContent value="general">
+                 <Card className="mt-4">
+                    <CardHeader>
+                        <div className="flex flex-wrap justify-between items-center gap-4">
+                            <div>
+                                <CardTitle className="font-headline">Pedidos de Vendedores</CardTitle>
+                                <CardDescription className="font-body">Gestiona las planillas de pedidos de los vendedores.</CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button onClick={() => handleOpenForm(null)}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Nuevo Pedido General
+                                </Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+                </Card>
+            </TabsContent>
+        </Tabs>
+
+        <div className="flex flex-wrap items-center gap-4 mt-6">
+            <Label>Filtrar por Fecha de Orden:</Label>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                        id="date"
+                        variant={"outline"}
+                        className={cn(
+                        "w-full sm:w-[300px] justify-start text-left font-normal",
+                        !dateRange && "text-muted-foreground"
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange?.from ? (
+                        dateRange.to ? (
+                            <>
+                            {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                            {format(dateRange.to, "LLL dd, y", { locale: es })}
+                            </>
+                        ) : (
+                            format(dateRange.from, "LLL dd, y", { locale: es })
+                        )
+                        ) : (
+                        <span>Selecciona un rango</span>
+                        )}
                     </Button>
-                </div>
-            </CardHeader>
-        </Card>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange?.from}
+                        selected={dateRange}
+                        onSelect={setDateRange}
+                        numberOfMonths={2}
+                        locale={es}
+                    />
+                </PopoverContent>
+            </Popover>
+        </div>
         
         <div className="space-y-6 mt-6">
             {dateRange?.from && (
@@ -510,7 +533,7 @@ export default function SalesPage() {
           <SalesOrderForm
             onSubmit={handleFormSubmit}
             onCancel={() => setNewOrderModalOpen(false)}
-            recipes={recipes}
+            recipes={initialRecipes}
             customers={initialCustomers}
             initialData={selectedOrder}
             />
