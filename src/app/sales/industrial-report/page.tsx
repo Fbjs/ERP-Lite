@@ -5,16 +5,18 @@ import AppLayout from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Download, ArrowLeft } from 'lucide-react';
+import { Download, ArrowLeft, FileSpreadsheet } from 'lucide-react';
 import { useRef, useMemo, Suspense } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { initialOrders } from '@/app/sales/page';
 import { initialRecipes } from '@/app/recipes/page';
 import { format, parseISO } from 'date-fns';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import * as XLSX from 'xlsx';
+
 
 type ReportRow = {
     customer: string;
@@ -108,6 +110,38 @@ function IndustrialReportPageContent() {
             });
         }
     };
+    
+    const handleDownloadExcel = () => {
+        const headers = [
+            "CLIENTE", "ORDEN DE COMPRA", "F.PEDIDO", "F.ENTREGA", 
+            "BLANCA", "INTEGRALES", "PRODUCTO", "DETALLE PRODUCTO", 
+            "ENCARGADO DE DESPACHO", "COMENTARIOS"
+        ];
+        
+        const dataForSheet = reportData.map(row => ({
+            "CLIENTE": row.customer,
+            "ORDEN DE COMPRA": row.purchaseOrder,
+            "F.PEDIDO": row.orderDate,
+            "F.ENTREGA": row.deliveryDate,
+            "BLANCA": row.whiteBread,
+            "INTEGRALES": row.wholeWheatBread,
+            "PRODUCTO": row.product,
+            "DETALLE PRODUCTO": row.productDetail,
+            "ENCARGADO DE DESPACHO": row.dispatcher,
+            "COMENTARIOS": row.comments
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataForSheet, { header: headers });
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Producto Industrial");
+
+        XLSX.writeFile(workbook, `reporte-producto-industrial-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+        toast({
+            title: "Excel Descargado",
+            description: "El reporte de producto industrial ha sido descargado.",
+        });
+    };
 
     return (
         <AppLayout pageTitle="Reporte de Producto Industrial">
@@ -162,6 +196,10 @@ function IndustrialReportPageContent() {
                                     <ArrowLeft className="mr-2 h-4 w-4" />
                                     Volver
                                 </Link>
+                            </Button>
+                             <Button onClick={handleDownloadExcel} variant="outline">
+                                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                                Descargar Excel
                             </Button>
                             <Button onClick={handleDownloadPdf}>
                                 <Download className="mr-2 h-4 w-4" />
