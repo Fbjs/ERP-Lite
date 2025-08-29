@@ -92,10 +92,7 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers,
         const customer = customers.find(c => c.id === initialData.customerId);
         if (customer) {
             setAvailableLocations(customer.deliveryLocations || []);
-            const location = customer.deliveryLocations.find(l => l.address === initialData.deliveryAddress);
-            if (location) {
-                setLocationId(location.id);
-            }
+            setLocationId(initialData.locationId);
         }
         setDeliveryDate(parseISO(initialData.deliveryDate));
         setItems(initialData.items);
@@ -112,6 +109,7 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers,
         setComments('');
     }
   }, [initialData, customers]);
+
 
   useEffect(() => {
     if (customerId) {
