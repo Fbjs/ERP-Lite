@@ -67,18 +67,18 @@ export type SalespersonRequest = {
 
 
 export const initialOrders: Order[] = [
-    { id: 'SALE881', customer: 'Cafe Central', amount: 270000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'CERE0003', formatSku: 'CERE0003-7MM', quantity: 100 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
-    { id: 'SALE882', customer: 'Supermercado del Sur', amount: 820000, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM', quantity: 200 }], dispatcher: 'MARCELO', comments: '' },
-    { id: 'SALE883', customer: 'Panaderia San Jose', amount: 330000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'TIPA2700', formatSku: 'TIPA2700', quantity: 50 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
+    { id: 'SALE881', customer: 'Cafe Central', amount: 270000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 75 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
+    { id: 'SALE882', customer: 'Supermercado del Sur', amount: 820000, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 200 }], dispatcher: 'MARCELO', comments: '' },
+    { id: 'SALE883', customer: 'Panaderia San Jose', amount: 330000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 80 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
     { id: 'PED001', salesperson: 'FRANCISCA', deliveryPerson: 'RODRIGO', responsiblePerson: 'FRANCISCA', date: '2025-08-29', deliveryDate: '2025-08-29', status: 'Despachado', items: [
-        { client: 'LORENA AGUILAR', product: 'PAN SCHWARZBROT 750 GRS', quantity: 94, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
-        { client: 'LORENA AGUILAR', product: 'PAN LINAZA 500 GRS', quantity: 20, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'GUAGUA INTEGRAL 13X13', quantity: 94, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'PAN SIN GLUTEN', quantity: 20, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
     ], amount: 350000},
     { id: 'PED002', salesperson: 'VENDEDOR 2', deliveryPerson: 'MARCELO', responsiblePerson: 'VENDEDOR 2', date: '2025-07-29', deliveryDate: '2025-07-30', status: 'Pendiente', items: [
-        { client: 'BETTER FOOD', product: 'CRUTONES 1 K', quantity: 10, type: 'PROD', itemType: 'FACTURA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO...' }
+        { client: 'BETTER FOOD', product: 'CRUTONES 7mm', quantity: 10, type: 'PROD', itemType: 'FACTURA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO...' }
     ], amount: 80000},
 ];
 
@@ -170,8 +170,6 @@ export default function SalesPage() {
             const format = recipe?.formats.find(f => f.sku === item.formatSku);
             if (recipe && format) {
                 totalAmount += item.quantity * format.cost;
-            } else if (recipe) {
-                 totalAmount += item.quantity * recipe.cost; // Fallback to base recipe cost
             }
         });
 
@@ -448,7 +446,7 @@ export default function SalesPage() {
                                     <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Orden</DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => handleOpenUpdateStatus(order)}>Actualizar Estado</DropdownMenuItem>
                                     <DropdownMenuItem asChild>
-                                    <Link href={`/accounting?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(getOrderDetailsAsString(order.items))}`}>
+                                    <Link href={`/accounting/invoicing?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(getOrderDetailsAsString(order.items))}`}>
                                             Generar Factura
                                         </Link>
                                     </DropdownMenuItem>
@@ -721,3 +719,5 @@ export default function SalesPage() {
     </AppLayout>
   );
 }
+
+    
