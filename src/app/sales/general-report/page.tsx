@@ -12,9 +12,22 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { initialSalespersonRequests } from '@/app/sales/page';
+import { initialOrders } from '@/app/sales/page';
+import { initialRecipes } from '@/app/recipes/page';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+
+type ReportRow = {
+    orderDate: string;
+    deliveryDate: string;
+    customer: string;
+    product: string;
+    quantity: number;
+    responsible: string;
+    address: string;
+    orderId: string;
+};
+
 
 function GeneralReportPageContent() {
     const reportRef = useRef<HTMLDivElement>(null);
@@ -24,26 +37,27 @@ function GeneralReportPageContent() {
     const fromDate = searchParams.get('from');
     const toDate = searchParams.get('to');
 
-    const reportData = useMemo(() => {
-        const filteredRequests = initialSalespersonRequests.filter(req => {
+    const reportData: ReportRow[] = useMemo(() => {
+        const filteredOrders = initialOrders.filter(order => {
             if (!fromDate || !toDate) return true;
-            const reqDate = parseISO(req.date);
-            return reqDate >= parseISO(fromDate) && reqDate <= parseISO(toDate);
+            const orderDate = parseISO(order.date);
+            return orderDate >= parseISO(fromDate) && orderDate <= parseISO(toDate);
         });
 
-        const flattenedData = filteredRequests.flatMap(req => 
-            req.items.map(item => ({
-                orderDate: req.date,
-                deliveryDate: req.deliveryDate,
-                itemType: item.itemType,
-                client: item.client,
-                product: item.product,
-                quantity: item.quantity,
-                type: item.type,
-                responsible: req.salesperson,
-                deliveryPerson: req.deliveryPerson,
-                address: item.deliveryAddress,
-            }))
+        const flattenedData = filteredOrders.flatMap(order => 
+            order.items.map(item => {
+                const recipe = initialRecipes.find(r => r.id === item.recipeId);
+                return {
+                    orderDate: order.date,
+                    deliveryDate: order.deliveryDate,
+                    customer: order.customer,
+                    product: recipe?.name || 'Producto no encontrado',
+                    quantity: item.quantity,
+                    responsible: order.dispatcher,
+                    address: order.deliveryAddress,
+                    orderId: order.id,
+                };
+            })
         );
 
         return flattenedData;
@@ -91,16 +105,13 @@ function GeneralReportPageContent() {
                      <Table className="text-xs border">
                         <TableHeader className="bg-yellow-200 font-bold">
                             <TableRow>
-                                <TableHead className="border p-1 w-[6%]">F. PEDIDO</TableHead>
-                                <TableHead className="border p-1 w-[6%]">F. ENTREGA</TableHead>
-                                <TableHead className="border p-1 w-[8%]">ITEM</TableHead>
-                                <TableHead className="border p-1 w-[12%]">CLIENTE</TableHead>
-                                <TableHead className="border p-1 w-[12%]">PAN</TableHead>
+                                <TableHead className="border p-1 w-[8%]">F. PEDIDO</TableHead>
+                                <TableHead className="border p-1 w-[8%]">F. ENTREGA</TableHead>
+                                <TableHead className="border p-1 w-[15%]">CLIENTE</TableHead>
+                                <TableHead className="border p-1 w-[20%]">PRODUCTO</TableHead>
                                 <TableHead className="border p-1 w-[5%] text-center">CANTIDAD</TableHead>
-                                <TableHead className="border p-1 w-[8%]">TIPO</TableHead>
-                                <TableHead className="border p-1 w-[8%]">Responsable</TableHead>
-                                <TableHead className="border p-1 w-[8%]">ENTREGA</TableHead>
-                                <TableHead className="border p-1 w-[27%]">DIRECCION</TableHead>
+                                <TableHead className="border p-1 w-[10%]">RESPONSABLE</TableHead>
+                                <TableHead className="border p-1 w-[34%]">DIRECCION</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -108,13 +119,10 @@ function GeneralReportPageContent() {
                                 <TableRow key={index}>
                                     <TableCell className="border p-1">{format(parseISO(row.orderDate), 'd-M-yy')}</TableCell>
                                     <TableCell className="border p-1">{format(parseISO(row.deliveryDate), 'd-M-yy')}</TableCell>
-                                    <TableCell className="border p-1">{row.itemType}</TableCell>
-                                    <TableCell className="border p-1">{row.client}</TableCell>
+                                    <TableCell className="border p-1">{row.customer}</TableCell>
                                     <TableCell className="border p-1">{row.product}</TableCell>
                                     <TableCell className="border p-1 text-center">{row.quantity}</TableCell>
-                                    <TableCell className="border p-1">{row.type}</TableCell>
                                     <TableCell className="border p-1">{row.responsible}</TableCell>
-                                    <TableCell className="border p-1">{row.deliveryPerson}</TableCell>
                                     <TableCell className="border p-1">{row.address}</TableCell>
                                 </TableRow>
                             ))}
@@ -162,7 +170,7 @@ function GeneralReportPageContent() {
                                     <TableRow key={index}>
                                         <TableCell>{format(parseISO(row.orderDate), 'P', { locale: es })}</TableCell>
                                         <TableCell>{format(parseISO(row.deliveryDate), 'P', { locale: es })}</TableCell>
-                                        <TableCell>{row.client}</TableCell>
+                                        <TableCell>{row.customer}</TableCell>
                                         <TableCell>{row.product}</TableCell>
                                         <TableCell>{row.quantity}</TableCell>
                                         <TableCell>{row.responsible}</TableCell>

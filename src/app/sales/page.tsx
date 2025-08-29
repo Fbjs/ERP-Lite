@@ -3,13 +3,13 @@
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck, FileBarChart, NotebookText, Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useMemo, useEffect } from 'react';
-import SalesOrderForm, { OrderFormData, SalesOrderFormProps } from '@/components/sales-order-form';
+import SalesOrderForm from '@/components/sales-order-form';
 import { Recipe, initialRecipes } from '@/app/recipes/page';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -20,10 +20,12 @@ import { format, subMonths, addDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { initialCustomers } from '@/app/admin/customers/page';
 import Logo from '@/components/logo';
+import type { OrderFormData, SalesOrderFormProps } from '@/components/sales-order-form';
+
 
 export type OrderItem = {
   recipeId: string;
@@ -63,7 +65,6 @@ export const initialOrders: Order[] = [
     { id: 'SALE894', customerId: '2', locationId: 'loc2', customer: 'Cafe Central', amount: 82000, status: 'Enviado', date: '2025-08-04', deliveryDate: '2025-08-05', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 20 }], dispatcher: 'MARCELO', comments: '' },
     { id: 'SALE895', customerId: '1', locationId: 'loc1', customer: 'Panaderia San Jose', amount: 360000, status: 'Completado', date: '2025-08-05', deliveryDate: '2025-08-06', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 100 }], dispatcher: 'RENE', comments: '' },
 ];
-
 
 export default function SalesPage() {
     const [orders, setOrders] = useState<Order[]>(initialOrders);
@@ -325,7 +326,7 @@ export default function SalesPage() {
                                 <CardTitle className="font-headline">Pedidos Generales y Reportes</CardTitle>
                                 <CardDescription className="font-body">Gestiona los pedidos y genera reportes de carga y por vendedor.</CardDescription>
                             </div>
-                            <div className="flex items-center gap-2">
+                             <div className="flex items-center gap-2">
                                 <Button asChild variant="outline">
                                     <Link href={`/sales/general-report?from=${dateRange?.from?.toISOString()}&to=${dateRange?.to?.toISOString()}`}>
                                         <FileBarChart className="mr-2 h-4 w-4" />
@@ -337,10 +338,6 @@ export default function SalesPage() {
                                         <NotebookText className="mr-2 h-4 w-4" />
                                         Reporte por Vendedor
                                     </Link>
-                                </Button>
-                                <Button onClick={() => handleOpenForm(null)}>
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Nuevo Pedido
                                 </Button>
                             </div>
                         </div>
@@ -655,4 +652,3 @@ export default function SalesPage() {
     </AppLayout>
   );
 }
-
