@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Recipe } from '@/app/recipes/page';
 import { PlusCircle, Trash2, Calendar as CalendarIcon, ChevronsUpDown, Check } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -21,9 +21,9 @@ import type { Order } from '@/app/sales/page';
 
 
 type OrderItem = {
-    recipeId: string;
-    formatSku: string;
-    quantity: number;
+  recipeId: string;
+  formatSku: string;
+  quantity: number;
 };
 
 export type OrderFormData = {
@@ -31,7 +31,12 @@ export type OrderFormData = {
     locationId: string;
     deliveryAddress: string;
     deliveryDate: string;
-axport type SalesOrderFormProps = {
+    items: OrderItem[];
+    dispatcher: string;
+    comments: string;
+};
+
+export type SalesOrderFormProps = {
   onSubmit: (data: OrderFormData) => void;
   onCancel: () => void;
   recipes: Recipe[];
