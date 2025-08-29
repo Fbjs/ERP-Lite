@@ -24,6 +24,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SalespersonRequestForm, { SalespersonRequestFormData } from '@/components/salesperson-request-form';
 import { initialCustomers } from '@/app/admin/customers/page';
+import Logo from '@/components/logo';
 
 export type OrderItem = {
   recipeId: string;
@@ -75,6 +76,9 @@ export const initialOrders: Order[] = [
     { id: 'SALE886', customer: 'Panaderia San Jose', amount: 184000, status: 'Pendiente', date: '2025-07-31', deliveryDate: '2025-08-02', items: [{ recipeId: 'RALLADBCO', formatSku: 'RALLADBCO-10K', quantity: 40 }], dispatcher: 'RENE', comments: '' },
     { id: 'SALE887', customer: 'Cafe Central', amount: 440000, status: 'Enviado', date: '2025-07-31', deliveryDate: '2025-08-01', items: [{ recipeId: 'GUIN1432', formatSku: 'GUIN1432-1K', quantity: 100 }], dispatcher: 'MARCELO', comments: 'Facturar a RUT diferente.' },
     { id: 'SALE888', customer: 'Supermercado del Sur', amount: 615000, status: 'Completado', date: '2025-08-01', deliveryDate: '2025-08-02', items: [{ recipeId: 'GUBL1332', formatSku: 'GUBL1332-11', quantity: 150 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE889', customer: 'Panaderia San Jose', amount: 205000, status: 'Pendiente', date: '2025-08-02', deliveryDate: '2025-08-04', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 50 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE890', customer: 'Supermercado del Sur', amount: 984000, status: 'En Preparación', date: '2025-08-02', deliveryDate: '2025-08-05', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 240 }], dispatcher: 'MARCELO', comments: 'Necesita 2 guías de despacho.' },
+    { id: 'SALE891', customer: 'Cafe Central', amount: 123000, status: 'Pendiente', date: '2025-08-03', deliveryDate: '2025-08-04', items: [{ recipeId: 'CERE0003', formatSku: 'CERE0003-500G', quantity: 25 }], dispatcher: 'RENE', comments: '' },
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
@@ -164,6 +168,23 @@ export default function SalesPage() {
             const format = recipe?.formats.find(f => f.sku === item.formatSku);
             return `${item.quantity} x ${recipe?.name || 'Ítem no encontrado'} (${format?.name || 'Formato no especificado'})`;
         }).join(', ');
+    };
+    
+    const getOrderDetailsAsTable = (items: OrderItem[]) => {
+        return items.map(item => {
+            const recipe = recipes.find(r => r.id === item.recipeId);
+            const format = recipe?.formats.find(f => f.sku === item.formatSku);
+            const cost = format?.cost || 0;
+            const subtotal = item.quantity * cost;
+
+            return {
+                sku: format?.sku || 'N/A',
+                description: `${recipe?.name || 'N/A'} - ${format?.name || 'N/A'}`,
+                quantity: item.quantity,
+                unitPrice: cost,
+                subtotal: subtotal
+            };
+        });
     };
 
     const handleCreateOrder = (newOrderData: OrderFormData) => {
@@ -652,33 +673,91 @@ export default function SalesPage() {
       
       {/* Modal Ver Detalles */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">Detalles de la Orden: {selectedOrder?.id}</DialogTitle>
+            <DialogTitle className="font-headline">Orden de Venta: {selectedOrder?.id}</DialogTitle>
           </DialogHeader>
           {selectedOrder && (
             <div className="max-h-[75vh] overflow-y-auto p-1">
-                <div ref={detailsModalContentRef} className="p-6 bg-white text-black">
-                    <div className="border-b-2 border-gray-200 pb-4 mb-4 text-center">
-                        <h2 className="text-2xl font-bold text-gray-800 font-headline">Orden de Venta</h2>
-                        <p className="text-sm text-gray-500 font-body">Vollkorn ERP</p>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 font-body mb-6">
-                        <div><p className="font-semibold text-gray-600">ID Orden:</p><p>{selectedOrder.id}</p></div>
-                        <div><p className="font-semibold text-gray-600">Fecha de Emisión:</p><p>{format(parseISO(selectedOrder.date), 'P', { locale: es })}</p></div>
-                        <div><p className="font-semibold text-gray-600">Cliente:</p><p>{selectedOrder.customer}</p></div>
-                        <div><p className="font-semibold text-gray-600">Fecha de Entrega:</p><p>{format(parseISO(selectedOrder.deliveryDate), 'P', { locale: es })}</p></div>
-                        <div><p className="font-semibold text-gray-600">Monto Total:</p><p>${selectedOrder.amount.toLocaleString('es-CL')}</p></div>
-                        <div><p className="font-semibold text-gray-600">Estado:</p><p>{selectedOrder.status}</p></div>
-                        <div className="sm:col-span-2"><p className="font-semibold text-gray-600">Detalles del Pedido:</p><p className="whitespace-pre-wrap">{getOrderDetailsAsString(selectedOrder.items)}</p></div>
-                    </div>
-                    <div className="border-t-2 border-gray-200 pt-4 mt-4 text-center text-xs text-gray-500">
-                        <p>Documento generado el {format(new Date(), 'P', { locale: es })}</p>
-                    </div>
+                <div ref={detailsModalContentRef} className="p-8 bg-white text-black font-body">
+                    <header className="flex justify-between items-start mb-10 border-b pb-6">
+                        <div className="flex items-center gap-3">
+                            <Logo className="w-28 text-orange-600" />
+                            <div>
+                                <h1 className="text-2xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
+                                <p className="text-sm text-gray-500">Avenida Principal 123, Santiago, Chile</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <h2 className="text-4xl font-headline font-bold uppercase text-gray-700">Orden de Venta</h2>
+                            <p className="text-sm text-gray-500">Nº: {selectedOrder.id}</p>
+                        </div>
+                    </header>
+
+                    <section className="grid grid-cols-2 gap-8 mb-10 text-sm">
+                        <div>
+                            <h3 className="font-headline text-base font-semibold text-gray-600 mb-2 border-b pb-1">Cliente</h3>
+                            <p className="font-bold text-gray-800">{selectedOrder.customer}</p>
+                        </div>
+                        <div className="text-right">
+                             <div className="mb-2">
+                                <span className="font-semibold text-gray-600">Fecha de Emisión: </span>
+                                <span>{format(parseISO(selectedOrder.date), 'P', { locale: es })}</span>
+                            </div>
+                            <div>
+                                <span className="font-semibold text-gray-600">Fecha de Entrega: </span>
+                                <span>{format(parseISO(selectedOrder.deliveryDate), 'P', { locale: es })}</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="mb-10">
+                        <h3 className="font-headline text-lg font-semibold text-gray-700 mb-3">Detalle del Pedido</h3>
+                        <Table className="w-full text-sm">
+                            <TableHeader className="bg-gray-100">
+                                <TableRow>
+                                    <TableHead className="text-left font-bold text-gray-700 uppercase p-3">SKU</TableHead>
+                                    <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Descripción</TableHead>
+                                    <TableHead className="text-right font-bold text-gray-700 uppercase p-3">Cantidad</TableHead>
+                                    <TableHead className="text-right font-bold text-gray-700 uppercase p-3">Precio Unit.</TableHead>
+                                    <TableHead className="text-right font-bold text-gray-700 uppercase p-3">Subtotal</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {getOrderDetailsAsTable(selectedOrder.items).map((item, index) => (
+                                    <TableRow key={index} className="border-b border-gray-200">
+                                        <TableCell className="p-3 font-mono">{item.sku}</TableCell>
+                                        <TableCell className="p-3">{item.description}</TableCell>
+                                        <TableCell className="text-right p-3">{item.quantity}</TableCell>
+                                        <TableCell className="text-right p-3">${item.unitPrice.toLocaleString('es-CL')}</TableCell>
+                                        <TableCell className="text-right p-3">${item.subtotal.toLocaleString('es-CL')}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                            <TableFooter>
+                                <TableRow className="font-bold text-lg bg-gray-100">
+                                    <TableCell colSpan={4} className="text-right p-3">TOTAL ORDEN</TableCell>
+                                    <TableCell className="text-right p-3">${selectedOrder.amount.toLocaleString('es-CL')}</TableCell>
+                                </TableRow>
+                            </TableFooter>
+                        </Table>
+                    </section>
+                    
+                    {selectedOrder.comments && (
+                         <section className="mb-10">
+                            <h3 className="font-headline text-base font-semibold text-gray-600 mb-2">Comentarios Adicionales</h3>
+                            <p className="text-sm border p-3 rounded-md bg-gray-50">{selectedOrder.comments}</p>
+                        </section>
+                    )}
+
+                    <footer className="text-center text-xs text-gray-400 border-t pt-4 mt-12">
+                        <p>Orden generada por {selectedOrder.dispatcher}. Gracias por su preferencia.</p>
+                        <p>Documento generado por Vollkorn ERP el {format(new Date(), 'Pp', { locale: es })}</p>
+                    </footer>
                 </div>
             </div>
           )}
-           <DialogFooter>
+           <DialogFooter className="mt-4">
                 <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Cerrar</Button>
                 <Button onClick={handleDownloadPdf}>
                     <Download className="mr-2 h-4 w-4" />
