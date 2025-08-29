@@ -3,13 +3,13 @@
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck, FileBarChart, NotebookText, Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useMemo, useEffect } from 'react';
-import SalesOrderForm, { OrderFormData } from '@/components/sales-order-form';
+import SalesOrderForm, { OrderFormData, SalesOrderFormProps } from '@/components/sales-order-form';
 import { Recipe, initialRecipes } from '@/app/recipes/page';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +20,7 @@ import { format, subMonths, addDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { initialCustomers } from '@/app/admin/customers/page';
 import Logo from '@/components/logo';
@@ -46,30 +46,6 @@ export type Order = {
   comments: string;
 };
 
-export type SalespersonRequest = {
-  id: string;
-  salesperson: string; // Corresponde a 'Responsable'
-  deliveryPerson: string; // Corresponde a 'Entrega'
-  responsiblePerson: string; // Corresponde a 'Registro del'
-  date: string; // F. PEDIDO
-  deliveryDate: string; // F. ENTREGA
-  status: 'Pendiente' | 'Despachado';
-  items: SalespersonRequestItem[];
-  // Simulación de valor para el resumen
-  amount: number;
-};
-
-export type SalespersonRequestItem = {
-    client: string;
-    product: string;
-    quantity: number;
-    type: string; // Corresponde a la columna TIPO del reporte (ej: PROD, MERMA)
-    itemType: string; // Corresponde a la columna ITEM del reporte (ej: FACT, BOLETA, CONFIRMADO)
-    deliveryAddress: string;
-    comments: string;
-};
-
-
 export const initialOrders: Order[] = [
     { id: 'SALE881', customerId: '2', locationId: 'loc2', customer: 'Cafe Central', amount: 270000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 75 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
     { id: 'SALE882', customerId: '3', locationId: 'loc3', customer: 'Supermercado del Sur', amount: 820000, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 200 }], dispatcher: 'MARCELO', comments: '' },
@@ -82,16 +58,10 @@ export const initialOrders: Order[] = [
     { id: 'SALE889', customerId: '1', locationId: 'loc1', customer: 'Panaderia San Jose', amount: 205000, status: 'Pendiente', date: '2025-08-02', deliveryDate: '2025-08-04', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 50 }], dispatcher: 'RENE', comments: '' },
     { id: 'SALE890', customerId: '3', locationId: 'loc3', customer: 'Supermercado del Sur', amount: 984000, status: 'En Preparación', date: '2025-08-02', deliveryDate: '2025-08-05', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 240 }], dispatcher: 'MARCELO', comments: 'Necesita 2 guías de despacho.' },
     { id: 'SALE891', customerId: '2', locationId: 'loc2', customer: 'Cafe Central', amount: 52500, status: 'Pendiente', date: '2025-08-03', deliveryDate: '2025-08-04', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: '400100', formatSku: '400100-7', quantity: 25 }], dispatcher: 'RENE', comments: '' },
-];
-
-export const initialSalespersonRequests: SalespersonRequest[] = [
-    { id: 'PED001', salesperson: 'FRANCISCA', deliveryPerson: 'RODRIGO', responsiblePerson: 'FRANCISCA', date: '2025-08-29', deliveryDate: '2025-08-29', status: 'Despachado', items: [
-        { client: 'LORENA AGUILAR', product: 'GUAGUA INTEGRAL 13X13', quantity: 94, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)', comments: 'Entregar de 9 a 12'},
-        { client: 'LORENA AGUILAR', product: 'PAN SIN GLUTEN', quantity: 20, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)', comments: ''},
-    ], amount: 350000},
-    { id: 'PED002', salesperson: 'VENDEDOR 2', deliveryPerson: 'MARCELO', responsiblePerson: 'VENDEDOR 2', date: '2025-07-29', deliveryDate: '2025-07-30', status: 'Pendiente', items: [
-        { client: 'BETTER FOOD', product: 'CRUTONES 7mm', quantity: 10, type: 'PROD', itemType: 'FACTURA', deliveryAddress: 'Av. Vitacura 5000', comments: '' }
-    ], amount: 80000},
+    { id: 'SALE892', customerId: '1', locationId: 'loc1', customer: 'Panaderia San Jose', amount: 430000, status: 'En Preparación', date: '2025-08-03', deliveryDate: '2025-08-05', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUAINT16', formatSku: 'GUAINT16-7', quantity: 100 }], dispatcher: 'MARCELO', comments: 'Cliente pide llamar antes de entregar.' },
+    { id: 'SALE893', customerId: '3', locationId: 'loc4', customer: 'Supermercado del Sur', amount: 1230000, status: 'Pendiente', date: '2025-08-04', deliveryDate: '2025-08-06', deliveryAddress: 'Bodega Central, Av. Departamental 987, San Miguel', items: [{ recipeId: 'MIGAARG22', formatSku: 'MIGAARG22-11', quantity: 341 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE894', customerId: '2', locationId: 'loc2', customer: 'Cafe Central', amount: 82000, status: 'Enviado', date: '2025-08-04', deliveryDate: '2025-08-05', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 20 }], dispatcher: 'MARCELO', comments: '' },
+    { id: 'SALE895', customerId: '1', locationId: 'loc1', customer: 'Panaderia San Jose', amount: 360000, status: 'Completado', date: '2025-08-05', deliveryDate: '2025-08-06', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 100 }], dispatcher: 'RENE', comments: '' },
 ];
 
 
@@ -352,13 +322,25 @@ export default function SalesPage() {
                     <CardHeader>
                         <div className="flex flex-wrap justify-between items-center gap-4">
                             <div>
-                                <CardTitle className="font-headline">Pedidos de Vendedores</CardTitle>
-                                <CardDescription className="font-body">Gestiona las planillas de pedidos de los vendedores.</CardDescription>
+                                <CardTitle className="font-headline">Pedidos Generales y Reportes</CardTitle>
+                                <CardDescription className="font-body">Gestiona los pedidos y genera reportes de carga y por vendedor.</CardDescription>
                             </div>
                             <div className="flex items-center gap-2">
+                                <Button asChild variant="outline">
+                                    <Link href={`/sales/general-report?from=${dateRange?.from?.toISOString()}&to=${dateRange?.to?.toISOString()}`}>
+                                        <FileBarChart className="mr-2 h-4 w-4" />
+                                        Reporte General
+                                    </Link>
+                                </Button>
+                                 <Button asChild variant="outline">
+                                    <Link href="/sales/daily-vendor-report">
+                                        <NotebookText className="mr-2 h-4 w-4" />
+                                        Reporte por Vendedor
+                                    </Link>
+                                </Button>
                                 <Button onClick={() => handleOpenForm(null)}>
                                     <PlusCircle className="mr-2 h-4 w-4" />
-                                    Nuevo Pedido General
+                                    Nuevo Pedido
                                 </Button>
                             </div>
                         </div>
@@ -583,7 +565,7 @@ export default function SalesPage() {
 
                     <section className="mb-10">
                         <h3 className="font-headline text-lg font-semibold text-gray-700 mb-3">Detalle del Pedido</h3>
-                        <Table className="w-full text-sm">
+                        <Table>
                             <TableHeader className="bg-gray-100">
                                 <TableRow>
                                     <TableHead className="text-left font-bold text-gray-700 uppercase p-3">SKU</TableHead>
@@ -673,3 +655,4 @@ export default function SalesPage() {
     </AppLayout>
   );
 }
+
