@@ -88,7 +88,7 @@ function LoadReportPageContent() {
     return (
         <AppLayout pageTitle={`Pedido de ${requestData.salesperson}`}>
              <div className="fixed -left-[9999px] top-0 p-2 bg-white text-black" style={{ width: '210mm' }}>
-                <div ref={reportRef} className="p-4 border-2 border-black h-full flex flex-col">
+                <div ref={reportRef} className="p-4 border-2 border-black h-full flex flex-col" style={{minHeight: '297mm'}}>
                     <header className="grid grid-cols-12 gap-2 border-b-2 border-black pb-1 text-sm">
                         <div className="col-span-3 flex items-center">
                             <Logo className="w-32" />
@@ -103,7 +103,7 @@ function LoadReportPageContent() {
                             </div>
                         </div>
                     </header>
-                    <main className="flex-grow text-xs">
+                    <main className="flex-grow text-xs mt-2">
                         <Table className="w-full">
                             <TableHeader>
                                 <TableRow className="border-b-2 border-black">
@@ -117,18 +117,23 @@ function LoadReportPageContent() {
                             </TableHeader>
                             <TableBody>
                                 {items.map((item, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell className="p-1 border-r">{item.type.startsWith("FACT") || item.type.startsWith("BOLETA") ? item.type : ""}</TableCell>
+                                    <TableRow key={index} className="border-b">
+                                        <TableCell className="p-1 border-r">{item.itemType.startsWith("FACT") || item.itemType.startsWith("BOLETA") ? item.itemType : ""}</TableCell>
                                         <TableCell className="p-1 border-r font-semibold">{item.client}</TableCell>
                                         <TableCell className="p-1 border-r">{item.product}</TableCell>
                                         <TableCell className="p-1 border-r text-center">{item.quantity}</TableCell>
                                         <TableCell className="p-1 border-r">{item.type}</TableCell>
-                                        <TableCell className="p-1">{item.deliveryAddress}</TableCell>
+                                        <TableCell className="p-1 whitespace-pre-wrap">{item.deliveryAddress}{item.comments ? `\nComentarios: ${item.comments}` : ''}</TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
                         </Table>
                     </main>
+                     <footer className="text-xs text-right mt-auto pt-4">
+                        <p>Código: S. FOR. 10.1</p>
+                        <p>Versión: 22</p>
+                        <p>Fecha: 28-01-2022</p>
+                    </footer>
                 </div>
              </div>
 
@@ -156,8 +161,8 @@ function LoadReportPageContent() {
                 <CardContent>
                     <p className="text-lg font-semibold mb-4">Vista Previa del Reporte</p>
                     <div className="overflow-x-auto border rounded-lg p-4 bg-gray-50 flex justify-center">
-                         <div className="w-[210mm] h-[297mm] bg-white shadow-lg scale-[0.7] origin-top">
-                           <div ref={reportRef} className="p-4 border-2 border-black h-full flex flex-col">
+                         <div className="w-[210mm] bg-white shadow-lg scale-[0.7] md:scale-100 origin-top">
+                           <div className="p-4 border-2 border-black h-full flex flex-col" style={{minHeight: '297mm'}}>
                                 <header className="grid grid-cols-12 gap-2 border-b-2 border-black pb-1 text-sm">
                                     <div className="col-span-3 flex items-center">
                                         <Logo className="w-32" />
@@ -172,32 +177,32 @@ function LoadReportPageContent() {
                                         </div>
                                     </div>
                                 </header>
-                                <main className="flex-grow text-xs">
+                                <main className="flex-grow text-xs mt-2">
                                     <Table className="w-full">
                                         <TableHeader>
                                             <TableRow className="border-b-2 border-black">
-                                                <TableHead className="h-auto p-1 font-bold text-black border-r w-[10%]">ITEM</TableHead>
+                                                <TableHead className="h-auto p-1 font-bold text-black border-r w-[8%]">ITEM</TableHead>
                                                 <TableHead className="h-auto p-1 font-bold text-black border-r w-[15%]">CLIENTE</TableHead>
                                                 <TableHead className="h-auto p-1 font-bold text-black border-r w-[15%]">PAN</TableHead>
                                                 <TableHead className="h-auto p-1 font-bold text-black border-r text-center w-[5%]">CANT</TableHead>
-                                                <TableHead className="h-auto p-1 font-bold text-black border-r w-[15%]">TIPO</TableHead>
-                                                <TableHead className="h-auto p-1 font-bold text-black w-[40%]">DIRECCION/COMENTARIOS</TableHead>
+                                                <TableHead className="h-auto p-1 font-bold text-black border-r w-[8%]">TIPO</TableHead>
+                                                <TableHead className="h-auto p-1 font-bold text-black w-[49%]">DIRECCION/COMENTARIOS</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {items.map((item, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell className="p-1 border-r">{item.type.startsWith("FACT") || item.type.startsWith("BOLETA") ? item.type : ""}</TableCell>
+                                                <TableRow key={index} className="border-b">
+                                                    <TableCell className="p-1 border-r">{item.itemType.startsWith("FACT") || item.itemType.startsWith("BOLETA") ? item.itemType : ""}</TableCell>
                                                     <TableCell className="p-1 border-r font-semibold">{item.client}</TableCell>
                                                     <TableCell className="p-1 border-r">{item.product}</TableCell>
                                                     <TableCell className="p-1 border-r text-center">{item.quantity}</TableCell>
                                                     <TableCell className="p-1 border-r">{item.type}</TableCell>
-                                                    <TableCell className="p-1">{item.deliveryAddress}</TableCell>
+                                                    <TableCell className="p-1 whitespace-pre-wrap">{item.deliveryAddress}{item.comments ? `\nComentarios: ${item.comments}` : ''}</TableCell>
                                                 </TableRow>
                                             ))}
                                              {/* Add empty rows to fill page */}
                                             {Array.from({ length: Math.max(0, 35 - items.length) }).map((_, index) => (
-                                                <TableRow key={`empty-${index}`}>
+                                                <TableRow key={`empty-${index}`} className="border-b">
                                                     <TableCell className="p-1 border-r h-6">&nbsp;</TableCell>
                                                     <TableCell className="p-1 border-r"></TableCell>
                                                     <TableCell className="p-1 border-r"></TableCell>
@@ -209,6 +214,11 @@ function LoadReportPageContent() {
                                         </TableBody>
                                     </Table>
                                 </main>
+                                <footer className="text-xs text-right mt-auto pt-4">
+                                    <p>Código: S. FOR. 10.1</p>
+                                    <p>Versión: 22</p>
+                                    <p>Fecha: 28-01-2022</p>
+                                </footer>
                             </div>
                         </div>
                     </div>

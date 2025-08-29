@@ -16,6 +16,7 @@ import { format, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Customer } from '@/app/admin/customers/page';
 import { SalespersonRequestItem } from '@/app/sales/page';
+import { Textarea } from './ui/textarea';
 
 export type SalespersonRequestFormData = {
     salesperson: string;
@@ -33,7 +34,7 @@ type SalespersonRequestFormProps = {
   customers: Customer[];
 };
 
-const initialItem: SalespersonRequestItem = { client: '', product: '', quantity: 1, type: 'PROD', itemType: 'CONFIRMADO', deliveryAddress: '' };
+const initialItem: SalespersonRequestItem = { client: '', product: '', quantity: 1, type: 'PROD', itemType: 'CONFIRMADO', deliveryAddress: '', comments: '' };
 
 const ComboboxInput = ({ value, onSelect, placeholder, options }: { value: string, onSelect: (value: string) => void, placeholder: string, options: string[] }) => {
     const [open, setOpen] = useState(false);
@@ -70,7 +71,7 @@ export default function SalespersonRequestForm({ onSubmit, onCancel, recipes, cu
   const [deliveryPerson, setDeliveryPerson] = useState('');
   const [responsiblePerson, setResponsiblePerson] = useState('');
   const [date, setDate] = useState<Date | undefined>(new Date());
-  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 1));
+  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 3));
   const [items, setItems] = useState<SalespersonRequestItem[]>([initialItem]);
   
   const [openCombobox, setOpenCombobox] = useState<{type: 'customer' | 'product', index: number} | null>(null);
@@ -244,9 +245,13 @@ export default function SalespersonRequestForm({ onSubmit, onCancel, recipes, cu
                             <Input value={item.itemType} onChange={e => handleItemChange(index, 'itemType', e.target.value)} placeholder="Ej: FACT, BOLETA" />
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label>Dirección / Comentarios</Label>
+                     <div className="space-y-2">
+                        <Label>Dirección de Entrega</Label>
                         <Input value={item.deliveryAddress} onChange={e => handleItemChange(index, 'deliveryAddress', e.target.value)} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label>Comentarios</Label>
+                        <Textarea value={item.comments} onChange={e => handleItemChange(index, 'comments', e.target.value)} placeholder="Añade instrucciones o comentarios para este item..."/>
                     </div>
                  </div>
             ))}

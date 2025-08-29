@@ -51,6 +51,7 @@ export type SalespersonRequestItem = {
     type: string; // Corresponde a la columna TIPO del reporte (ej: PROD, MERMA)
     itemType: string; // Corresponde a la columna ITEM del reporte (ej: FACT, BOLETA, CONFIRMADO)
     deliveryAddress: string;
+    comments: string;
 };
 
 export type SalespersonRequest = {
@@ -83,11 +84,11 @@ export const initialOrders: Order[] = [
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
     { id: 'PED001', salesperson: 'FRANCISCA', deliveryPerson: 'RODRIGO', responsiblePerson: 'FRANCISCA', date: '2025-08-29', deliveryDate: '2025-08-29', status: 'Despachado', items: [
-        { client: 'LORENA AGUILAR', product: 'GUAGUA INTEGRAL 13X13', quantity: 94, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
-        { client: 'LORENA AGUILAR', product: 'PAN SIN GLUTEN', quantity: 20, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)'},
+        { client: 'LORENA AGUILAR', product: 'GUAGUA INTEGRAL 13X13', quantity: 94, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)', comments: 'Entregar de 9 a 12'},
+        { client: 'LORENA AGUILAR', product: 'PAN SIN GLUTEN', quantity: 20, type: 'MERMA', itemType: 'BOLETA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO (SI ES MENOR A 30.000 LA FACTURA)', comments: ''},
     ], amount: 350000},
     { id: 'PED002', salesperson: 'VENDEDOR 2', deliveryPerson: 'MARCELO', responsiblePerson: 'VENDEDOR 2', date: '2025-07-29', deliveryDate: '2025-07-30', status: 'Pendiente', items: [
-        { client: 'BETTER FOOD', product: 'CRUTONES 7mm', quantity: 10, type: 'PROD', itemType: 'FACTURA', deliveryAddress: 'AGREGAR COSTO DE DESPACHO...' }
+        { client: 'BETTER FOOD', product: 'CRUTONES 7mm', quantity: 10, type: 'PROD', itemType: 'FACTURA', deliveryAddress: 'Av. Vitacura 5000', comments: '' }
     ], amount: 80000},
 ];
 
