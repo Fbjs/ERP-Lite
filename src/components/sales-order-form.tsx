@@ -88,12 +88,12 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers,
 
   useEffect(() => {
     if (initialData) {
-        const customer = customers.find(c => c.name === initialData.customer);
-        if(customer) {
-            setCustomerId(customer.id);
+        setCustomerId(initialData.customerId);
+        const customer = customers.find(c => c.id === initialData.customerId);
+        if (customer) {
             setAvailableLocations(customer.deliveryLocations || []);
             const location = customer.deliveryLocations.find(l => l.address === initialData.deliveryAddress);
-            if(location) {
+            if (location) {
                 setLocationId(location.id);
             }
         }
@@ -117,7 +117,8 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers,
     if (customerId) {
       const selectedCustomer = customers.find(c => c.id === customerId);
       setAvailableLocations(selectedCustomer?.deliveryLocations || []);
-      if (!initialData) { // Only reset location if not editing
+      // When customer changes, reset location only if it's not part of an edit flow initial load
+      if (!initialData || customerId !== initialData.customerId) {
         setLocationId('');
       }
     } else {

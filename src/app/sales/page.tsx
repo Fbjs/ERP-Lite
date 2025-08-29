@@ -33,6 +33,7 @@ export type OrderItem = {
 
 export type Order = {
   id: string;
+  customerId: string;
   customer: string;
   amount: number;
   status: 'Completado' | 'Pendiente' | 'Enviado' | 'Cancelado' | 'En Preparación';
@@ -69,17 +70,17 @@ export type SalespersonRequestItem = {
 
 
 export const initialOrders: Order[] = [
-    { id: 'SALE881', customer: 'Cafe Central', amount: 270000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 75 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
-    { id: 'SALE882', customer: 'Supermercado del Sur', amount: 820000, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 200 }], dispatcher: 'MARCELO', comments: '' },
-    { id: 'SALE883', customer: 'Panaderia San Jose', amount: 330000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 80 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
-    { id: 'SALE884', customer: 'Cafe Central', amount: 150000, status: 'Cancelado', date: '2025-07-29', deliveryDate: '2025-07-30', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: '400100', formatSku: '400100-7', quantity: 71 }], dispatcher: 'RENE', comments: 'Cliente cancela por sobrestock.' },
-    { id: 'SALE885', customer: 'Supermercado del Sur', amount: 550000, status: 'En Preparación', date: '2025-07-30', deliveryDate: '2025-08-01', deliveryAddress: 'Bodega Central, Av. Departamental 987, San Miguel', items: [{ recipeId: 'GUAINT16', formatSku: 'GUAINT16-7', quantity: 120 }], dispatcher: 'MARCELO', comments: 'Preparar en cajas especiales.' },
-    { id: 'SALE886', customer: 'Panaderia San Jose', amount: 184000, status: 'Pendiente', date: '2025-07-31', deliveryDate: '2025-08-02', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'RALLADBCO', formatSku: 'RALLADBCO-10K', quantity: 40 }], dispatcher: 'RENE', comments: '' },
-    { id: 'SALE887', customer: 'Cafe Central', amount: 440000, status: 'Enviado', date: '2025-07-31', deliveryDate: '2025-08-01', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'GUIN1432', formatSku: 'GUIN1432-1K', quantity: 100 }], dispatcher: 'MARCELO', comments: 'Facturar a RUT diferente.' },
-    { id: 'SALE888', customer: 'Supermercado del Sur', amount: 615000, status: 'Completado', date: '2025-08-01', deliveryDate: '2025-08-02', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'GUBL1332', formatSku: 'GUBL1332-11', quantity: 150 }], dispatcher: 'RENE', comments: '' },
-    { id: 'SALE889', customer: 'Panaderia San Jose', amount: 205000, status: 'Pendiente', date: '2025-08-02', deliveryDate: '2025-08-04', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 50 }], dispatcher: 'RENE', comments: '' },
-    { id: 'SALE890', customer: 'Supermercado del Sur', amount: 984000, status: 'En Preparación', date: '2025-08-02', deliveryDate: '2025-08-05', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 240 }], dispatcher: 'MARCELO', comments: 'Necesita 2 guías de despacho.' },
-    { id: 'SALE891', customer: 'Cafe Central', amount: 52500, status: 'Pendiente', date: '2025-08-03', deliveryDate: '2025-08-04', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: '400100', formatSku: '400100-7', quantity: 25 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE881', customerId: '2', customer: 'Cafe Central', amount: 270000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 75 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
+    { id: 'SALE882', customerId: '3', customer: 'Supermercado del Sur', amount: 820000, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 200 }], dispatcher: 'MARCELO', comments: '' },
+    { id: 'SALE883', customerId: '1', customer: 'Panaderia San Jose', amount: 330000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 80 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
+    { id: 'SALE884', customerId: '2', customer: 'Cafe Central', amount: 150000, status: 'Cancelado', date: '2025-07-29', deliveryDate: '2025-07-30', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: '400100', formatSku: '400100-7', quantity: 71 }], dispatcher: 'RENE', comments: 'Cliente cancela por sobrestock.' },
+    { id: 'SALE885', customerId: '3', customer: 'Supermercado del Sur', amount: 550000, status: 'En Preparación', date: '2025-07-30', deliveryDate: '2025-08-01', deliveryAddress: 'Bodega Central, Av. Departamental 987, San Miguel', items: [{ recipeId: 'GUAINT16', formatSku: 'GUAINT16-7', quantity: 120 }], dispatcher: 'MARCELO', comments: 'Preparar en cajas especiales.' },
+    { id: 'SALE886', customerId: '1', customer: 'Panaderia San Jose', amount: 184000, status: 'Pendiente', date: '2025-07-31', deliveryDate: '2025-08-02', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'RALLADBCO', formatSku: 'RALLADBCO-10K', quantity: 40 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE887', customerId: '2', customer: 'Cafe Central', amount: 440000, status: 'Enviado', date: '2025-07-31', deliveryDate: '2025-08-01', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'GUIN1432', formatSku: 'GUIN1432-1K', quantity: 100 }], dispatcher: 'MARCELO', comments: 'Facturar a RUT diferente.' },
+    { id: 'SALE888', customerId: '3', customer: 'Supermercado del Sur', amount: 615000, status: 'Completado', date: '2025-08-01', deliveryDate: '2025-08-02', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'GUBL1332', formatSku: 'GUBL1332-11', quantity: 150 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE889', customerId: '1', customer: 'Panaderia San Jose', amount: 205000, status: 'Pendiente', date: '2025-08-02', deliveryDate: '2025-08-04', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 50 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE890', customerId: '3', customer: 'Supermercado del Sur', amount: 984000, status: 'En Preparación', date: '2025-08-02', deliveryDate: '2025-08-05', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 240 }], dispatcher: 'MARCELO', comments: 'Necesita 2 guías de despacho.' },
+    { id: 'SALE891', customerId: '2', customer: 'Cafe Central', amount: 52500, status: 'Pendiente', date: '2025-08-03', deliveryDate: '2025-08-04', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: '400100', formatSku: '400100-7', quantity: 25 }], dispatcher: 'RENE', comments: '' },
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
@@ -189,6 +190,7 @@ export default function SalesPage() {
             status: 'Pendiente',
             date: new Date().toISOString().split('T')[0],
             deliveryDate: newOrderData.deliveryDate,
+            customerId: customer?.id || '',
             customer: customer?.name || 'N/A',
             deliveryAddress: newOrderData.deliveryAddress,
             items: newOrderData.items,
@@ -220,6 +222,7 @@ export default function SalesPage() {
 
         const updatedOrder: Order = {
             ...selectedOrder,
+            customerId: customer?.id || '',
             customer: customer?.name || 'N/A',
             deliveryDate: updatedOrderData.deliveryDate,
             deliveryAddress: updatedOrderData.deliveryAddress,
