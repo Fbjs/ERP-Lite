@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck, FileBarChart, NotebookText } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck, FileBarChart, NotebookText, Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -72,14 +72,14 @@ export const initialOrders: Order[] = [
     { id: 'SALE881', customer: 'Cafe Central', amount: 270000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 75 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
     { id: 'SALE882', customer: 'Supermercado del Sur', amount: 820000, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 200 }], dispatcher: 'MARCELO', comments: '' },
     { id: 'SALE883', customer: 'Panaderia San Jose', amount: 330000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 80 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
-    { id: 'SALE884', customer: 'Cafe Central', amount: 150000, status: 'Cancelado', date: '2025-07-29', deliveryDate: '2025-07-30', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'CERE0003', formatSku: 'CERE0003-500G', quantity: 30 }], dispatcher: 'RENE', comments: 'Cliente cancela por sobrestock.' },
+    { id: 'SALE884', customer: 'Cafe Central', amount: 150000, status: 'Cancelado', date: '2025-07-29', deliveryDate: '2025-07-30', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: '400100', formatSku: '400100-7', quantity: 71 }], dispatcher: 'RENE', comments: 'Cliente cancela por sobrestock.' },
     { id: 'SALE885', customer: 'Supermercado del Sur', amount: 550000, status: 'En Preparación', date: '2025-07-30', deliveryDate: '2025-08-01', deliveryAddress: 'Bodega Central, Av. Departamental 987, San Miguel', items: [{ recipeId: 'GUAINT16', formatSku: 'GUAINT16-7', quantity: 120 }], dispatcher: 'MARCELO', comments: 'Preparar en cajas especiales.' },
     { id: 'SALE886', customer: 'Panaderia San Jose', amount: 184000, status: 'Pendiente', date: '2025-07-31', deliveryDate: '2025-08-02', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'RALLADBCO', formatSku: 'RALLADBCO-10K', quantity: 40 }], dispatcher: 'RENE', comments: '' },
     { id: 'SALE887', customer: 'Cafe Central', amount: 440000, status: 'Enviado', date: '2025-07-31', deliveryDate: '2025-08-01', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'GUIN1432', formatSku: 'GUIN1432-1K', quantity: 100 }], dispatcher: 'MARCELO', comments: 'Facturar a RUT diferente.' },
     { id: 'SALE888', customer: 'Supermercado del Sur', amount: 615000, status: 'Completado', date: '2025-08-01', deliveryDate: '2025-08-02', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'GUBL1332', formatSku: 'GUBL1332-11', quantity: 150 }], dispatcher: 'RENE', comments: '' },
     { id: 'SALE889', customer: 'Panaderia San Jose', amount: 205000, status: 'Pendiente', date: '2025-08-02', deliveryDate: '2025-08-04', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 50 }], dispatcher: 'RENE', comments: '' },
     { id: 'SALE890', customer: 'Supermercado del Sur', amount: 984000, status: 'En Preparación', date: '2025-08-02', deliveryDate: '2025-08-05', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 240 }], dispatcher: 'MARCELO', comments: 'Necesita 2 guías de despacho.' },
-    { id: 'SALE891', customer: 'Cafe Central', amount: 123000, status: 'Pendiente', date: '2025-08-03', deliveryDate: '2025-08-04', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'CERE0003', formatSku: 'CERE0003-500G', quantity: 25 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE891', customer: 'Cafe Central', amount: 52500, status: 'Pendiente', date: '2025-08-03', deliveryDate: '2025-08-04', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: '400100', formatSku: '400100-7', quantity: 25 }], dispatcher: 'RENE', comments: '' },
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
@@ -95,7 +95,6 @@ export const initialSalespersonRequests: SalespersonRequest[] = [
 
 export default function SalesPage() {
     const [orders, setOrders] = useState<Order[]>(initialOrders);
-    const [salespersonRequests, setSalespersonRequests] = useState<SalespersonRequest[]>(initialSalespersonRequests);
     const [recipes] = useState<Recipe[]>(initialRecipes);
     const [isNewOrderModalOpen, setNewOrderModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
@@ -106,17 +105,12 @@ export default function SalesPage() {
     const { toast } = useToast();
     
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-    const [requestDateRange, setRequestDateRange] = useState<DateRange | undefined>(undefined);
 
     useEffect(() => {
         // Set initial date ranges only on the client to avoid hydration mismatch
         setDateRange({
             from: subMonths(new Date(), 1),
             to: new Date()
-        });
-        setRequestDateRange({
-            from: subMonths(new Date(), 1),
-            to: addDays(new Date(), 30)
         });
     }, []);
 
@@ -128,19 +122,8 @@ export default function SalesPage() {
         return orders.filter(order => {
             const orderDate = parseISO(order.date);
             return orderDate >= fromDate && orderDate <= toDate;
-        });
+        }).sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
     }, [orders, dateRange]);
-    
-    const filteredRequests = useMemo(() => {
-        if (!requestDateRange?.from) return [];
-        const fromDate = requestDateRange.from;
-        const toDate = requestDateRange.to || fromDate;
-
-        return salespersonRequests.filter(req => {
-            const reqDate = parseISO(req.date);
-            return reqDate >= fromDate && reqDate <= toDate;
-        });
-    }, [salespersonRequests, requestDateRange]);
 
 
     const summaryTotals = useMemo(() => {
@@ -152,14 +135,6 @@ export default function SalesPage() {
             total: filteredOrders.filter(o => o.status !== 'Cancelado').reduce((acc, o) => acc + o.amount, 0),
         }
     }, [filteredOrders]);
-
-     const requestSummaryTotals = useMemo(() => {
-        return {
-            total: filteredRequests.reduce((acc, r) => acc + r.amount, 0),
-            dispatched: filteredRequests.filter(r => r.status === 'Despachado').reduce((acc, r) => acc + r.amount, 0),
-            pending: filteredRequests.filter(r => r.status === 'Pendiente').reduce((acc, r) => acc + r.amount, 0),
-        };
-    }, [filteredRequests]);
 
 
     const getOrderDetailsAsString = (items: OrderItem[]): string => {
@@ -187,6 +162,14 @@ export default function SalesPage() {
         });
     };
 
+    const handleFormSubmit = (formData: OrderFormData) => {
+        if(selectedOrder){
+             handleUpdateOrder(formData);
+        } else {
+            handleCreateOrder(formData);
+        }
+    };
+
     const handleCreateOrder = (newOrderData: OrderFormData) => {
         
         let totalAmount = 0;
@@ -200,15 +183,14 @@ export default function SalesPage() {
         });
 
         const customer = initialCustomers.find(c => c.id === newOrderData.customerId);
-        const location = customer?.deliveryLocations.find(l => l.id === newOrderData.locationId);
-
+        
         const newOrder: Order = {
             id: `SALE${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
             status: 'Pendiente',
             date: new Date().toISOString().split('T')[0],
             deliveryDate: newOrderData.deliveryDate,
             customer: customer?.name || 'N/A',
-            deliveryAddress: location?.address || 'N/A',
+            deliveryAddress: newOrderData.deliveryAddress,
             items: newOrderData.items,
             amount: totalAmount,
             dispatcher: newOrderData.dispatcher,
@@ -221,6 +203,41 @@ export default function SalesPage() {
             description: `Se ha creado una nueva orden para ${newOrder.customer}.`,
         });
     };
+    
+    const handleUpdateOrder = (updatedOrderData: OrderFormData) => {
+        if (!selectedOrder) return;
+
+        let totalAmount = 0;
+        updatedOrderData.items.forEach(item => {
+            const recipe = recipes.find(r => r.id === item.recipeId);
+            const format = recipe?.formats.find(f => f.sku === item.formatSku);
+            if (recipe && format) {
+                totalAmount += item.quantity * format.cost;
+            }
+        });
+
+        const customer = initialCustomers.find(c => c.id === updatedOrderData.customerId);
+
+        const updatedOrder: Order = {
+            ...selectedOrder,
+            customer: customer?.name || 'N/A',
+            deliveryDate: updatedOrderData.deliveryDate,
+            deliveryAddress: updatedOrderData.deliveryAddress,
+            items: updatedOrderData.items,
+            dispatcher: updatedOrderData.dispatcher,
+            comments: updatedOrderData.comments,
+            amount: totalAmount,
+        };
+
+        setOrders(prevOrders => prevOrders.map(o => o.id === selectedOrder.id ? updatedOrder : o));
+        setNewOrderModalOpen(false);
+        setSelectedOrder(null);
+        toast({
+            title: "Orden Actualizada",
+            description: `La orden ${selectedOrder.id} ha sido actualizada.`,
+        });
+    };
+
 
     const handleOpenDetails = (order: Order) => {
         setSelectedOrder(order);
@@ -231,6 +248,11 @@ export default function SalesPage() {
         setSelectedOrder(order);
         setUpdatedStatus(order.status);
         setUpdateStatusModalOpen(true);
+    };
+    
+    const handleOpenForm = (order: Order | null) => {
+        setSelectedOrder(order);
+        setNewOrderModalOpen(true);
     };
 
     const handleUpdateOrderStatus = () => {
@@ -261,7 +283,7 @@ export default function SalesPage() {
             const { default: jsPDF } = await import('jspdf');
             const { default: html2canvas } = await import('html2canvas');
             
-            const canvas = await html2canvas(input, { scale: 2, backgroundColor: null });
+            const canvas = await html2canvas(input, { scale: 2, backgroundColor: '#ffffff' });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'px', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -291,25 +313,14 @@ export default function SalesPage() {
 
   return (
     <AppLayout pageTitle="Ventas">
-        <Tabs defaultValue="industrial">
-            <Card>
-                <CardHeader>
-                    <div className="flex flex-wrap justify-between items-center gap-4">
-                        <div>
-                            <CardTitle className="font-headline">Gestión de Ventas</CardTitle>
-                            <CardDescription className="font-body">Ingresa y gestiona las órdenes de venta y los pedidos de los vendedores.</CardDescription>
-                        </div>
-                        <TabsList>
-                            <TabsTrigger value="industrial">Ventas Industriales</TabsTrigger>
-                            <TabsTrigger value="salesperson">Pedidos Generales</TabsTrigger>
-                        </TabsList>
-                    </div>
-                </CardHeader>
-            </Card>
-
-            <TabsContent value="industrial" className="space-y-6 mt-6">
+        <Card>
+            <CardHeader>
                 <div className="flex flex-wrap justify-between items-center gap-4">
-                    <div className="flex flex-wrap items-center gap-4">
+                    <div>
+                        <CardTitle className="font-headline">Gestión de Órdenes de Venta</CardTitle>
+                        <CardDescription className="font-body">Ingresa, edita y gestiona todas las órdenes de venta.</CardDescription>
+                    </div>
+                     <div className="flex flex-wrap items-center gap-4">
                         <Popover>
                             <PopoverTrigger asChild>
                                 <Button
@@ -350,286 +361,152 @@ export default function SalesPage() {
                          <Button asChild variant="outline">
                             <Link href={`/sales/industrial-report?from=${dateRange?.from?.toISOString()}&to=${dateRange?.to?.toISOString()}`}>
                                 <FileBarChart className="mr-2 h-4 w-4" />
-                                Ver Reporte Industrial
+                                Reporte Industrial
+                            </Link>
+                        </Button>
+                         <Button asChild variant="outline">
+                            <Link href={`/sales/general-report`}>
+                                <FileBarChart className="mr-2 h-4 w-4" />
+                                Reporte General
                             </Link>
                         </Button>
                     </div>
-                    <Button onClick={() => setNewOrderModalOpen(true)}>
+                    <Button onClick={() => handleOpenForm(null)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Nueva Orden 
                     </Button>
                 </div>
-                
-                {dateRange?.from && (
-                    <div>
-                        <h3 className="text-lg font-headline font-semibold mb-4">
-                            Resumen para el Período Seleccionado
-                        </h3>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Total en Ventas</CardTitle>
-                                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">${summaryTotals.total.toLocaleString('es-CL')}</div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Completadas</CardTitle>
-                                    <FileCheck className="h-4 w-4 text-green-600" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-green-600">${summaryTotals.completed.toLocaleString('es-CL')}</div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Pendientes y en Prep.</CardTitle>
-                                    <Clock className="h-4 w-4 text-yellow-500" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-yellow-500">${(summaryTotals.pending).toLocaleString('es-CL')}</div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Canceladas</CardTitle>
-                                    <Ban className="h-4 w-4 text-red-600" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-red-600">${summaryTotals.cancelled.toLocaleString('es-CL')}</div>
-                                </CardContent>
-                            </Card>
-                        </div>
+            </CardHeader>
+        </Card>
+        
+        <div className="space-y-6 mt-6">
+            {dateRange?.from && (
+                <div>
+                    <h3 className="text-lg font-headline font-semibold mb-4">
+                        Resumen para el Período Seleccionado
+                    </h3>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Total en Ventas</CardTitle>
+                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">${summaryTotals.total.toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Completadas</CardTitle>
+                                <FileCheck className="h-4 w-4 text-green-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-green-600">${summaryTotals.completed.toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Pendientes y en Prep.</CardTitle>
+                                <Clock className="h-4 w-4 text-yellow-500" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-yellow-500">${(summaryTotals.pending).toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">Canceladas</CardTitle>
+                                <Ban className="h-4 w-4 text-red-600" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold text-red-600">${summaryTotals.cancelled.toLocaleString('es-CL')}</div>
+                            </CardContent>
+                        </Card>
                     </div>
-                )}
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">Listado de Órdenes de Venta</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                    <Table className="responsive-table">
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead>ID de Orden</TableHead>
-                            <TableHead>Cliente</TableHead>
-                            <TableHead className="text-right">Monto</TableHead>
-                            <TableHead>Fecha Entrega</TableHead>
-                            <TableHead>Estado</TableHead>
-                            <TableHead><span className="sr-only">Acciones</span></TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {filteredOrders.map((order) => (
-                            <TableRow key={order.id}>
-                            <TableCell data-label="ID Orden" className="font-medium">{order.id}</TableCell>
-                            <TableCell data-label="Cliente">{order.customer}</TableCell>
-                            <TableCell data-label="Monto" className="text-left sm:text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
-                            <TableCell data-label="Fecha Entrega">{format(parseISO(order.deliveryDate), 'P', { locale: es })}</TableCell>
-                            <TableCell data-label="Estado">
-                                <Badge 
-                                    variant={
-                                        order.status === 'Completado' ? 'default' :
-                                        order.status === 'Enviado' ? 'secondary' :
-                                        order.status === 'Cancelado' ? 'destructive' :
-                                        'outline'
-                                    }
-                                >
-                                    {order.status}
-                                </Badge>
-                            </TableCell>
-                            <TableCell>
-                                <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button aria-haspopup="true" size="icon" variant="ghost">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Menú</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                    <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Orden</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleOpenUpdateStatus(order)}>Actualizar Estado</DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                    <Link href={`/accounting/invoicing?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(getOrderDetailsAsString(order.items))}`}>
-                                            Generar Factura
-                                        </Link>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                                </DropdownMenu>
-                            </TableCell>
-                            </TableRow>
-                        ))}
-                        </TableBody>
-                    </Table>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-            
-            <TabsContent value="salesperson" className="space-y-6 mt-6">
-                 <div className="flex flex-wrap justify-between items-center gap-4">
-                    <div className="flex flex-wrap items-center gap-4">
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    id="date-request"
-                                    variant={"outline"}
-                                    className={cn(
-                                    "w-full sm:w-[300px] justify-start text-left font-normal",
-                                    !requestDateRange && "text-muted-foreground"
-                                    )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {requestDateRange?.from ? (
-                                    requestDateRange.to ? (
-                                        <>
-                                        {format(requestDateRange.from, "LLL dd, y", { locale: es })} -{" "}
-                                        {format(requestDateRange.to, "LLL dd, y", { locale: es })}
-                                        </>
-                                    ) : (
-                                        format(requestDateRange.from, "LLL dd, y", { locale: es })
-                                    )
-                                    ) : (
-                                    <span>Selecciona un rango</span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    initialFocus
-                                    mode="range"
-                                    defaultMonth={requestDateRange?.from}
-                                    selected={requestDateRange}
-                                    onSelect={setRequestDateRange}
-                                    numberOfMonths={2}
-                                    locale={es}
-                                />
-                            </PopoverContent>
-                        </Popover>
-                        <Button asChild variant="outline">
-                            <Link href={`/sales/daily-vendor-report`}>
-                                <NotebookText className="mr-2 h-4 w-4" />
-                                Reporte Diario por Vendedor
-                            </Link>
-                        </Button>
-                         <Button asChild variant="outline">
-                            <Link href={`/sales/general-report?from=${requestDateRange?.from?.toISOString()}&to=${requestDateRange?.to?.toISOString()}`}>
-                                <FileBarChart className="mr-2 h-4 w-4" />
-                                Ver Reporte General
-                            </Link>
-                        </Button>
-                    </div>
-                    <Button onClick={() => setNewOrderModalOpen(true)}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Nueva Orden
-                    </Button>
                 </div>
-                 {requestDateRange?.from && (
-                    <div>
-                        <h3 className="text-lg font-headline font-semibold mb-4">
-                            Resumen de Pedidos Generales
-                        </h3>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Total en Pedidos</CardTitle>
-                                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold">${requestSummaryTotals.total.toLocaleString('es-CL')}</div>
-                                </CardContent>
-                            </Card>
-                             <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Total Despachado</CardTitle>
-                                    <Truck className="h-4 w-4 text-green-600" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-green-600">${requestSummaryTotals.dispatched.toLocaleString('es-CL')}</div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">Total Pendiente</CardTitle>
-                                    <Clock className="h-4 w-4 text-yellow-500" />
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="text-2xl font-bold text-yellow-500">${requestSummaryTotals.pending.toLocaleString('es-CL')}</div>
-                                </CardContent>
-                            </Card>
-                        </div>
-                    </div>
-                )}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline">Listado de Pedidos Generales</CardTitle>
-                    </CardHeader>
-                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>ID Pedido</TableHead>
-                                    <TableHead>Responsable</TableHead>
-                                    <TableHead>Fecha Pedido</TableHead>
-                                    <TableHead>Fecha Entrega</TableHead>
-                                    <TableHead>Líneas</TableHead>
-                                    <TableHead>Estado</TableHead>
-                                    <TableHead><span className="sr-only">Acciones</span></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredRequests.map((req) => (
-                                    <TableRow key={req.id}>
-                                        <TableCell>{req.id}</TableCell>
-                                        <TableCell>{req.salesperson}</TableCell>
-                                        <TableCell>{format(parseISO(req.date), 'P', { locale: es })}</TableCell>
-                                        <TableCell>{format(parseISO(req.deliveryDate), 'P', { locale: es })}</TableCell>
-                                        <TableCell>{req.items.length}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={req.status === 'Despachado' ? 'default' : 'secondary'}>
-                                                {req.status}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                    <DropdownMenuItem asChild>
-                                                        <Link href={`/sales/load-report?requestId=${req.id}`}>Generar Hoja de Carga</Link>
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-        </Tabs>
+            )}
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline">Listado de Órdenes de Venta</CardTitle>
+                </CardHeader>
+                <CardContent>
+                <Table className="responsive-table">
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>ID de Orden</TableHead>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead className="text-right">Monto</TableHead>
+                        <TableHead>Fecha Entrega</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead><span className="sr-only">Acciones</span></TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {filteredOrders.map((order) => (
+                        <TableRow key={order.id}>
+                        <TableCell data-label="ID Orden" className="font-medium">{order.id}</TableCell>
+                        <TableCell data-label="Cliente">{order.customer}</TableCell>
+                        <TableCell data-label="Monto" className="text-left sm:text-right">${order.amount.toLocaleString('es-CL')}</TableCell>
+                        <TableCell data-label="Fecha Entrega">{format(parseISO(order.deliveryDate), 'P', { locale: es })}</TableCell>
+                        <TableCell data-label="Estado">
+                            <Badge 
+                                variant={
+                                    order.status === 'Completado' ? 'default' :
+                                    order.status === 'Enviado' ? 'secondary' :
+                                    order.status === 'Cancelado' ? 'destructive' :
+                                    'outline'
+                                }
+                            >
+                                {order.status}
+                            </Badge>
+                        </TableCell>
+                        <TableCell>
+                            <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Menú</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Orden</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleOpenForm(order)}>Editar Orden</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleOpenUpdateStatus(order)}>Actualizar Estado</DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                <Link href={`/accounting/invoicing?client=${encodeURIComponent(order.customer)}&amount=${order.amount}&details=${encodeURIComponent(getOrderDetailsAsString(order.items))}`}>
+                                        Generar Factura
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                </Table>
+                </CardContent>
+            </Card>
+        </div>
 
-      {/* Modal Nueva Orden */}
-      <Dialog open={isNewOrderModalOpen} onOpenChange={setNewOrderModalOpen}>
+      {/* Modal Nueva/Editar Orden */}
+      <Dialog open={isNewOrderModalOpen} onOpenChange={(isOpen) => {
+            if (!isOpen) setSelectedOrder(null);
+            setNewOrderModalOpen(isOpen);
+        }}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">Crear Nueva Orden de Venta</DialogTitle>
+            <DialogTitle className="font-headline">{selectedOrder ? `Editar Orden de Venta: ${selectedOrder.id}` : 'Crear Nueva Orden de Venta'}</DialogTitle>
             <DialogDescription className="font-body">
-              Completa los detalles para crear una nueva orden.
+              {selectedOrder ? 'Modifica los detalles de la orden.' : 'Completa los detalles para crear una nueva orden.'}
             </DialogDescription>
           </DialogHeader>
           <SalesOrderForm
-            onSubmit={handleCreateOrder}
+            onSubmit={handleFormSubmit}
             onCancel={() => setNewOrderModalOpen(false)}
             recipes={recipes}
             customers={initialCustomers}
+            initialData={selectedOrder}
             />
         </DialogContent>
       </Dialog>

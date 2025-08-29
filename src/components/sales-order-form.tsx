@@ -13,10 +13,11 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Calendar } from './ui/calendar';
 import { cn } from '@/lib/utils';
-import { format, addDays } from 'date-fns';
+import { format, addDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Customer, DeliveryLocation } from '@/app/admin/customers/page';
 import { Textarea } from './ui/textarea';
+import type { Order } from '@/app/sales/page';
 
 
 type OrderItem = {
@@ -28,17 +29,14 @@ type OrderItem = {
 export type OrderFormData = {
     customerId: string;
     locationId: string;
+    deliveryAddress: string;
     deliveryDate: string;
-    items: OrderItem[];
-    dispatcher: string;
-    comments: string;
-};
-
-type SalesOrderFormProps = {
+axport type SalesOrderFormProps = {
   onSubmit: (data: OrderFormData) => void;
   onCancel: () => void;
   recipes: Recipe[];
   customers: Customer[];
+  initialData?: Order | null;
 };
 
 const ComboboxInput = ({ value, onSelect, placeholder, options }: { value: string, onSelect: (value: string) => void, placeholder: string, options: string[] }) => {
@@ -71,28 +69,56 @@ const ComboboxInput = ({ value, onSelect, placeholder, options }: { value: strin
     );
 };
 
-export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers }: SalesOrderFormProps) {
+export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers, initialData }: SalesOrderFormProps) {
   const [customerId, setCustomerId] = useState('');
   const [locationId, setLocationId] = useState('');
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 3));
   const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1 }]);
   const [dispatcher, setDispatcher] = useState('');
   const [comments, setComments] = useState('');
-  const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
 
   const [availableLocations, setAvailableLocations] = useState<DeliveryLocation[]>([]);
 
   const dispatchers = ['RENE', 'MARCELO', 'RODRIGO', 'EXTERNO'];
 
   useEffect(() => {
+    if (initialData) {
+        const customer = customers.find(c => c.name === initialData.customer);
+        if(customer) {
+            setCustomerId(customer.id);
+            setAvailableLocations(customer.deliveryLocations || []);
+            const location = customer.deliveryLocations.find(l => l.address === initialData.deliveryAddress);
+            if(location) {
+                setLocationId(location.id);
+            }
+        }
+        setDeliveryDate(parseISO(initialData.deliveryDate));
+        setItems(initialData.items);
+        setDispatcher(initialData.dispatcher);
+        setComments(initialData.comments);
+    } else {
+        // Reset form to default state for new order
+        setCustomerId('');
+        setLocationId('');
+        setAvailableLocations([]);
+        setDeliveryDate(addDays(new Date(), 3));
+        setItems([{ recipeId: '', formatSku: '', quantity: 1 }]);
+        setDispatcher('');
+        setComments('');
+    }
+  }, [initialData, customers]);
+
+  useEffect(() => {
     if (customerId) {
       const selectedCustomer = customers.find(c => c.id === customerId);
       setAvailableLocations(selectedCustomer?.deliveryLocations || []);
-      setLocationId('');
+      if (!initialData) { // Only reset location if not editing
+        setLocationId('');
+      }
     } else {
       setAvailableLocations([]);
     }
-  }, [customerId, customers]);
+  }, [customerId, customers, initialData]);
 
   const handleItemChange = (index: number, field: keyof OrderItem, value: string | number) => {
     const newItems = [...items];
@@ -128,7 +154,16 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
         alert("Por favor, completa todos los campos requeridos: Cliente, Local de entrega y Fecha de entrega.");
         return;
     }
-    onSubmit({ customerId, locationId, deliveryDate: format(deliveryDate, 'yyyy-MM-dd'), items, dispatcher, comments });
+    const location = availableLocations.find(l => l.id === locationId);
+    onSubmit({ 
+        customerId, 
+        locationId,
+        deliveryAddress: location?.address || 'N/A', 
+        deliveryDate: format(deliveryDate, 'yyyy-MM-dd'), 
+        items, 
+        dispatcher, 
+        comments 
+    });
   };
   
   const availableFormats = (recipeId: string) => {
@@ -266,7 +301,7 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
         <Button variant="outline" type="button" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit">Crear Orden</Button>
+        <Button type="submit">{initialData ? 'Guardar Cambios' : 'Crear Orden'}</Button>
       </DialogFooter>
     </form>
   );
