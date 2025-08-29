@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +15,7 @@ import { Calendar } from './ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, addDays } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Customer } from '@/app/admin/customers/page';
+import { Customer, DeliveryLocation } from '@/app/admin/customers/page';
 import { Textarea } from './ui/textarea';
 
 
@@ -26,7 +26,8 @@ type OrderItem = {
 };
 
 export type OrderFormData = {
-    customer: string;
+    customerId: string;
+    locationId: string;
     deliveryDate: string;
     items: OrderItem[];
     dispatcher: string;
@@ -71,15 +72,27 @@ const ComboboxInput = ({ value, onSelect, placeholder, options }: { value: strin
 };
 
 export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers }: SalesOrderFormProps) {
-  const [customer, setCustomer] = useState('');
+  const [customerId, setCustomerId] = useState('');
+  const [locationId, setLocationId] = useState('');
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 3));
   const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1 }]);
   const [dispatcher, setDispatcher] = useState('');
   const [comments, setComments] = useState('');
   const [openCustomerCombobox, setOpenCustomerCombobox] = useState(false);
-  const [openProductCombobox, setOpenProductCombobox] = useState<number | null>(null);
+
+  const [availableLocations, setAvailableLocations] = useState<DeliveryLocation[]>([]);
 
   const dispatchers = ['RENE', 'MARCELO', 'RODRIGO', 'EXTERNO'];
+
+  useEffect(() => {
+    if (customerId) {
+      const selectedCustomer = customers.find(c => c.id === customerId);
+      setAvailableLocations(selectedCustomer?.deliveryLocations || []);
+      setLocationId('');
+    } else {
+      setAvailableLocations([]);
+    }
+  }, [customerId, customers]);
 
   const handleItemChange = (index: number, field: keyof OrderItem, value: string | number) => {
     const newItems = [...items];
@@ -111,11 +124,11 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!deliveryDate) {
-        alert("Por favor, selecciona una fecha de entrega.");
+    if (!deliveryDate || !customerId || !locationId) {
+        alert("Por favor, completa todos los campos requeridos: Cliente, Local de entrega y Fecha de entrega.");
         return;
     }
-    onSubmit({ customer, deliveryDate: format(deliveryDate, 'yyyy-MM-dd'), items, dispatcher, comments });
+    onSubmit({ customerId, locationId, deliveryDate: format(deliveryDate, 'yyyy-MM-dd'), items, dispatcher, comments });
   };
   
   const availableFormats = (recipeId: string) => {
@@ -128,51 +141,27 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="customer">Cliente</Label>
-                <Popover open={openCustomerCombobox} onOpenChange={setOpenCustomerCombobox}>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={openCustomerCombobox}
-                            className="w-full justify-between font-normal"
-                        >
-                            {customer
-                                ? customers.find((c) => c.name === customer)?.name
-                                : "Selecciona un cliente..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                        <Command>
-                            <CommandInput placeholder="Buscar cliente..." />
-                            <CommandEmpty>No se encontró el cliente.</CommandEmpty>
-                            <CommandList>
-                                <CommandGroup>
-                                    {customers.map((c) => (
-                                        <CommandItem
-                                            key={c.id}
-                                            value={c.name}
-                                            onSelect={(currentValue) => {
-                                                setCustomer(customers.find(c => c.name.toLowerCase() === currentValue.toLowerCase())?.name || '');
-                                                setOpenCustomerCombobox(false);
-                                            }}
-                                        >
-                                            <Check
-                                                className={cn(
-                                                    "mr-2 h-4 w-4",
-                                                    customer === c.name ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                            {c.name}
-                                        </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                            </CommandList>
-                        </Command>
-                    </PopoverContent>
-                </Popover>
+                 <Select onValueChange={setCustomerId} value={customerId} required>
+                    <SelectTrigger><SelectValue placeholder="Selecciona un cliente..." /></SelectTrigger>
+                    <SelectContent>
+                        {customers.map(c => (
+                            <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
-            <div className="space-y-2">
+             <div className="space-y-2">
+                <Label htmlFor="locationId">Local de Entrega</Label>
+                 <Select onValueChange={setLocationId} value={locationId} required disabled={!customerId}>
+                    <SelectTrigger><SelectValue placeholder="Selecciona un local..." /></SelectTrigger>
+                    <SelectContent>
+                        {availableLocations.map(l => (
+                            <SelectItem key={l.id} value={l.id}>{l.name} - {l.address}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+             <div className="space-y-2">
                 <Label htmlFor="deliveryDate">Fecha de Entrega</Label>
                  <Popover>
                     <PopoverTrigger asChild>
@@ -282,5 +271,3 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers 
     </form>
   );
 }
-
-    

@@ -38,19 +38,10 @@ export type Order = {
   status: 'Completado' | 'Pendiente' | 'Enviado' | 'Cancelado' | 'En Preparación';
   date: string;
   deliveryDate: string;
+  deliveryAddress: string;
   items: OrderItem[];
   dispatcher: string;
   comments: string;
-};
-
-export type SalespersonRequestItem = {
-    client: string;
-    product: string;
-    quantity: number;
-    type: string; // Corresponde a la columna TIPO del reporte (ej: PROD, MERMA)
-    itemType: string; // Corresponde a la columna ITEM del reporte (ej: FACT, BOLETA, CONFIRMADO)
-    deliveryAddress: string;
-    comments: string;
 };
 
 export type SalespersonRequest = {
@@ -66,19 +57,29 @@ export type SalespersonRequest = {
   amount: number;
 };
 
+export type SalespersonRequestItem = {
+    client: string;
+    product: string;
+    quantity: number;
+    type: string; // Corresponde a la columna TIPO del reporte (ej: PROD, MERMA)
+    itemType: string; // Corresponde a la columna ITEM del reporte (ej: FACT, BOLETA, CONFIRMADO)
+    deliveryAddress: string;
+    comments: string;
+};
+
 
 export const initialOrders: Order[] = [
-    { id: 'SALE881', customer: 'Cafe Central', amount: 270000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 75 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
-    { id: 'SALE882', customer: 'Supermercado del Sur', amount: 820000, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 200 }], dispatcher: 'MARCELO', comments: '' },
-    { id: 'SALE883', customer: 'Panaderia San Jose', amount: 330000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 80 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
-    { id: 'SALE884', customer: 'Cafe Central', amount: 150000, status: 'Cancelado', date: '2025-07-29', deliveryDate: '2025-07-30', items: [{ recipeId: 'CERE0003', formatSku: 'CERE0003-500G', quantity: 30 }], dispatcher: 'RENE', comments: 'Cliente cancela por sobrestock.' },
-    { id: 'SALE885', customer: 'Supermercado del Sur', amount: 550000, status: 'En Preparación', date: '2025-07-30', deliveryDate: '2025-08-01', items: [{ recipeId: 'GUAINT16', formatSku: 'GUAINT16-7', quantity: 120 }], dispatcher: 'MARCELO', comments: 'Preparar en cajas especiales.' },
-    { id: 'SALE886', customer: 'Panaderia San Jose', amount: 184000, status: 'Pendiente', date: '2025-07-31', deliveryDate: '2025-08-02', items: [{ recipeId: 'RALLADBCO', formatSku: 'RALLADBCO-10K', quantity: 40 }], dispatcher: 'RENE', comments: '' },
-    { id: 'SALE887', customer: 'Cafe Central', amount: 440000, status: 'Enviado', date: '2025-07-31', deliveryDate: '2025-08-01', items: [{ recipeId: 'GUIN1432', formatSku: 'GUIN1432-1K', quantity: 100 }], dispatcher: 'MARCELO', comments: 'Facturar a RUT diferente.' },
-    { id: 'SALE888', customer: 'Supermercado del Sur', amount: 615000, status: 'Completado', date: '2025-08-01', deliveryDate: '2025-08-02', items: [{ recipeId: 'GUBL1332', formatSku: 'GUBL1332-11', quantity: 150 }], dispatcher: 'RENE', comments: '' },
-    { id: 'SALE889', customer: 'Panaderia San Jose', amount: 205000, status: 'Pendiente', date: '2025-08-02', deliveryDate: '2025-08-04', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 50 }], dispatcher: 'RENE', comments: '' },
-    { id: 'SALE890', customer: 'Supermercado del Sur', amount: 984000, status: 'En Preparación', date: '2025-08-02', deliveryDate: '2025-08-05', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 240 }], dispatcher: 'MARCELO', comments: 'Necesita 2 guías de despacho.' },
-    { id: 'SALE891', customer: 'Cafe Central', amount: 123000, status: 'Pendiente', date: '2025-08-03', deliveryDate: '2025-08-04', items: [{ recipeId: 'CERE0003', formatSku: 'CERE0003-500G', quantity: 25 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE881', customer: 'Cafe Central', amount: 270000, status: 'Completado', date: '2025-07-27', deliveryDate: '2025-07-28', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 75 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
+    { id: 'SALE882', customer: 'Supermercado del Sur', amount: 820000, status: 'Pendiente', date: '2025-07-28', deliveryDate: '2025-07-30', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 200 }], dispatcher: 'MARCELO', comments: '' },
+    { id: 'SALE883', customer: 'Panaderia San Jose', amount: 330000, status: 'Enviado', date: '2025-07-28', deliveryDate: '2025-07-29', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 80 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
+    { id: 'SALE884', customer: 'Cafe Central', amount: 150000, status: 'Cancelado', date: '2025-07-29', deliveryDate: '2025-07-30', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'CERE0003', formatSku: 'CERE0003-500G', quantity: 30 }], dispatcher: 'RENE', comments: 'Cliente cancela por sobrestock.' },
+    { id: 'SALE885', customer: 'Supermercado del Sur', amount: 550000, status: 'En Preparación', date: '2025-07-30', deliveryDate: '2025-08-01', deliveryAddress: 'Bodega Central, Av. Departamental 987, San Miguel', items: [{ recipeId: 'GUAINT16', formatSku: 'GUAINT16-7', quantity: 120 }], dispatcher: 'MARCELO', comments: 'Preparar en cajas especiales.' },
+    { id: 'SALE886', customer: 'Panaderia San Jose', amount: 184000, status: 'Pendiente', date: '2025-07-31', deliveryDate: '2025-08-02', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'RALLADBCO', formatSku: 'RALLADBCO-10K', quantity: 40 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE887', customer: 'Cafe Central', amount: 440000, status: 'Enviado', date: '2025-07-31', deliveryDate: '2025-08-01', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'GUIN1432', formatSku: 'GUIN1432-1K', quantity: 100 }], dispatcher: 'MARCELO', comments: 'Facturar a RUT diferente.' },
+    { id: 'SALE888', customer: 'Supermercado del Sur', amount: 615000, status: 'Completado', date: '2025-08-01', deliveryDate: '2025-08-02', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'GUBL1332', formatSku: 'GUBL1332-11', quantity: 150 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE889', customer: 'Panaderia San Jose', amount: 205000, status: 'Pendiente', date: '2025-08-02', deliveryDate: '2025-08-04', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 50 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE890', customer: 'Supermercado del Sur', amount: 984000, status: 'En Preparación', date: '2025-08-02', deliveryDate: '2025-08-05', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 240 }], dispatcher: 'MARCELO', comments: 'Necesita 2 guías de despacho.' },
+    { id: 'SALE891', customer: 'Cafe Central', amount: 123000, status: 'Pendiente', date: '2025-08-03', deliveryDate: '2025-08-04', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'CERE0003', formatSku: 'CERE0003-500G', quantity: 25 }], dispatcher: 'RENE', comments: '' },
 ];
 
 export const initialSalespersonRequests: SalespersonRequest[] = [
@@ -198,12 +199,16 @@ export default function SalesPage() {
             }
         });
 
+        const customer = initialCustomers.find(c => c.id === newOrderData.customerId);
+        const location = customer?.deliveryLocations.find(l => l.id === newOrderData.locationId);
+
         const newOrder: Order = {
             id: `SALE${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
             status: 'Pendiente',
             date: new Date().toISOString().split('T')[0],
             deliveryDate: newOrderData.deliveryDate,
-            customer: newOrderData.customer,
+            customer: customer?.name || 'N/A',
+            deliveryAddress: location?.address || 'N/A',
             items: newOrderData.items,
             amount: totalAmount,
             dispatcher: newOrderData.dispatcher,
@@ -351,7 +356,7 @@ export default function SalesPage() {
                     </div>
                     <Button onClick={() => setNewOrderModalOpen(true)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Nueva Orden Industrial
+                        Nueva Orden 
                     </Button>
                 </div>
                 
@@ -518,7 +523,7 @@ export default function SalesPage() {
                     </div>
                     <Button onClick={() => setNewOrderModalOpen(true)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Nuevo Pedido General
+                        Nueva Orden
                     </Button>
                 </div>
                  {requestDateRange?.from && (
@@ -656,6 +661,7 @@ export default function SalesPage() {
                         <div>
                             <h3 className="font-headline text-base font-semibold text-gray-600 mb-2 border-b pb-1">Cliente</h3>
                             <p className="font-bold text-gray-800">{selectedOrder.customer}</p>
+                            <p className="text-gray-700">{selectedOrder.deliveryAddress}</p>
                         </div>
                         <div className="text-right">
                              <div className="mb-2">
