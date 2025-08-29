@@ -52,8 +52,8 @@ function IndustrialReportPageContent() {
                 const formatInfo = recipe?.formats.find(f => f.sku === item.formatSku);
                 
                 if (recipe) {
-                    const isWhite = !recipe.name.toLowerCase().includes('integral') && !recipe.name.toLowerCase().includes('cereal');
-                    const isWholeWheat = recipe.name.toLowerCase().includes('integral') || recipe.name.toLowerCase().includes('cereal');
+                    const isWhite = !recipe.family.toLowerCase().includes('integral') && !recipe.family.toLowerCase().includes('centeno');
+                    const isWholeWheat = recipe.family.toLowerCase().includes('integral') || recipe.family.toLowerCase().includes('centeno');
 
                     data.push({
                         customer: order.customer,
