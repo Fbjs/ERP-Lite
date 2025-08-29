@@ -22,7 +22,6 @@ import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import SalespersonRequestForm, { SalespersonRequestFormData } from '@/components/salesperson-request-form';
 import { initialCustomers } from '@/app/admin/customers/page';
 import Logo from '@/components/logo';
 
@@ -98,7 +97,6 @@ export default function SalesPage() {
     const [salespersonRequests, setSalespersonRequests] = useState<SalespersonRequest[]>(initialSalespersonRequests);
     const [recipes] = useState<Recipe[]>(initialRecipes);
     const [isNewOrderModalOpen, setNewOrderModalOpen] = useState(false);
-    const [isNewRequestModalOpen, setNewRequestModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isUpdateStatusModalOpen, setUpdateStatusModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -216,29 +214,6 @@ export default function SalesPage() {
         toast({
             title: "Orden de Venta Creada",
             description: `Se ha creado una nueva orden para ${newOrder.customer}.`,
-        });
-    };
-    
-    const handleCreateSalespersonRequest = (data: SalespersonRequestFormData) => {
-        const SIMULATED_AVG_ITEM_PRICE = 2500;
-        const totalAmount = data.items.reduce((acc, item) => acc + (item.quantity * SIMULATED_AVG_ITEM_PRICE), 0);
-
-        const newRequest: SalespersonRequest = {
-            id: `PED${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
-            salesperson: data.salesperson,
-            deliveryPerson: data.deliveryPerson,
-            responsiblePerson: data.responsiblePerson,
-            date: data.date,
-            deliveryDate: data.deliveryDate,
-            items: data.items,
-            status: 'Pendiente',
-            amount: totalAmount,
-        };
-        setSalespersonRequests(prev => [newRequest, ...prev]);
-        setNewRequestModalOpen(false);
-        toast({
-            title: "Pedido General Creado",
-            description: `Se ha registrado el pedido para ${data.salesperson}.`
         });
     };
 
@@ -541,7 +516,7 @@ export default function SalesPage() {
                             </Link>
                         </Button>
                     </div>
-                    <Button onClick={() => setNewRequestModalOpen(true)}>
+                    <Button onClick={() => setNewOrderModalOpen(true)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Nuevo Pedido General
                     </Button>
@@ -636,7 +611,7 @@ export default function SalesPage() {
             </TabsContent>
         </Tabs>
 
-      {/* Modal Nueva Orden Industrial */}
+      {/* Modal Nueva Orden */}
       <Dialog open={isNewOrderModalOpen} onOpenChange={setNewOrderModalOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
@@ -650,24 +625,6 @@ export default function SalesPage() {
             onCancel={() => setNewOrderModalOpen(false)}
             recipes={recipes}
             customers={initialCustomers}
-            />
-        </DialogContent>
-      </Dialog>
-      
-       {/* Modal Nuevo Pedido de Vendedor */}
-       <Dialog open={isNewRequestModalOpen} onOpenChange={setNewRequestModalOpen}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="font-headline">Crear Pedido General</DialogTitle>
-            <DialogDescription className="font-body">
-              Registra los productos solicitados por un vendedor para sus clientes.
-            </DialogDescription>
-          </DialogHeader>
-           <SalespersonRequestForm
-                onSubmit={handleCreateSalespersonRequest}
-                onCancel={() => setNewRequestModalOpen(false)}
-                recipes={recipes}
-                customers={initialCustomers}
             />
         </DialogContent>
       </Dialog>
