@@ -6,13 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Download, ArrowLeft, Calendar as CalendarIcon } from 'lucide-react';
-import { useRef, useMemo, Suspense, useState, useEffect } from 'react';
+import { useRef, useMemo, Suspense, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
-import { initialSalespersonRequests, SalespersonRequest } from '@/app/sales/page';
-import { format, parseISO } from 'date-fns';
+import { initialOrders, Order } from '@/app/sales/page';
+import { initialRecipes } from '@/app/recipes/page';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Logo from '@/components/logo';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -21,20 +22,7 @@ import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const PRODUCT_LIST = [
-    "PAN BCO SIN GLUTEN", "PAN BLANCO SIN ORILLAS 10X105", "PAN LINAZA 500 GRS",
-    "PAN CHOCOSO CENTENO 500 GRS", "PAN SCHWARZBROT 750 GRS", "PAN GROB 100 INTEGRAL 750 GRS",
-    "PAN ROGGENBROT 600 GRS", "PAN MULTICEREAL 500 GRS", "PAN LANDBROT 500 GRS", "PAN PRUEBA",
-    "PAN GUAGUA BLANCA 16X16", "PAN GUAGUA INTEGRAL 16X16", "PAN GUAGUA MULTICEREAL 14X10",
-    "PAN GUAGUA BLANCA 13X13", "PAN GUAGUA BLANCA 14X14", "PAN GUAGUA INTEGRAL 13X13",
-    "PAN GUAGUA INTEGRAL MORENA 14X14", "PAN GUAGUA MULTICEREAL 14X10", "PAN MIGA DE ARGENTINO",
-    "PAN INTEGRAL LIGHT 550 GRS", "PAN SCHROTBROT 100 INTEGRAL 550 GRS",
-    "PAN PUMPERNICKEL 500 GRS", "PAN PUMPERNICKEL 1 K", "TOSTADAS CROSTINI MERKEN",
-    "TOSTADAS CROSTINI OREGANO", "CRUTONES HOREADOS 1KG 11mm", "CRUTON HORNEADO 5KG 11MM",
-    "CRUTONES HORNEADOS 1KG 7mm", "CRUTONES HORNEADOS 5KG 7mm", "CRUTONES 1 K",
-    "TOSTADAS VOLLKORN CRACKER", "PAN RALLADO INTEGRAL 500 GRS", "PAN RALLADO 1 K",
-    "PAN RALLADO 5 KG", "TOSTADAS COCKTAIL"
-];
+const PRODUCT_LIST = initialRecipes.map(r => r.name.toUpperCase()).sort();
 
 
 function DailyVendorReportContent() {
@@ -44,7 +32,7 @@ function DailyVendorReportContent() {
     const [selectedVendor, setSelectedVendor] = useState<string>('');
 
     const uniqueVendors = useMemo(() => {
-        return [...new Set(initialSalespersonRequests.map(req => req.salesperson))];
+        return [...new Set(initialOrders.map(req => req.dispatcher))];
     }, []);
 
     const reportData = useMemo(() => {
@@ -61,15 +49,15 @@ function DailyVendorReportContent() {
 
         const formattedDate = format(selectedDate, 'yyyy-MM-dd');
         
-        const vendorRequests = initialSalespersonRequests.filter(req => 
-            req.salesperson === selectedVendor && req.date === formattedDate
+        const vendorOrders = initialOrders.filter(order => 
+            order.dispatcher === selectedVendor && order.deliveryDate === formattedDate && order.status !== 'Cancelado'
         );
         
-        if (vendorRequests.length === 0) {
+        if (vendorOrders.length === 0) {
              return {
                 vendor: selectedVendor,
-                preparedBy: '',
-                deliveredBy: '',
+                preparedBy: 'Sistema',
+                deliveredBy: selectedVendor,
                 date: format(selectedDate, 'dd-MM-yyyy'),
                 products: PRODUCT_LIST.map(p => ({ name: p, quantity: 0 })),
                 total: 0
@@ -79,10 +67,14 @@ function DailyVendorReportContent() {
         const productMap = new Map<string, number>();
         PRODUCT_LIST.forEach(p => productMap.set(p, 0));
 
-        vendorRequests.forEach(req => {
-            req.items.forEach(item => {
-                if (productMap.has(item.product.toUpperCase())) {
-                    productMap.set(item.product.toUpperCase(), (productMap.get(item.product.toUpperCase()) || 0) + item.quantity);
+        vendorOrders.forEach(order => {
+            order.items.forEach(item => {
+                const recipe = initialRecipes.find(r => r.id === item.recipeId);
+                if (recipe) {
+                    const productName = recipe.name.toUpperCase();
+                    if (productMap.has(productName)) {
+                        productMap.set(productName, (productMap.get(productName) || 0) + item.quantity);
+                    }
                 }
             });
         });
@@ -96,8 +88,8 @@ function DailyVendorReportContent() {
         
         return {
             vendor: selectedVendor,
-            preparedBy: '', // This would come from the request if available
-            deliveredBy: vendorRequests[0]?.deliveryPerson || '',
+            preparedBy: 'Sistema', // This would come from the request if available
+            deliveredBy: selectedVendor,
             date: format(selectedDate, 'dd-MM-yyyy'),
             products,
             total,
@@ -263,7 +255,7 @@ function DailyVendorReportContent() {
                             </Select>
                         </div>
                         <div className="flex-1 min-w-[250px] space-y-2">
-                            <Label>Fecha del Pedido</Label>
+                            <Label>Fecha de Entrega</Label>
                             <Popover>
                                 <PopoverTrigger asChild>
                                 <Button
@@ -367,3 +359,5 @@ export default function Page() {
     </Suspense>
   );
 }
+
+    

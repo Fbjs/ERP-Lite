@@ -12,7 +12,9 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { initialSalespersonRequests, SalespersonRequest } from '@/app/sales/page';
+import { initialOrders, Order } from '@/app/sales/page';
+import { initialRecipes } from '@/app/recipes/page';
+import { initialCustomers } from '@/app/admin/customers/page';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Logo from '@/components/logo';
@@ -23,8 +25,10 @@ function LoadReportPageContent() {
     const searchParams = useSearchParams();
     const requestId = searchParams.get('requestId');
 
-    const requestData: SalespersonRequest | undefined = useMemo(() => {
-        return initialSalespersonRequests.find(req => req.id === requestId);
+    const requestData: Order | undefined = useMemo(() => {
+        // This is a simulation. In a real app, you would filter based on a batch ID or similar.
+        // For now, we'll just find the first order belonging to the dispatcher (vendedor).
+        return initialOrders.find(req => req.dispatcher === requestId);
     }, [requestId]);
 
     const handleDownloadPdf = async () => {
@@ -53,11 +57,11 @@ function LoadReportPageContent() {
             const yOffset = (pdfHeight - pdfImageHeight) / 2;
 
             pdf.addImage(imgData, 'PNG', xOffset, yOffset, pdfImageWidth, pdfImageHeight);
-            pdf.save(`registro-pedido-${requestData?.salesperson}-${requestData?.date}.pdf`);
+            pdf.save(`hoja-de-carga-${requestData?.dispatcher}-${requestData?.deliveryDate}.pdf`);
             
             toast({
                 title: "PDF Descargado",
-                description: "El registro de pedido ha sido descargado.",
+                description: "La hoja de carga ha sido descargada.",
             });
         }
     };
@@ -70,7 +74,7 @@ function LoadReportPageContent() {
                         <CardTitle>Pedido no encontrado</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p>El ID del pedido no es válido o no se encontró.</p>
+                        <p>El ID del vendedor no es válido o no tiene pedidos para la fecha.</p>
                         <Button asChild className="mt-4">
                             <Link href="/sales">
                                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -83,10 +87,25 @@ function LoadReportPageContent() {
         );
     }
 
-    const { items } = requestData;
+    const reportItems = initialOrders
+        .filter(o => o.dispatcher === requestData.dispatcher && o.deliveryDate === requestData.deliveryDate && o.status !== 'Cancelado')
+        .flatMap(o => o.items.map(i => {
+            const recipe = initialRecipes.find(r => r.id === i.recipeId);
+            const customer = initialCustomers.find(c => c.id === o.customerId);
+            return {
+                client: customer?.name || 'N/A',
+                product: recipe?.name || 'N/A',
+                quantity: i.quantity,
+                type: 'PROD', // Placeholder
+                itemType: `FACT ${o.id.replace('SALE','')}`, // Placeholder
+                deliveryAddress: o.deliveryAddress,
+                comments: o.comments,
+            };
+        }));
+
 
     return (
-        <AppLayout pageTitle={`Pedido de ${requestData.salesperson}`}>
+        <AppLayout pageTitle={`Hoja de Carga de ${requestData.dispatcher}`}>
              <div className="fixed -left-[9999px] top-0 p-2 bg-white text-black" style={{ width: '210mm' }}>
                 <div ref={reportRef} className="p-4 border-2 border-black h-full flex flex-col" style={{minHeight: '297mm'}}>
                     <header className="grid grid-cols-12 gap-2 border-b-2 border-black pb-1 text-sm">
@@ -96,8 +115,8 @@ function LoadReportPageContent() {
                         <div className="col-span-9">
                             <h2 className="text-xl font-bold font-headline text-center">HOJA DE CARGA Y DESPACHO</h2>
                              <div className="grid grid-cols-2 text-xs mt-1 border-t border-b border-black py-1">
-                                <p><span className="font-semibold">RESPONSABLE REGISTRO:</span> {requestData.responsiblePerson}</p>
-                                <p><span className="font-semibold">ENTREGA:</span> {requestData.deliveryPerson}</p>
+                                <p><span className="font-semibold">RESPONSABLE REGISTRO:</span> Sistema</p>
+                                <p><span className="font-semibold">ENTREGA:</span> {requestData.dispatcher}</p>
                                 <p><span className="font-semibold">F. PEDIDO:</span> {format(parseISO(requestData.date), 'dd-MM-yyyy')}</p>
                                 <p><span className="font-semibold">F. ENTREGA:</span> {format(parseISO(requestData.deliveryDate), 'dd-MM-yyyy')}</p>
                             </div>
@@ -116,9 +135,9 @@ function LoadReportPageContent() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {items.map((item, index) => (
+                                {reportItems.map((item, index) => (
                                     <TableRow key={index} className="border-b">
-                                        <TableCell className="p-1 border-r">{item.itemType.startsWith("FACT") || item.itemType.startsWith("BOLETA") ? item.itemType : ""}</TableCell>
+                                        <TableCell className="p-1 border-r">{item.itemType}</TableCell>
                                         <TableCell className="p-1 border-r font-semibold">{item.client}</TableCell>
                                         <TableCell className="p-1 border-r">{item.product}</TableCell>
                                         <TableCell className="p-1 border-r text-center">{item.quantity}</TableCell>
@@ -141,8 +160,8 @@ function LoadReportPageContent() {
                 <CardHeader>
                     <div className="flex justify-between items-center">
                         <div>
-                            <CardTitle className="font-headline">Reporte de Carga: {requestData.id}</CardTitle>
-                            <CardDescription className="font-body">Pedido de {requestData.salesperson} para el {format(parseISO(requestData.deliveryDate), "PPP", { locale: es })}</CardDescription>
+                            <CardTitle className="font-headline">Hoja de Carga: {requestData.dispatcher}</CardTitle>
+                            <CardDescription className="font-body">Pedidos para entregar el {format(parseISO(requestData.deliveryDate), "PPP", { locale: es })}</CardDescription>
                         </div>
                         <div className="flex gap-2">
                              <Button asChild variant="outline">
@@ -170,8 +189,8 @@ function LoadReportPageContent() {
                                     <div className="col-span-9">
                                         <h2 className="text-xl font-bold font-headline text-center">HOJA DE CARGA Y DESPACHO</h2>
                                         <div className="grid grid-cols-2 text-xs mt-1 border-t border-b border-black py-1">
-                                            <p><span className="font-semibold">RESPONSABLE REGISTRO:</span> {requestData.responsiblePerson}</p>
-                                            <p><span className="font-semibold">ENTREGA:</span> {requestData.deliveryPerson}</p>
+                                            <p><span className="font-semibold">RESPONSABLE REGISTRO:</span> Sistema</p>
+                                            <p><span className="font-semibold">ENTREGA:</span> {requestData.dispatcher}</p>
                                             <p><span className="font-semibold">F. PEDIDO:</span> {format(parseISO(requestData.date), 'dd-MM-yyyy')}</p>
                                             <p><span className="font-semibold">F. ENTREGA:</span> {format(parseISO(requestData.deliveryDate), 'dd-MM-yyyy')}</p>
                                         </div>
@@ -190,9 +209,9 @@ function LoadReportPageContent() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {items.map((item, index) => (
+                                            {reportItems.map((item, index) => (
                                                 <TableRow key={index} className="border-b">
-                                                    <TableCell className="p-1 border-r">{item.itemType.startsWith("FACT") || item.itemType.startsWith("BOLETA") ? item.itemType : ""}</TableCell>
+                                                    <TableCell className="p-1 border-r">{item.itemType}</TableCell>
                                                     <TableCell className="p-1 border-r font-semibold">{item.client}</TableCell>
                                                     <TableCell className="p-1 border-r">{item.product}</TableCell>
                                                     <TableCell className="p-1 border-r text-center">{item.quantity}</TableCell>
@@ -201,7 +220,7 @@ function LoadReportPageContent() {
                                                 </TableRow>
                                             ))}
                                              {/* Add empty rows to fill page */}
-                                            {Array.from({ length: Math.max(0, 35 - items.length) }).map((_, index) => (
+                                            {Array.from({ length: Math.max(0, 35 - reportItems.length) }).map((_, index) => (
                                                 <TableRow key={`empty-${index}`} className="border-b">
                                                     <TableCell className="p-1 border-r h-6">&nbsp;</TableCell>
                                                     <TableCell className="p-1 border-r"></TableCell>
@@ -235,3 +254,5 @@ export default function Page() {
     </Suspense>
   );
 }
+
+    
