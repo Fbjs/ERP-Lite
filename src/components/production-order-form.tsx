@@ -77,10 +77,12 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData, p
             { id: 'EMP003', name: 'Luis Martínez', rut: '11.222.333-4' },
             { id: 'EMP004', name: 'María Rodríguez', rut: '15.678.901-2' },
         ]);
+    }, []);
 
+    useEffect(() => {
         if (initialData) {
             setFormData(initialData);
-        } else if (prefilledData?.product || prefilledData?.quantity) {
+        } else if (prefilledData && (prefilledData.product || prefilledData.quantity)) {
              setFormData({ 
                 ...initialFormData,
                 product: prefilledData.product || '',
@@ -477,5 +479,3 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData, p
     </form>
   );
 }
-
-    
