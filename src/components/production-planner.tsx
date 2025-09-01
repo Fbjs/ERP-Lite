@@ -13,7 +13,7 @@ import { es } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { cn } from '@/lib/utils';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, PlusCircle } from 'lucide-react';
 import { Label } from './ui/label';
 import { DialogFooter } from './ui/dialog';
 
@@ -27,9 +27,10 @@ export type ProductionNeed = {
 
 type ProductionPlannerProps = {
     onCreateOrders: (needs: ProductionNeed[]) => void;
+    onCreateSingleOrder: (productName: string) => void;
 };
 
-export default function ProductionPlanner({ onCreateOrders }: ProductionPlannerProps) {
+export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder }: ProductionPlannerProps) {
     const today = new Date(2025, 8, 1); // Set to Sept 1st for consistency
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: today,
@@ -166,6 +167,7 @@ export default function ProductionPlanner({ onCreateOrders }: ProductionPlannerP
                             <TableHead className="text-center font-bold text-primary">Cálculo a Producir</TableHead>
                             <TableHead className="text-center">Moldes</TableHead>
                             <TableHead className="text-center">Nº OPs</TableHead>
+                            <TableHead className="text-center">Acciones</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -185,10 +187,19 @@ export default function ProductionPlanner({ onCreateOrders }: ProductionPlannerP
                                 <TableCell className="text-center">
                                      {need.netToProduce > 0 ? (Math.ceil(need.netToProduce / (need.recipe.capacityPerMold || need.netToProduce))) : ''}
                                 </TableCell>
+                                <TableCell className="text-center">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => onCreateSingleOrder(need.recipe.name)}
+                                    >
+                                        <PlusCircle className="h-4 w-4 text-green-600" />
+                                    </Button>
+                                </TableCell>
                             </TableRow>
                         )) : (
                             <TableRow>
-                                <TableCell colSpan={7 + planningDays.length} className="text-center h-24">
+                                <TableCell colSpan={8 + planningDays.length} className="text-center h-24">
                                     No hay pedidos de venta para el rango seleccionado.
                                 </TableCell>
                             </TableRow>
@@ -201,7 +212,7 @@ export default function ProductionPlanner({ onCreateOrders }: ProductionPlannerP
                             {totals.map((total, index) => (
                                 <TableHead key={index} className="text-center">{total > 0 ? total : ''}</TableHead>
                             ))}
-                            <TableHead colSpan={3}></TableHead>
+                            <TableHead colSpan={4}></TableHead>
                         </TableRow>
                     </tfoot>
                 </Table>

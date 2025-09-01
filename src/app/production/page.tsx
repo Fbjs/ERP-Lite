@@ -155,10 +155,10 @@ const emptyBakingRecord: BakingRecord = {
 
 
 export const initialOrders: Order[] = [
-  { id: 'PROD021', product: 'PAN LINAZA 500 GRS', quantity: 80, status: 'En Progreso', stage: 'Horneando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
-  { id: 'PROD022', product: 'PAN GUAGUA BLANCA 16X16', quantity: 200, status: 'Completado', stage: 'Empaquetado', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [{ type: 'Por Forma', quantity: 10, reason: 'Mal formado' }] },
-  { id: 'PROD023', product: 'CRUTONES HOREADOS 1KG 11mm', quantity: 120, status: 'En Cola', stage: 'Mezclando', date: '2023-10-29', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
-  { id: 'PROD024', product: 'TOSTADAS CROSTINI OREGANO', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
+  { id: 'PROD021', product: 'PAN LINAZA 500 GRS', quantity: 80, status: 'En Progreso', stage: 'Horneando', date: '2025-08-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
+  { id: 'PROD022', product: 'PAN GUAGUA BLANCA 16X16', quantity: 200, status: 'Completado', stage: 'Empaquetado', date: '2025-08-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [{ type: 'Por Forma', quantity: 10, reason: 'Mal formado' }] },
+  { id: 'PROD023', product: 'CRUTONES HOREADOS 1KG 11mm', quantity: 120, status: 'En Cola', stage: 'Mezclando', date: '2025-08-29', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
+  { id: 'PROD024', product: 'TOSTADAS CROSTINI OREGANO', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2025-08-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
 ];
 
 // Simulamos la capacidad máxima de unidades por orden de producción
@@ -295,6 +295,14 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
         }
         setPlannerModalOpen(false);
     };
+    
+    const handleCreateSingleOrderFromPlanner = (productName: string) => {
+        setPlannerModalOpen(false);
+        // A short delay to allow the planner modal to close before opening the form modal
+        setTimeout(() => {
+            handleOpenForm(null, productName);
+        }, 100);
+    };
 
 
     const handleDownloadPdf = async () => {
@@ -418,6 +426,7 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
             onSubmit={handleFormSubmit}
             onCancel={() => { setFormModalOpen(false); setSelectedOrder(null); setLocalPrefilledProduct(undefined); }}
             initialData={selectedOrder}
+            prefilledProduct={localPrefilledProduct}
             />
         </DialogContent>
       </Dialog>
@@ -433,6 +442,7 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
           </DialogHeader>
           <ProductionPlanner 
             onCreateOrders={handleCreateOrdersFromPlanner}
+            onCreateSingleOrder={handleCreateSingleOrderFromPlanner}
           />
         </DialogContent>
       </Dialog>
@@ -444,7 +454,7 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
                 <DialogHeader>
                     <DialogTitle className="font-headline">Detalle de Orden: {selectedOrder?.id}</DialogTitle>
                     <DialogDescription className="font-body">
-                        Creada el {selectedOrder ? new Date(selectedOrder.date + 'T00:00:00').toLocaleString('es-CL', { dateStyle: 'long', timeStyle: 'short' }) : ''}
+                        Creada el {selectedOrder ? new Date(selectedOrder.date + 'T00:00:00').toLocaleString('es-CL', { dateStyle: 'long' }) : ''}
                     </DialogDescription>
                 </DialogHeader>
                 {selectedOrder && (
