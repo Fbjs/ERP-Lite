@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useMemo } from 'react';
-import ProductionOrderForm, { ProductionOrderData } from '@/components/production-order-form';
+import ProductionOrderForm from '@/components/production-order-form';
 import { useToast } from '@/hooks/use-toast';
 import { initialRecipes, Recipe } from '@/app/recipes/page';
 import { initialInventoryItems } from '@/app/inventory/page';
@@ -165,15 +165,22 @@ export const initialOrders: Order[] = [
 const MAX_UNITS_PER_PRODUCTION_ORDER = 200;
 
 
-export default function ProductionPage() {
+export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {handleOpenFormProp?: (order: Order | null, product?: string) => void, prefilledProduct?: string}) {
     const [orders, setOrders] = useState<Order[]>(initialOrders);
     const [isFormModalOpen, setFormModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isPlannerModalOpen, setPlannerModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-    const [prefilledProduct, setPrefilledProduct] = useState<string | undefined>(undefined);
+    const [localPrefilledProduct, setLocalPrefilledProduct] = useState<string | undefined>(prefilledProduct);
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
+
+    useEffect(() => {
+        if(prefilledProduct && handleOpenFormProp){
+            handleOpenFormProp(null, prefilledProduct)
+        }
+    },[prefilledProduct, handleOpenFormProp]);
+
 
     const selectedOrderRecipe = useMemo(() => {
         if (!selectedOrder) return null;
@@ -204,7 +211,7 @@ export default function ProductionPage() {
 
     const handleOpenForm = (order: Order | null, product?: string) => {
         setSelectedOrder(order);
-        setPrefilledProduct(product);
+        setLocalPrefilledProduct(product);
         setFormModalOpen(true);
     };
 
@@ -240,7 +247,7 @@ export default function ProductionPage() {
         }
         setFormModalOpen(false);
         setSelectedOrder(null);
-        setPrefilledProduct(undefined);
+        setLocalPrefilledProduct(undefined);
     };
 
      const handleCreateOrdersFromPlanner = (needs: ProductionNeed[]) => {
@@ -275,7 +282,7 @@ export default function ProductionPage() {
         });
 
         if (newOrders.length > 0) {
-            setOrders(prev => [...prev, ...newOrders]);
+            setOrders(prev => [...newOrders, ...prev]);
             toast({
                 title: `${newOrders.length} Órdenes de Producción Creadas`,
                 description: `Las órdenes se han añadido a la cola de producción.`
@@ -369,7 +376,7 @@ export default function ProductionPage() {
                     <Badge variant={order.status === 'Completado' ? 'default' : order.status === 'En Progreso' ? 'secondary' : 'outline'}>{order.status}</Badge>
                   </TableCell>
                   <TableCell data-label="Etapa">{order.stage}</TableCell>
-                  <TableCell data-label="Fecha">{new Date(order.date).toLocaleDateString('es-CL')}</TableCell>
+                  <TableCell data-label="Fecha">{new Date(order.date + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
                    <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -396,7 +403,7 @@ export default function ProductionPage() {
       <Dialog open={isFormModalOpen} onOpenChange={(isOpen) => {
             if (!isOpen) {
                 setSelectedOrder(null);
-                 setPrefilledProduct(undefined);
+                 setLocalPrefilledProduct(undefined);
             }
             setFormModalOpen(isOpen);
       }}>
@@ -409,9 +416,8 @@ export default function ProductionPage() {
           </DialogHeader>
           <ProductionOrderForm
             onSubmit={handleFormSubmit}
-            onCancel={() => { setFormModalOpen(false); setSelectedOrder(null); setPrefilledProduct(undefined); }}
+            onCancel={() => { setFormModalOpen(false); setSelectedOrder(null); setLocalPrefilledProduct(undefined); }}
             initialData={selectedOrder}
-            prefilledProduct={prefilledProduct}
             />
         </DialogContent>
       </Dialog>
@@ -438,7 +444,7 @@ export default function ProductionPage() {
                 <DialogHeader>
                     <DialogTitle className="font-headline">Detalle de Orden: {selectedOrder?.id}</DialogTitle>
                     <DialogDescription className="font-body">
-                        Creada el {selectedOrder ? new Date(selectedOrder.date).toLocaleString('es-CL', { dateStyle: 'long', timeStyle: 'short' }) : ''}
+                        Creada el {selectedOrder ? new Date(selectedOrder.date + 'T00:00:00').toLocaleString('es-CL', { dateStyle: 'long', timeStyle: 'short' }) : ''}
                     </DialogDescription>
                 </DialogHeader>
                 {selectedOrder && (
@@ -466,8 +472,8 @@ export default function ProductionPage() {
                                     <p><span className="font-semibold">Cantidad:</span> {selectedOrder.quantity} unidades</p>
                                 </div>
                                 <div className="text-right">
-                                    <p><span className="font-semibold">Fecha:</span> {new Date(selectedOrder.date).toLocaleDateString('es-CL')}</p>
-                                    <p><span className="font-semibold">Hora:</span> {new Date(selectedOrder.date).toLocaleTimeString('es-CL')}</p>
+                                    <p><span className="font-semibold">Fecha:</span> {new Date(selectedOrder.date + 'T00:00:00').toLocaleDateString('es-CL')}</p>
+                                    <p><span className="font-semibold">Hora:</span> {new Date(selectedOrder.date + 'T00:00:00').toLocaleTimeString('es-CL')}</p>
                                 </div>
                             </div>
 
