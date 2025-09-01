@@ -191,8 +191,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        onClick={() => onCreateSingleOrder(need.recipe.name, need.netToProduce)}
-                                        disabled={need.netToProduce <= 0}
+                                        onClick={() => onCreateSingleOrder(need.recipe.name, need.netToProduce || 1)}
                                     >
                                         <PlusCircle className="h-4 w-4 text-green-600" />
                                     </Button>
