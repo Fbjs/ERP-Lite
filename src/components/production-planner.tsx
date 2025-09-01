@@ -30,7 +30,7 @@ type ProductionPlannerProps = {
 };
 
 export default function ProductionPlanner({ onCreateOrders }: ProductionPlannerProps) {
-    const today = new Date();
+    const today = new Date(2025, 8, 1); // Set to Sept 1st for consistency
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: today,
         to: addDays(today, 2),
@@ -214,4 +214,3 @@ export default function ProductionPlanner({ onCreateOrders }: ProductionPlannerP
         </div>
     );
 }
-

@@ -171,6 +171,7 @@ export default function ProductionPage() {
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isPlannerModalOpen, setPlannerModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [prefilledProduct, setPrefilledProduct] = useState<string | undefined>(undefined);
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
 
@@ -201,8 +202,9 @@ export default function ProductionPage() {
         setDetailsModalOpen(true);
     };
 
-    const handleOpenForm = (order: Order | null) => {
+    const handleOpenForm = (order: Order | null, product?: string) => {
         setSelectedOrder(order);
+        setPrefilledProduct(product);
         setFormModalOpen(true);
     };
 
@@ -238,6 +240,7 @@ export default function ProductionPage() {
         }
         setFormModalOpen(false);
         setSelectedOrder(null);
+        setPrefilledProduct(undefined);
     };
 
      const handleCreateOrdersFromPlanner = (needs: ProductionNeed[]) => {
@@ -393,6 +396,7 @@ export default function ProductionPage() {
       <Dialog open={isFormModalOpen} onOpenChange={(isOpen) => {
             if (!isOpen) {
                 setSelectedOrder(null);
+                 setPrefilledProduct(undefined);
             }
             setFormModalOpen(isOpen);
       }}>
@@ -405,8 +409,9 @@ export default function ProductionPage() {
           </DialogHeader>
           <ProductionOrderForm
             onSubmit={handleFormSubmit}
-            onCancel={() => { setFormModalOpen(false); setSelectedOrder(null); }}
+            onCancel={() => { setFormModalOpen(false); setSelectedOrder(null); setPrefilledProduct(undefined); }}
             initialData={selectedOrder}
+            prefilledProduct={prefilledProduct}
             />
         </DialogContent>
       </Dialog>

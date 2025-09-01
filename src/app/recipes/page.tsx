@@ -4,13 +4,14 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, FileText } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import RecipeForm from '@/components/recipe-form';
-import { useState, useRef } from 'react';
+import { useState, useRef, ComponentProps } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import ProductionPage from '../production/page';
 
 
 export type Ingredient = {
@@ -201,11 +202,16 @@ export const initialRecipes: Recipe[] = [
   },
 ];
 
+type ProductionPageHandle = React.ElementRef<typeof ProductionPage>;
+type ProductionPageProps = ComponentProps<typeof ProductionPage>;
+
 export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
   const [isFormModalOpen, setFormModalOpen] = useState(false);
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [isProductionModalOpen, setIsProductionModalOpen] = useState(false);
+  const [prefilledProduct, setPrefilledProduct] = useState<string | undefined>(undefined);
   const detailsModalContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -250,6 +256,18 @@ export default function RecipesPage() {
       setSelectedRecipe(recipe);
       setFormModalOpen(true);
   }
+  
+  const handleOpenProductionForm = (recipeName: string) => {
+    // This function will now be passed down to open the modal on the production page
+    // For now, we just log it to show it's called
+    // The actual modal opening will be handled on the parent (likely a new page wrapper)
+    // For this example, let's assume we can trigger a modal on another page.
+    // In a real app, this might involve context or lifting state up.
+    // Let's simulate by opening the production order form here directly.
+    setPrefilledProduct(recipeName);
+    setIsProductionModalOpen(true);
+  };
+
 
   const handleDownloadPdf = async () => {
     const input = detailsModalContentRef.current;
@@ -335,6 +353,7 @@ export default function RecipesPage() {
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => handleOpenDetails(recipe)}>Ver Detalles</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleOpenForm(recipe)}>Editar</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenProductionForm(recipe.name)}>Crear Orden de Producción</DropdownMenuItem>
                             <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -450,6 +469,11 @@ export default function RecipesPage() {
             </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+       {isProductionModalOpen && (
+        <ProductionPage handleOpenFormProp={handleOpenForm} prefilledProduct={prefilledProduct} />
+      )}
+
 
     </AppLayout>
   );
