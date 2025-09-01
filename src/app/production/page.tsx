@@ -91,10 +91,8 @@ export type Order = {
     product: string;
     quantity: number;
     status: 'En Progreso' | 'Completado' | 'En Cola';
-    stage: string;
     date: string;
     charge: string,
-    machine: string,
     turn: string,
     operator: string,
     responsibles: {
@@ -156,10 +154,10 @@ const emptyBakingRecord: BakingRecord = {
 
 
 export const initialOrders: Order[] = [
-  { id: 'PROD021', product: 'PAN LINAZA 500 GRS', quantity: 80, status: 'En Progreso', stage: 'Horneando', date: '2025-08-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
-  { id: 'PROD022', product: 'PAN GUAGUA BLANCA 16X16', quantity: 200, status: 'Completado', stage: 'Empaquetado', date: '2025-08-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [{ type: 'Por Forma', quantity: 10, reason: 'Mal formado' }] },
-  { id: 'PROD023', product: 'CRUTONES HOREADOS 1KG 11mm', quantity: 120, status: 'En Cola', stage: 'Mezclando', date: '2025-08-29', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
-  { id: 'PROD024', product: 'TOSTADAS CROSTINI OREGANO', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2025-08-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
+  { id: 'PROD021', product: 'PAN LINAZA 500 GRS', quantity: 80, status: 'En Progreso', date: '2025-08-28', charge: 'Amasado', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
+  { id: 'PROD022', product: 'PAN GUAGUA BLANCA 16X16', quantity: 200, status: 'Completado', date: '2025-08-28', charge: 'Amasado', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [{ type: 'Por Forma', quantity: 10, reason: 'Mal formado' }] },
+  { id: 'PROD023', product: 'CRUTONES HOREADOS 1KG 11mm', quantity: 120, status: 'En Cola', date: '2025-08-29', charge: 'Amasado', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
+  { id: 'PROD024', product: 'TOSTADAS CROSTINI OREGANO', quantity: 150, status: 'En Progreso', date: '2025-08-28', charge: 'Amasado', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
 ];
 
 // Simulamos la capacidad máxima de unidades por orden de producción
@@ -285,9 +283,8 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
                         product: need.recipe.name,
                         quantity: quantityForThisOrder,
                         status: 'En Cola',
-                        stage: 'Pendiente',
                         date: productionDate,
-                        charge: '', machine: '', turn: '', operator: '',
+                        charge: '', turn: '', operator: '',
                         responsibles: { fractionation: '', production: '', cooking: '' },
                         staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl,
                         fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl,
@@ -401,7 +398,6 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
                 <TableHead>Producto</TableHead>
                 <TableHead>Cantidad</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead>Etapa Actual</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead><span className="sr-only">Acciones</span></TableHead>
               </TableRow>
@@ -415,7 +411,6 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
                   <TableCell data-label="Estado">
                     <Badge variant={order.status === 'Completado' ? 'default' : order.status === 'En Progreso' ? 'secondary' : 'outline'}>{order.status}</Badge>
                   </TableCell>
-                  <TableCell data-label="Etapa">{order.stage}</TableCell>
                   <TableCell data-label="Fecha">{new Date(order.date + 'T00:00:00').toLocaleDateString('es-CL', { timeZone: 'UTC' })}</TableCell>
                    <TableCell>
                     <DropdownMenu>

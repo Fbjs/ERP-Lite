@@ -50,10 +50,8 @@ const emptyBakingRecord: BakingRecord = {
 const initialFormData: ProductionOrderData = {
     product: '',
     quantity: 0,
-    stage: 'En Cola',
     status: 'En Cola',
     charge: '',
-    machine: '',
     turn: '',
     operator: '',
     responsibles: { fractionation: '', production: '', cooking: '' },
@@ -233,16 +231,8 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData, p
                             </Select>
                         </div>
                          <div className="space-y-2">
-                            <Label htmlFor="stage">Etapa Actual</Label>
-                            <Input id="stage" value={formData.stage} onChange={(e) => handleSelectChange('stage', e.target.value)} required />
-                        </div>
-                         <div className="space-y-2">
                             <Label htmlFor="turn">Turno</Label>
                             <Input id="turn" value={formData.turn} onChange={(e) => handleSelectChange('turn', e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="machine">Máquina Principal</Label>
-                            <Input id="machine" value={formData.machine} onChange={(e) => handleSelectChange('machine', e.target.value)} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="salesOrderId">Orden de Venta (Opcional)</Label>
