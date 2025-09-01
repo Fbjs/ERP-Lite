@@ -23,7 +23,7 @@ const defaultFormat: ProductFormat = { sku: '', name: '', cost: 0 };
 export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFormProps) {
   const [name, setName] = useState('');
   const [family, setFamily] = useState('');
-  const [cost, setCost] = useState(0);
+  const [capacityPerMold, setCapacityPerMold] = useState<number | undefined>(undefined);
   const [ingredients, setIngredients] = useState<Ingredient[]>([defaultIngredient]);
   const [formats, setFormats] = useState<ProductFormat[]>([defaultFormat]);
   
@@ -33,13 +33,13 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
     if (initialData) {
       setName(initialData.name || '');
       setFamily(initialData.family || '');
-      setCost(initialData.cost || 0);
+      setCapacityPerMold(initialData.capacityPerMold)
       setIngredients(initialData.ingredients?.length > 0 ? initialData.ingredients : [defaultIngredient]);
       setFormats(initialData.formats?.length > 0 ? initialData.formats : [defaultFormat]);
     } else {
       setName('');
       setFamily('');
-      setCost(0);
+      setCapacityPerMold(undefined);
       setIngredients([defaultIngredient]);
       setFormats([defaultFormat]);
     }
@@ -69,7 +69,7 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ name, family, cost, ingredients, formats });
+    onSubmit({ name, family, ingredients, formats, capacityPerMold });
   };
 
   return (
@@ -82,9 +82,9 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
             <Label htmlFor="family" className="text-right">Familia</Label>
             <Input id="family" value={family} onChange={(e) => setFamily(e.target.value)} className="col-span-3" required placeholder="Ej: PAN CENTENO" />
         </div>
-         <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="cost" className="text-right">Costo Base</Label>
-            <Input id="cost" type="number" value={cost || ''} onChange={(e) => setCost(Number(e.target.value))} className="col-span-3" required />
+        <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="capacityPerMold" className="text-right">Capacidad por Molde/Lote</Label>
+            <Input id="capacityPerMold" type="number" value={capacityPerMold || ''} onChange={(e) => setCapacityPerMold(Number(e.target.value) || undefined)} className="col-span-3" placeholder="(Opcional)" />
         </div>
         
         <div className="space-y-4 pt-4 border-t">

@@ -32,60 +32,61 @@ export type Recipe = {
   ingredients: Ingredient[];
   formats: ProductFormat[];
   lastUpdated: string;
+  capacityPerMold?: number;
 };
 
 
 export const initialRecipes: Recipe[] = [
   { 
-    id: 'GUABCO16', name: 'GUAGUA BLANCA 16X16', family: 'PAN INDUSTRIAL', 
+    id: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', family: 'PAN INDUSTRIAL', capacityPerMold: 144,
     ingredients: [], 
     formats: [{sku: 'GUABCO16-9.5', name: 'C/O - 9,5 mm', cost: 4100}], 
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'GUBL1332', name: 'GUAGUA BLANCA 13x13', family: 'PAN INDUSTRIAL', 
+    id: 'GUBL1332', name: 'PAN GUAGUA BLANCA 13X13', family: 'PAN INDUSTRIAL', capacityPerMold: 32,
     ingredients: [], 
     formats: [{sku: 'GUBL1332-11', name: 'C/O - 11 mm', cost: 3900}], 
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'GUBL1432', name: 'GUAGUA BLANCA 14X14', family: 'PAN INDUSTRIAL', 
+    id: 'GUBL1432', name: 'PAN GUAGUA BLANCA 14X14', family: 'PAN INDUSTRIAL', capacityPerMold: 30,
     ingredients: [], 
     formats: [{sku: 'GUBL1432-9.5', name: 'S/O - 9,5 mm', cost: 4000}], 
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'MIGAARG22', name: 'MIGA ARGENTINA', family: 'PAN INDUSTRIAL', 
+    id: 'MIGAARG22', name: 'PAN MIGA DE ARGENTINO', family: 'PAN INDUSTRIAL', capacityPerMold: 1,
     ingredients: [], 
     formats: [{sku: 'MIGAARG22-11', name: 'S/O - 11 mm', cost: 3600}], 
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'GUAINT16', name: 'GUAGUA INTEGRAL 16X16', family: 'PAN INDUSTRIAL', 
+    id: 'GUAINT16', name: 'PAN GUAGUA INTEGRAL 16X16', family: 'PAN INDUSTRIAL', 
     ingredients: [], 
     formats: [{sku: 'GUAINT16-7', name: '16x16 - 7 mm', cost: 4300}], 
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'GUIN1332', name: 'GUAGUA INTEGRAL 13X13', family: 'PAN INDUSTRIAL', 
+    id: 'GUIN1332', name: 'PAN GUAGUA INTEGRAL 13X13', family: 'PAN INDUSTRIAL', 
     ingredients: [], 
     formats: [{sku: 'GUIN1332-7', name: '16x38 - 7 mm', cost: 4200}], 
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'GUIN1432', name: 'GUAGUA INTEGRAL 14X14', family: 'PAN INDUSTRIAL', 
+    id: 'GUIN1432', name: 'PAN GUAGUA INTEGRAL 14X14', family: 'PAN INDUSTRIAL', 
     ingredients: [], 
     formats: [{sku: 'GUIN1432-1K', name: '1K', cost: 4400}], 
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'GUMC1438', name: 'GUAGUA MULTICEREAL 14x2k', family: 'PAN INDUSTRIAL', 
+    id: 'GUMC1438', name: 'PAN GUAGUA MULTICEREAL 14X10', family: 'PAN INDUSTRIAL', capacityPerMold: 16,
     ingredients: [], 
     formats: [{sku: 'GUMC1438-2K', name: '14x2k', cost: 4600}], 
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'PANMUL1410', name: 'GUAGUA LINAZA 14X10', family: 'PAN INDUSTRIAL', 
+    id: 'PANMUL1410', name: 'PAN GUAGUA LINAZA 14X10', family: 'PAN INDUSTRIAL', 
     ingredients: [], 
     formats: [{sku: 'PANMUL1410-5K', name: '5k', cost: 4600}], 
     lastUpdated: '2023-10-28' 
@@ -97,27 +98,105 @@ export const initialRecipes: Recipe[] = [
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'TIPA0500', name: 'PUMPERNICKEL', family: 'PASTELERIA', 
+    id: 'TIPA0500', name: 'PUMPERNICKEL 500 GRS', family: 'PASTELERIA', capacityPerMold: 29,
     ingredients: [], 
     formats: [{sku: 'TIPA0500-40K', name: '40K', cost: 3600}], 
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: '400100', name: 'PAN SIN GLUTEN', family: 'PAN BLANCO', 
+    id: '400100', name: 'PAN BCO SIN GLUTEN', family: 'PAN BLANCO', 
     ingredients: [], 
     formats: [{sku: '400100-7', name: '7 mm', cost: 2100}], 
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'CRUT7MM', name: 'CRUTONES 7mm', family: 'TOSTADAS', 
+    id: 'CRUT7MM', name: 'CRUTONES HORNEADOS 1KG 7mm', family: 'TOSTADAS', 
     ingredients: [], 
     formats: [{sku: 'CRUT7MM-C12', name: '1 CAJA X 12 UNI', cost: 4100}], 
     lastUpdated: '2023-10-28' 
   },
   { 
-    id: 'CRUT11MM', name: 'CRUTONES 11mm', family: 'TOSTADAS', 
+    id: 'CRUT11MM', name: 'CRUTONES HOREADOS 1KG 11mm', family: 'TOSTADAS', 
     ingredients: [], 
     formats: [{sku: 'CRUT11MM-U10', name: '10 UNIDADES', cost: 4100}], 
+    lastUpdated: '2023-10-28' 
+  },
+  { 
+    id: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', family: 'PAN CENTENO', capacityPerMold: 1050,
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+   { 
+    id: 'CERE0027', name: 'PAN CHOCOSO CENTENO 500 GRS', family: 'PAN CENTENO', capacityPerMold: 240,
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+  { 
+    id: '058', name: 'GROB', family: 'PAN CENTENO', capacityPerMold: 350,
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+  { 
+    id: '003', name: 'RUSTICO LINAZA', family: 'PAN CENTENO', capacityPerMold: 440,
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+   { 
+    id: '188', name: 'RUSTICO MULTI', family: 'PAN CENTENO', capacityPerMold: 440,
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+  { 
+    id: '065', name: 'ROGGENBROT', family: 'PAN CENTENO', capacityPerMold: 150,
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+  { 
+    id: '157', name: 'SCHROTBROT', family: 'PAN CENTENO',
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+   { 
+    id: '232', name: 'INTEGRAL LIGHT', family: 'PAN CENTENO', capacityPerMold: 230,
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+   { 
+    id: '310', name: 'PAN INT RALLADO', family: 'TOSTADAS',
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+  { 
+    id: 'LANDBROT', name: 'LANDBROT 500 GRS.', family: 'PAN CENTENO', capacityPerMold: 25,
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+   { 
+    id: 'CROSOOL', name: 'CROSTINI OREGANO 7 mm', family: 'TOSTADAS', capacityPerMold: 180,
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+   { 
+    id: 'SINORILLA', name: 'SIN ORILLA', family: 'PAN BLANCO', capacityPerMold: 300,
+    ingredients: [], 
+    formats: [], 
+    lastUpdated: '2023-10-28' 
+  },
+  { 
+    id: 'VOLLKORN', name: 'VOLLKORN CRACKER', family: 'TOSTADAS',
+    ingredients: [], 
+    formats: [], 
     lastUpdated: '2023-10-28' 
   },
 ];
@@ -144,12 +223,12 @@ export default function RecipesPage() {
     });
   };
   
-  const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
+  const handleUpdateRecipe = (updatedRecipeData: Omit<Recipe, 'id' | 'lastUpdated' | 'capacityPerMold'> & {capacityPerMold?: number}) => {
       if (!selectedRecipe) return;
       
       const updatedRecipe: Recipe = {
+          ...selectedRecipe,
           ...updatedRecipeData,
-          id: selectedRecipe.id,
           lastUpdated: new Date().toISOString().split('T')[0],
       };
       
@@ -375,5 +454,3 @@ export default function RecipesPage() {
     </AppLayout>
   );
 }
-
-    

@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import ProductionPlanner, { ProductionNeed } from '@/components/production-planner';
 
 export type ProcessControl = {
     hydratedInput: string;
@@ -160,13 +161,6 @@ export const initialOrders: Order[] = [
   { id: 'PROD024', product: 'TOSTADAS CROSTINI OREGANO', quantity: 150, status: 'En Progreso', stage: 'Fermentando', date: '2023-10-28', charge: 'Amasado', machine: 'Amasadora 1', turn: 'Mañana', operator: 'Juan Pérez', responsibles: { fractionation: 'Juan Pérez', production: 'Juan Pérez', cooking: 'Juan Pérez' }, staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl, fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl, bakingRecord: emptyBakingRecord, waste: [] },
 ];
 
-type ProductionNeeds = {
-    recipe: Recipe;
-    totalDemand: number;
-    inventoryStock: number;
-    netToProduce: number;
-};
-
 // Simulamos la capacidad máxima de unidades por orden de producción
 const MAX_UNITS_PER_PRODUCTION_ORDER = 200;
 
@@ -175,16 +169,10 @@ export default function ProductionPage() {
     const [orders, setOrders] = useState<Order[]>(initialOrders);
     const [isFormModalOpen, setFormModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
-    const [isGenerateModalOpen, setGenerateModalOpen] = useState(false);
+    const [isPlannerModalOpen, setPlannerModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
-    
-    const today = startOfToday();
-    const [deliveryDateRange, setDeliveryDateRange] = useState<DateRange | undefined>({
-        from: addDays(today, 1),
-        to: addDays(today, 3),
-    });
 
     const selectedOrderRecipe = useMemo(() => {
         if (!selectedOrder) return null;
@@ -208,45 +196,6 @@ export default function ProductionPage() {
 
     }, [selectedOrder, selectedOrderRecipe]);
     
-     const productionNeeds = useMemo(() => {
-        if (!isGenerateModalOpen || !deliveryDateRange?.from) return [];
-
-        const from = deliveryDateRange.from;
-        const to = deliveryDateRange.to || from;
-
-        const needs: { [key: string]: { recipe: Recipe, totalDemand: number } } = {};
-        
-        const pendingSalesOrders = allSalesOrders.filter(order => {
-            const deliveryDate = new Date(order.deliveryDate);
-            return (order.status === 'Pendiente' || order.status === 'En Preparación') &&
-                   (deliveryDate >= from && deliveryDate <= to);
-        });
-
-        pendingSalesOrders.forEach(order => {
-            order.items.forEach(item => {
-                const recipe = initialRecipes.find(r => r.id === item.recipeId);
-                if (recipe) {
-                    if (!needs[recipe.id]) {
-                        needs[recipe.id] = { recipe, totalDemand: 0 };
-                    }
-                    needs[recipe.id].totalDemand += item.quantity;
-                }
-            });
-        });
-        
-        return Object.values(needs).map(need => {
-            const inventoryItem = initialInventoryItems.find(
-                invItem => invItem.category === 'Producto Terminado' && 
-                           invItem.sku === need.recipe.id
-            );
-            const inventoryStock = inventoryItem?.stock || 0;
-            const netToProduce = Math.max(0, need.totalDemand - inventoryStock);
-            return { ...need, inventoryStock, netToProduce };
-        });
-
-    }, [isGenerateModalOpen, deliveryDateRange]);
-
-
     const handleOpenDetails = (order: Order) => {
         setSelectedOrder(order);
         setDetailsModalOpen(true);
@@ -291,19 +240,21 @@ export default function ProductionPage() {
         setSelectedOrder(null);
     };
 
-     const handleCreateOrdersFromNeeds = () => {
+     const handleCreateOrdersFromPlanner = (needs: ProductionNeed[]) => {
         const newOrders: Order[] = [];
         const productionDate = format(new Date(), 'yyyy-MM-dd');
 
-        productionNeeds.forEach(need => {
+        needs.forEach(need => {
             if (need.netToProduce > 0) {
-                let remainingToProduce = need.netToProduce;
-                while (remainingToProduce > 0) {
-                    const quantityForThisOrder = Math.min(remainingToProduce, MAX_UNITS_PER_PRODUCTION_ORDER);
-                    
-                    const newOrder: Order = {
+                 const capacity = need.recipe.capacityPerMold || need.netToProduce;
+                 let remainingToProduce = need.netToProduce;
+                 
+                 while(remainingToProduce > 0) {
+                     const quantityForThisOrder = Math.min(remainingToProduce, capacity);
+                     
+                     const newOrder: Order = {
                         id: `PROD${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
-                        product: need.recipe.name, // The product name here is the recipe name
+                        product: need.recipe.name,
                         quantity: quantityForThisOrder,
                         status: 'En Cola',
                         stage: 'Pendiente',
@@ -316,7 +267,7 @@ export default function ProductionPage() {
                     };
                     newOrders.push(newOrder);
                     remainingToProduce -= quantityForThisOrder;
-                }
+                 }
             }
         });
 
@@ -324,7 +275,7 @@ export default function ProductionPage() {
             setOrders(prev => [...prev, ...newOrders]);
             toast({
                 title: `${newOrders.length} Órdenes de Producción Creadas`,
-                description: `Las órdenes se han dividido en lotes de máx. ${MAX_UNITS_PER_PRODUCTION_ORDER} unidades y añadido a la cola.`
+                description: `Las órdenes se han añadido a la cola de producción.`
             });
         } else {
              toast({
@@ -332,7 +283,7 @@ export default function ProductionPage() {
                 description: 'La demanda para el período seleccionado puede ser cubierta con el stock disponible.'
             });
         }
-        setGenerateModalOpen(false);
+        setPlannerModalOpen(false);
     };
 
 
@@ -381,9 +332,9 @@ export default function ProductionPage() {
                     <CardDescription className="font-body">Rastrea y gestiona las órdenes de producción.</CardDescription>
                 </div>
                  <div className="flex items-center gap-2">
-                    <Button variant="outline" onClick={() => setGenerateModalOpen(true)}>
+                    <Button variant="outline" onClick={() => setPlannerModalOpen(true)}>
                         <FilePlus className="mr-2 h-4 w-4" />
-                        Generar desde Ventas
+                        Planificador de Producción
                     </Button>
                     <Button onClick={() => handleOpenForm(null)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
@@ -460,89 +411,18 @@ export default function ProductionPage() {
         </DialogContent>
       </Dialog>
 
-       {/* Modal Generar desde Ventas */}
-      <Dialog open={isGenerateModalOpen} onOpenChange={setGenerateModalOpen}>
-        <DialogContent className="sm:max-w-3xl">
+       {/* Modal Planificador de Producción */}
+      <Dialog open={isPlannerModalOpen} onOpenChange={setPlannerModalOpen}>
+        <DialogContent className="max-w-7xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">Generar Órdenes desde Ventas</DialogTitle>
+            <DialogTitle className="font-headline">Planificador de Producción Diaria</DialogTitle>
             <DialogDescription className="font-body">
-                Revisa la demanda de los pedidos de venta y crea las órdenes de producción necesarias.
+                Revisa la demanda de los pedidos de venta y el stock disponible para calcular las necesidades de producción.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-                <Label>Rango de Fechas de Entrega</Label>
-                <Popover>
-                    <PopoverTrigger asChild>
-                        <Button
-                            id="date"
-                            variant={"outline"}
-                            className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !deliveryDateRange && "text-muted-foreground"
-                            )}
-                        >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {deliveryDateRange?.from ? (
-                            deliveryDateRange.to ? (
-                                <>
-                                {format(deliveryDateRange.from, "LLL dd, y", { locale: es })} -{" "}
-                                {format(deliveryDateRange.to, "LLL dd, y", { locale: es })}
-                                </>
-                            ) : (
-                                format(deliveryDateRange.from, "LLL dd, y", { locale: es })
-                            )
-                            ) : (
-                            <span>Selecciona un rango</span>
-                            )}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            initialFocus
-                            mode="range"
-                            defaultMonth={deliveryDateRange?.from}
-                            selected={deliveryDateRange}
-                            onSelect={setDeliveryDateRange}
-                            numberOfMonths={2}
-                            locale={es}
-                        />
-                    </PopoverContent>
-                </Popover>
-            </div>
-            <div className="max-h-[40vh] overflow-y-auto p-1 border rounded-md">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Producto</TableHead>
-                            <TableHead className="text-right">Demanda</TableHead>
-                            <TableHead className="text-right">Stock</TableHead>
-                            <TableHead className="text-right font-bold">A Producir</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {productionNeeds.length > 0 ? productionNeeds.map(need => (
-                            <TableRow key={need.recipe.id}>
-                                <TableCell className="font-medium">{need.recipe.name}</TableCell>
-                                <TableCell className="text-right">{need.totalDemand}</TableCell>
-                                <TableCell className="text-right">{need.inventoryStock}</TableCell>
-                                <TableCell className="text-right font-bold">{need.netToProduce}</TableCell>
-                            </TableRow>
-                        )) : (
-                            <TableRow>
-                                <TableCell colSpan={4} className="text-center h-24">No hay pedidos de venta para el rango seleccionado.</TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setGenerateModalOpen(false)}>Cancelar</Button>
-            <Button onClick={handleCreateOrdersFromNeeds} disabled={productionNeeds.every(n => n.netToProduce === 0)}>
-                Crear Órdenes de Producción
-            </Button>
-          </DialogFooter>
+          <ProductionPlanner 
+            onCreateOrders={handleCreateOrdersFromPlanner}
+          />
         </DialogContent>
       </Dialog>
 
