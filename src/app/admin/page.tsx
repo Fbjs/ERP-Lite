@@ -1,8 +1,7 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Contact, ShieldCheck, ShoppingBag, Users } from 'lucide-react';
+import { Building2, Contact, ShieldCheck, ShoppingBag, Trash2, Users } from 'lucide-react';
 import AppLayout from '@/components/layout/app-layout';
 import Link from 'next/link';
 
@@ -12,6 +11,7 @@ const adminSections = [
     { href: '/admin/users', title: 'Usuarios', description: 'Administra los accesos de los usuarios.', icon: Users },
     { href: '/admin/suppliers', title: 'Proveedores', description: 'Mantén un registro de tus proveedores.', icon: ShoppingBag },
     { href: '/admin/customers', title: 'Clientes', description: 'Administra la cartera de clientes.', icon: Contact },
+    { href: '/admin/waste-types', title: 'Tipos de Merma', description: 'Configura las causas de merma.', icon: Trash2 },
 ]
 
 export default function AdminPage() {
