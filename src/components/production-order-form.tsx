@@ -68,7 +68,7 @@ const initialFormData: ProductionOrderData = {
 };
 
 export default function ProductionOrderForm({ onSubmit, onCancel, initialData, prefilledData }: ProductionOrderFormProps) {
-    const [formData, setFormData] = useState<ProductionOrderData>(initialData || initialFormData);
+    const [formData, setFormData] = useState<ProductionOrderData>(initialFormData);
     const [employees, setEmployees] = useState<{ id: string, name: string, rut: string }[]>([]);
 
     useEffect(() => {
@@ -82,14 +82,13 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData, p
 
         if (initialData) {
             setFormData(initialData);
-        } else if (prefilledData && (prefilledData.product || prefilledData.quantity)) {
+        } else if (prefilledData?.product || prefilledData?.quantity) {
              setFormData({ 
                 ...initialFormData,
                 product: prefilledData.product || '',
                 quantity: prefilledData.quantity || 0,
             });
-        }
-         else {
+        } else {
             setFormData(initialFormData);
         }
     }, [initialData, prefilledData]);
