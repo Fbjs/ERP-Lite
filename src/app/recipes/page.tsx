@@ -40,19 +40,34 @@ export type Recipe = {
 export const initialRecipes: Recipe[] = [
   { 
     id: 'GUABCO16', name: 'PAN GUAGUA BLANCA 16X16', family: 'PAN INDUSTRIAL', capacityPerMold: 144,
-    ingredients: [], 
+    ingredients: [
+        { name: 'Harina de Trigo', quantity: 0.5, unit: 'kg' },
+        { name: 'Agua', quantity: 0.3, unit: 'L' },
+        { name: 'Levadura Fresca', quantity: 0.02, unit: 'kg' },
+        { name: 'Sal de Mar', quantity: 0.01, unit: 'kg' },
+    ], 
     formats: [{sku: 'GUABCO16-9.5', name: 'C/O - 9,5 mm', cost: 4100}], 
     lastUpdated: '2023-10-28' 
   },
   { 
     id: 'GUBL1332', name: 'PAN GUAGUA BLANCA 13X13', family: 'PAN INDUSTRIAL', capacityPerMold: 32,
-    ingredients: [], 
+    ingredients: [
+        { name: 'Harina de Trigo', quantity: 0.4, unit: 'kg' },
+        { name: 'Agua', quantity: 0.25, unit: 'L' },
+        { name: 'Levadura Fresca', quantity: 0.015, unit: 'kg' },
+        { name: 'Sal de Mar', quantity: 0.008, unit: 'kg' },
+    ], 
     formats: [{sku: 'GUBL1332-11', name: 'C/O - 11 mm', cost: 3900}], 
     lastUpdated: '2023-10-28' 
   },
   { 
     id: 'GUBL1432', name: 'PAN GUAGUA BLANCA 14X14', family: 'PAN INDUSTRIAL', capacityPerMold: 30,
-    ingredients: [], 
+    ingredients: [
+      { name: 'Harina de Trigo', quantity: 0.45, unit: 'kg' },
+      { name: 'Agua', quantity: 0.28, unit: 'L' },
+      { name: 'Levadura Fresca', quantity: 0.018, unit: 'kg' },
+      { name: 'Sal de Mar', quantity: 0.009, unit: 'kg' },
+    ], 
     formats: [{sku: 'GUBL1432-9.5', name: 'S/O - 9,5 mm', cost: 4000}], 
     lastUpdated: '2023-10-28' 
   },
@@ -64,7 +79,12 @@ export const initialRecipes: Recipe[] = [
   },
   { 
     id: 'GUAINT16', name: 'PAN GUAGUA INTEGRAL 16X16', family: 'PAN INDUSTRIAL', 
-    ingredients: [], 
+    ingredients: [
+        { name: 'Harina Integral', quantity: 0.6, unit: 'kg' },
+        { name: 'Agua', quantity: 0.4, unit: 'L' },
+        { name: 'Levadura Fresca', quantity: 0.02, unit: 'kg' },
+        { name: 'Sal de Mar', quantity: 0.01, unit: 'kg' },
+    ], 
     formats: [{sku: 'GUAINT16-7', name: '16x16 - 7 mm', cost: 4300}], 
     lastUpdated: '2023-10-28' 
   },
@@ -94,13 +114,20 @@ export const initialRecipes: Recipe[] = [
   },
   { 
     id: 'RALLADBCO', name: 'PAN RALLADO', family: 'TOSTADAS', 
-    ingredients: [], 
+    ingredients: [
+        { name: 'Pan Sobrante', quantity: 1, unit: 'kg'}
+    ], 
     formats: [{sku: 'RALLADBCO-10K', name: '10K', cost: 2900}], 
     lastUpdated: '2023-10-28' 
   },
   { 
     id: 'TIPA0500', name: 'PUMPERNICKEL 500 GRS', family: 'PASTELERIA', capacityPerMold: 29,
-    ingredients: [], 
+    ingredients: [
+        { name: 'Harina de Centeno', quantity: 0.7, unit: 'kg' },
+        { name: 'Agua', quantity: 0.5, unit: 'L' },
+        { name: 'Levadura Fresca', quantity: 0.01, unit: 'kg' },
+        { name: 'Sal de Mar', quantity: 0.01, unit: 'kg' },
+    ], 
     formats: [{sku: 'TIPA0500-40K', name: '40K', cost: 3600}], 
     lastUpdated: '2023-10-28' 
   },
@@ -112,25 +139,40 @@ export const initialRecipes: Recipe[] = [
   },
   { 
     id: 'CRUT7MM', name: 'CRUTONES HORNEADOS 1KG 7mm', family: 'TOSTADAS', 
-    ingredients: [], 
+    ingredients: [
+        { name: 'Pan Sobrante', quantity: 1, unit: 'kg'},
+        { name: 'Aceite de Oliva', quantity: 0.05, unit: 'L'},
+    ], 
     formats: [{sku: 'CRUT7MM-C12', name: '1 CAJA X 12 UNI', cost: 4100}], 
-    lastUpdated: '2023-10-28' 
+    lastUpdated: '203-10-28' 
   },
   { 
     id: 'CRUT11MM', name: 'CRUTONES HOREADOS 1KG 11mm', family: 'TOSTADAS', 
-    ingredients: [], 
+    ingredients: [
+        { name: 'Pan Sobrante', quantity: 1, unit: 'kg'},
+        { name: 'Aceite de Oliva', quantity: 0.05, unit: 'L'},
+    ], 
     formats: [{sku: 'CRUT11MM-U10', name: '10 UNIDADES', cost: 4100}], 
     lastUpdated: '2023-10-28' 
   },
   { 
     id: 'CERE0041', name: 'PAN SCHWARZBROT 750 GRS', family: 'PAN CENTENO', capacityPerMold: 1050,
-    ingredients: [], 
+    ingredients: [
+        { name: 'Harina de Centeno', quantity: 0.8, unit: 'kg' },
+        { name: 'Agua', quantity: 0.6, unit: 'L' },
+        { name: 'Sal de Mar', quantity: 0.015, unit: 'kg' },
+    ], 
     formats: [], 
     lastUpdated: '2023-10-28' 
   },
    { 
     id: 'CERE0027', name: 'PAN CHOCOSO CENTENO 500 GRS', family: 'PAN CENTENO', capacityPerMold: 240,
-    ingredients: [], 
+    ingredients: [
+        { name: 'Harina de Centeno', quantity: 0.5, unit: 'kg' },
+        { name: 'Agua', quantity: 0.35, unit: 'L' },
+        { name: 'Cacao en Polvo', quantity: 0.05, unit: 'kg' },
+        { name: 'Azucar', quantity: 0.1, unit: 'kg' },
+    ], 
     formats: [], 
     lastUpdated: '2023-10-28' 
   },
@@ -142,7 +184,13 @@ export const initialRecipes: Recipe[] = [
   },
   { 
     id: '003', name: 'RUSTICO LINAZA', family: 'PAN CENTENO', capacityPerMold: 440,
-    ingredients: [], 
+     ingredients: [
+        { name: 'Harina de Trigo', quantity: 0.3, unit: 'kg' },
+        { name: 'Harina de Centeno', quantity: 0.2, unit: 'kg' },
+        { name: 'Semillas de Linaza', quantity: 0.05, unit: 'kg' },
+        { name: 'Agua', quantity: 0.3, unit: 'L' },
+        { name: 'Sal de Mar', quantity: 0.01, unit: 'kg' },
+    ], 
     formats: [], 
     lastUpdated: '2023-10-28' 
   },
@@ -199,6 +247,18 @@ export const initialRecipes: Recipe[] = [
     ingredients: [], 
     formats: [], 
     lastUpdated: '2023-10-28' 
+  },
+  { 
+    id: 'CERE0003', name: 'PAN LINAZA 500 GRS', family: 'PAN CENTENO',
+    ingredients: [
+        { name: 'Harina de Trigo', quantity: 0.25, unit: 'kg' },
+        { name: 'Harina de Centeno', quantity: 0.25, unit: 'kg' },
+        { name: 'Semillas de Linaza', quantity: 0.1, unit: 'kg' },
+        { name: 'Agua', quantity: 0.3, unit: 'L' },
+        { name: 'Sal de Mar', quantity: 0.01, unit: 'kg' },
+    ],
+    formats: [],
+    lastUpdated: '2023-10-28'
   },
 ];
 
@@ -262,7 +322,6 @@ export default function RecipesPage() {
     // For now, we just log it to show it's called
     // The actual modal opening will be handled on the parent (likely a new page wrapper)
     // For this example, let's assume we can trigger a modal on another page.
-    // In a real app, this might involve context or lifting state up.
     // Let's simulate by opening the production order form here directly.
     setPrefilledProduct(recipeName);
     setIsProductionModalOpen(true);
@@ -478,3 +537,5 @@ export default function RecipesPage() {
     </AppLayout>
   );
 }
+
+    

@@ -251,6 +251,10 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData, p
                             <div className="text-center text-muted-foreground py-8 h-full flex flex-col justify-center items-center">
                                 <p>Selecciona un producto y cantidad.</p>
                             </div>
+                        ) : requiredMaterials.length === 0 ? (
+                            <div className="text-center text-muted-foreground py-8 h-full flex flex-col justify-center items-center">
+                                <p>Esta receta no tiene ingredientes definidos.</p>
+                            </div>
                         ) : (
                             <div className="space-y-4">
                                 {requiredMaterials.map(material => (
@@ -473,3 +477,5 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData, p
     </form>
   );
 }
+
+    
