@@ -9,14 +9,14 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useMemo, useEffect } from 'react';
-import ProductionOrderForm from '@/components/production-order-form';
+import ProductionOrderForm, { ProductionOrderData } from '@/components/production-order-form';
 import { useToast } from '@/hooks/use-toast';
 import { initialRecipes, Recipe } from '@/app/recipes/page';
 import { initialInventoryItems } from '@/app/inventory/page';
 import Logo from '@/components/logo';
-import { initialOrders as allSalesOrders, OrderItem as SalesOrderItem } from '@/app/sales/page';
+import { initialOrders as allSalesOrders, OrderItem as SalesOrderItem, Order as SalesOrder } from '@/app/sales/page';
 import { DateRange } from 'react-day-picker';
-import { format, addDays, startOfToday } from 'date-fns';
+import { format, addDays, startOfToday, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -114,6 +114,7 @@ export type Order = {
     bakingControl: BakingControl;
     bakingRecord: BakingRecord;
     waste: Waste[];
+    salesOrderId?: string;
 };
 
 
@@ -254,6 +255,23 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
         const newOrders: Order[] = [];
         const productionDate = format(new Date(), 'yyyy-MM-dd');
 
+        // Create a single placeholder sales order for this production batch
+        const newSalesOrderId = `SALE-PROD-${Date.now()}`;
+        const newSalesOrder: SalesOrder = {
+            id: newSalesOrderId,
+            customerId: 'INTERNAL-PROD',
+            locationId: 'BODEGA-CENTRAL',
+            customer: 'Producción Interna (Planificador)',
+            amount: 0, // Amount can be calculated later or irrelevant for internal
+            status: 'Completado', // Marked as completed as it's an internal order
+            date: productionDate,
+            deliveryDate: productionDate,
+            deliveryAddress: 'Bodega Principal',
+            items: [],
+            dispatcher: 'SISTEMA',
+            comments: `Orden de venta generada automáticamente desde el planificador de producción.`
+        };
+
         needs.forEach(need => {
             if (need.netToProduce > 0) {
                  const capacity = need.recipe.capacityPerMold || need.netToProduce;
@@ -274,8 +292,20 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
                         staff: [], processControl: emptyProcessControl, portioningControl: emptyPortioningControl,
                         fermentationControl: emptyFermentationControl, bakingControl: emptyBakingControl,
                         bakingRecord: emptyBakingRecord, waste: [],
+                        salesOrderId: newSalesOrderId,
                     };
                     newOrders.push(newOrder);
+
+                    // Add item to the master sales order
+                    const recipeFormat = need.recipe.formats[0];
+                    if (recipeFormat) {
+                        newSalesOrder.items.push({
+                            recipeId: need.recipe.id,
+                            formatSku: recipeFormat.sku,
+                            quantity: quantityForThisOrder,
+                        });
+                        newSalesOrder.amount += quantityForThisOrder * recipeFormat.cost;
+                    }
                     remainingToProduce -= quantityForThisOrder;
                  }
             }
@@ -283,9 +313,11 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
 
         if (newOrders.length > 0) {
             setOrders(prev => [...newOrders, ...prev]);
+            // In a real app, you would also save the newSalesOrder to your sales data state
+            console.log("Generated linked sales order:", newSalesOrder);
             toast({
                 title: `${newOrders.length} Órdenes de Producción Creadas`,
-                description: `Las órdenes se han añadido a la cola de producción.`
+                description: `Las órdenes se han añadido a la cola y se ha generado la orden de venta ${newSalesOrderId}.`
             });
         } else {
              toast({
@@ -384,7 +416,7 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
                     <Badge variant={order.status === 'Completado' ? 'default' : order.status === 'En Progreso' ? 'secondary' : 'outline'}>{order.status}</Badge>
                   </TableCell>
                   <TableCell data-label="Etapa">{order.stage}</TableCell>
-                  <TableCell data-label="Fecha">{new Date(order.date + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
+                  <TableCell data-label="Fecha">{new Date(order.date + 'T00:00:00').toLocaleDateString('es-CL', { timeZone: 'UTC' })}</TableCell>
                    <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -454,7 +486,7 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
                 <DialogHeader>
                     <DialogTitle className="font-headline">Detalle de Orden: {selectedOrder?.id}</DialogTitle>
                     <DialogDescription className="font-body">
-                        Creada el {selectedOrder ? new Date(selectedOrder.date + 'T00:00:00').toLocaleString('es-CL', { dateStyle: 'long' }) : ''}
+                        Creada el {selectedOrder ? new Date(selectedOrder.date + 'T00:00:00').toLocaleString('es-CL', { timeZone: 'UTC', dateStyle: 'long' }) : ''}
                     </DialogDescription>
                 </DialogHeader>
                 {selectedOrder && (
@@ -480,10 +512,11 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
                                     <p><span className="font-semibold">Producto a Fabricar:</span> {selectedOrder.product}</p>
                                     <p><span className="font-semibold">Clasificación:</span> Producto Terminado</p>
                                     <p><span className="font-semibold">Cantidad:</span> {selectedOrder.quantity} unidades</p>
+                                    {selectedOrder.salesOrderId && <p><span className="font-semibold">Orden de Venta:</span> {selectedOrder.salesOrderId}</p>}
                                 </div>
                                 <div className="text-right">
-                                    <p><span className="font-semibold">Fecha:</span> {new Date(selectedOrder.date + 'T00:00:00').toLocaleDateString('es-CL')}</p>
-                                    <p><span className="font-semibold">Hora:</span> {new Date(selectedOrder.date + 'T00:00:00').toLocaleTimeString('es-CL')}</p>
+                                    <p><span className="font-semibold">Fecha:</span> {new Date(selectedOrder.date + 'T00:00:00').toLocaleDateString('es-CL', { timeZone: 'UTC' })}</p>
+                                    <p><span className="font-semibold">Hora:</span> {new Date(selectedOrder.date + 'T00:00:00').toLocaleTimeString('es-CL', { timeZone: 'UTC' })}</p>
                                 </div>
                             </div>
 

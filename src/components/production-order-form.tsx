@@ -23,6 +23,7 @@ type ProductionOrderFormProps = {
   onSubmit: (data: ProductionOrderData) => void;
   onCancel: () => void;
   initialData?: Order | null;
+  prefilledProduct?: string;
 };
 
 const emptyProcessControl: ProcessControl = {
@@ -63,9 +64,10 @@ const initialFormData: ProductionOrderData = {
     bakingControl: emptyBakingControl,
     bakingRecord: emptyBakingRecord,
     waste: [],
+    salesOrderId: '',
 };
 
-export default function ProductionOrderForm({ onSubmit, onCancel, initialData }: ProductionOrderFormProps) {
+export default function ProductionOrderForm({ onSubmit, onCancel, initialData, prefilledProduct }: ProductionOrderFormProps) {
     const [formData, setFormData] = useState<ProductionOrderData>(initialData || initialFormData);
     const [employees, setEmployees] = useState<{ id: string, name: string, rut: string }[]>([]);
 
@@ -80,10 +82,13 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
 
         if (initialData) {
             setFormData(initialData);
-        } else {
+        } else if (prefilledProduct) {
+             setFormData({ ...initialFormData, product: prefilledProduct });
+        }
+         else {
             setFormData(initialFormData);
         }
-    }, [initialData]);
+    }, [initialData, prefilledProduct]);
   
     const selectedRecipe = useMemo(() => {
         if (!formData.product) return null;
@@ -235,6 +240,10 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData }:
                         <div className="space-y-2">
                             <Label htmlFor="machine">Máquina Principal</Label>
                             <Input id="machine" value={formData.machine} onChange={(e) => handleSelectChange('machine', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="salesOrderId">Orden de Venta (Opcional)</Label>
+                            <Input id="salesOrderId" value={formData.salesOrderId || ''} onChange={(e) => handleSelectChange('salesOrderId', e.target.value)} placeholder="Ej: SALE123"/>
                         </div>
                     </CardContent>
                 </Card>
