@@ -27,7 +27,7 @@ export type ProductionNeed = {
 
 type ProductionPlannerProps = {
     onCreateOrders: (needs: ProductionNeed[]) => void;
-    onCreateSingleOrder: (productName: string) => void;
+    onCreateSingleOrder: (productName: string, quantity: number) => void;
 };
 
 export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder }: ProductionPlannerProps) {
@@ -191,7 +191,8 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        onClick={() => onCreateSingleOrder(need.recipe.name)}
+                                        onClick={() => onCreateSingleOrder(need.recipe.name, need.netToProduce)}
+                                        disabled={need.netToProduce <= 0}
                                     >
                                         <PlusCircle className="h-4 w-4 text-green-600" />
                                     </Button>

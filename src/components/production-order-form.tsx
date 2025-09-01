@@ -23,7 +23,7 @@ type ProductionOrderFormProps = {
   onSubmit: (data: ProductionOrderData) => void;
   onCancel: () => void;
   initialData?: Order | null;
-  prefilledProduct?: string;
+  prefilledData?: { product?: string, quantity?: number };
 };
 
 const emptyProcessControl: ProcessControl = {
@@ -67,7 +67,7 @@ const initialFormData: ProductionOrderData = {
     salesOrderId: '',
 };
 
-export default function ProductionOrderForm({ onSubmit, onCancel, initialData, prefilledProduct }: ProductionOrderFormProps) {
+export default function ProductionOrderForm({ onSubmit, onCancel, initialData, prefilledData }: ProductionOrderFormProps) {
     const [formData, setFormData] = useState<ProductionOrderData>(initialData || initialFormData);
     const [employees, setEmployees] = useState<{ id: string, name: string, rut: string }[]>([]);
 
@@ -82,13 +82,17 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData, p
 
         if (initialData) {
             setFormData(initialData);
-        } else if (prefilledProduct) {
-             setFormData({ ...initialFormData, product: prefilledProduct });
+        } else if (prefilledData && (prefilledData.product || prefilledData.quantity)) {
+             setFormData({ 
+                ...initialFormData,
+                product: prefilledData.product || '',
+                quantity: prefilledData.quantity || 0,
+            });
         }
          else {
             setFormData(initialFormData);
         }
-    }, [initialData, prefilledProduct]);
+    }, [initialData, prefilledData]);
   
     const selectedRecipe = useMemo(() => {
         if (!formData.product) return null;

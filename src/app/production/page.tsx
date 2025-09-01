@@ -172,7 +172,7 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isPlannerModalOpen, setPlannerModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-    const [localPrefilledProduct, setLocalPrefilledProduct] = useState<string | undefined>(prefilledProduct);
+    const [prefilledData, setPrefilledData] = useState<{product?: string, quantity?: number}>({});
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
 
@@ -210,9 +210,9 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
         setDetailsModalOpen(true);
     };
 
-    const handleOpenForm = (order: Order | null, product?: string) => {
+    const handleOpenForm = (order: Order | null, product?: string, quantity?: number) => {
         setSelectedOrder(order);
-        setLocalPrefilledProduct(product);
+        setPrefilledData({ product, quantity });
         setFormModalOpen(true);
     };
 
@@ -248,7 +248,7 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
         }
         setFormModalOpen(false);
         setSelectedOrder(null);
-        setLocalPrefilledProduct(undefined);
+        setPrefilledData({});
     };
 
      const handleCreateOrdersFromPlanner = (needs: ProductionNeed[]) => {
@@ -328,11 +328,11 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
         setPlannerModalOpen(false);
     };
     
-    const handleCreateSingleOrderFromPlanner = (productName: string) => {
+    const handleCreateSingleOrderFromPlanner = (productName: string, quantity: number) => {
         setPlannerModalOpen(false);
         // A short delay to allow the planner modal to close before opening the form modal
         setTimeout(() => {
-            handleOpenForm(null, productName);
+            handleOpenForm(null, productName, quantity);
         }, 100);
     };
 
@@ -443,7 +443,7 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
       <Dialog open={isFormModalOpen} onOpenChange={(isOpen) => {
             if (!isOpen) {
                 setSelectedOrder(null);
-                 setLocalPrefilledProduct(undefined);
+                 setPrefilledData({});
             }
             setFormModalOpen(isOpen);
       }}>
@@ -456,9 +456,9 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
           </DialogHeader>
           <ProductionOrderForm
             onSubmit={handleFormSubmit}
-            onCancel={() => { setFormModalOpen(false); setSelectedOrder(null); setLocalPrefilledProduct(undefined); }}
+            onCancel={() => { setFormModalOpen(false); setSelectedOrder(null); setPrefilledData({}); }}
             initialData={selectedOrder}
-            prefilledProduct={localPrefilledProduct}
+            prefilledData={prefilledData}
             />
         </DialogContent>
       </Dialog>
