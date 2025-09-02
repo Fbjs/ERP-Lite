@@ -21,8 +21,10 @@ type PayrollItem = {
   id: string;
   employeeName: string;
   baseSalary: number;
-  bonus: number;
   overtime: number;
+  bonusNocturno: number;
+  bonusProduccion: number;
+  bonusMetas: number;
   asignacionColacion: number;
   asignacionMovilizacion: number;
   totalImponible: number;
@@ -61,19 +63,21 @@ export default function PayrollPage() {
   const handleProcessPayroll = () => {
     const data = initialEmployees.map(emp => {
       const baseSalary = emp.salary;
-      const bonus = Math.random() > 0.7 ? Math.floor(Math.random() * 5) * 20000 : 0;
       const overtime = Math.random() > 0.5 ? Math.floor(Math.random() * 8) * 6500 : 0;
+      const bonusNocturno = Math.random() > 0.8 ? 50000 : 0;
+      const bonusProduccion = Math.random() > 0.5 ? Math.floor(Math.random() * 4) * 15000 : 0;
+      const bonusMetas = Math.random() > 0.6 ? 45000 : 0;
+      
       const asignacionColacion = 55000;
       const asignacionMovilizacion = 45000;
 
-      const totalImponible = baseSalary + bonus + overtime;
+      const totalImponible = baseSalary + overtime + bonusNocturno + bonusProduccion + bonusMetas;
       const totalNoImponible = asignacionColacion + asignacionMovilizacion;
       const totalHaberes = totalImponible + totalNoImponible;
       
       const healthDiscount = totalImponible * emp.healthRate;
       const afpDiscount = totalImponible * emp.afpRate;
       const cesantiaDiscount = totalImponible * 0.006; // Empleador paga el resto 2.4%
-      // Simple tax simulation
       const taxDiscount = totalImponible > 900000 ? (totalImponible - 900000) * 0.04 : 0;
 
       const totalDescuentos = healthDiscount + afpDiscount + cesantiaDiscount + taxDiscount;
@@ -83,8 +87,10 @@ export default function PayrollPage() {
         id: emp.id,
         employeeName: emp.name,
         baseSalary,
-        bonus,
         overtime,
+        bonusNocturno,
+        bonusProduccion,
+        bonusMetas,
         asignacionColacion,
         asignacionMovilizacion,
         totalImponible,
@@ -292,7 +298,9 @@ export default function PayrollPage() {
                                         <h3 className="font-bold font-headline text-base text-center bg-gray-100 border-b-2 border-gray-800 py-1">HABERES</h3>
                                         <div className="flex justify-between py-1 border-b"><p>Sueldo Base</p><p>{formatCurrency(selectedItem.baseSalary)}</p></div>
                                         <div className="flex justify-between py-1 border-b"><p>Horas Extras</p><p>{formatCurrency(selectedItem.overtime)}</p></div>
-                                        <div className="flex justify-between py-1 border-b"><p>Bonos</p><p>{formatCurrency(selectedItem.bonus)}</p></div>
+                                        <div className="flex justify-between py-1 border-b"><p>Bono Turno Noche</p><p>{formatCurrency(selectedItem.bonusNocturno)}</p></div>
+                                        <div className="flex justify-between py-1 border-b"><p>Bono Producción</p><p>{formatCurrency(selectedItem.bonusProduccion)}</p></div>
+                                        <div className="flex justify-between py-1 border-b"><p>Bono Metas</p><p>{formatCurrency(selectedItem.bonusMetas)}</p></div>
                                         <div className="flex justify-between py-1 border-b font-semibold"><p>Total Imponible</p><p>{formatCurrency(selectedItem.totalImponible)}</p></div>
                                         <div className="flex justify-between py-1 border-b"><p>Asignación Colación</p><p>{formatCurrency(selectedItem.asignacionColacion)}</p></div>
                                         <div className="flex justify-between py-1 border-b"><p>Asignación Movilización</p><p>{formatCurrency(selectedItem.asignacionMovilizacion)}</p></div>
