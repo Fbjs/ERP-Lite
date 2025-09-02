@@ -4,9 +4,17 @@ import AppLayout from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initialEmployees, Employee, initialLeaveRequests } from '../data';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { ArrowDown, ArrowUp, BarChart3, Clock, DollarSign, FileText, UserMinus, UserPlus, Users, Wallet } from 'lucide-react';
+import { ArrowLeft, BarChart3, Calendar as CalendarIcon, Clock, DollarSign, FileText, UserMinus, UserPlus, Users, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { DateRange } from 'react-day-picker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format, subMonths } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+
 
 // --- Simulated Data and Calculations ---
 const totalEmployees = initialEmployees.length;
@@ -38,19 +46,73 @@ const formatCurrency = (value: number) => {
 };
 
 export default function HRReportsPage() {
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+        from: subMonths(new Date(), 3),
+        to: new Date()
+    });
+
     return (
         <AppLayout pageTitle="Indicadores y Reportes de RRHH">
             <div className="space-y-6">
                  <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline">Dashboard de Recursos Humanos</CardTitle>
-                        <CardDescription className="font-body">Métricas clave para la gestión del personal.</CardDescription>
+                        <div className="flex flex-wrap justify-between items-center gap-4">
+                             <div>
+                                <CardTitle className="font-headline">Dashboard de Recursos Humanos</CardTitle>
+                                <CardDescription className="font-body">Métricas clave para la gestión del personal.</CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                 <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            id="date"
+                                            variant={"outline"}
+                                            className={cn(
+                                            "w-[300px] justify-start text-left font-normal",
+                                            !dateRange && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {dateRange?.from ? (
+                                            dateRange.to ? (
+                                                <>
+                                                {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                                                {format(dateRange.to, "LLL dd, y", { locale: es })}
+                                                </>
+                                            ) : (
+                                                format(dateRange.from, "LLL dd, y", { locale: es })
+                                            )
+                                            ) : (
+                                            <span>Selecciona un rango</span>
+                                            )}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="end">
+                                        <Calendar
+                                            initialFocus
+                                            mode="range"
+                                            defaultMonth={dateRange?.from}
+                                            selected={dateRange}
+                                            onSelect={setDateRange}
+                                            numberOfMonths={2}
+                                            locale={es}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                 <Button asChild variant="outline">
+                                    <Link href="/hr">
+                                        <ArrowLeft className="mr-2 h-4 w-4" />
+                                        Volver
+                                    </Link>
+                                </Button>
+                            </div>
+                        </div>
                     </CardHeader>
                 </Card>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Rotación de Personal (Trimestral)</CardTitle>
+                            <CardTitle className="text-sm font-medium">Rotación de Personal</CardTitle>
                             <Users className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
@@ -63,17 +125,17 @@ export default function HRReportsPage() {
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Tasa de Ausentismo (Trimestral)</CardTitle>
+                            <CardTitle className="text-sm font-medium">Tasa de Ausentismo</CardTitle>
                             <Clock className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{absenteeismRate.toFixed(1)}%</div>
-                            <p className="text-xs text-muted-foreground">{totalLeaveDays} días de ausencia registrados en el período</p>
+                            <p className="text-xs text-muted-foreground">{totalLeaveDays} días de ausencia registrados</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Costo Total Nómina Mensual</CardTitle>
+                            <CardTitle className="text-sm font-medium">Costo Nómina Mensual</CardTitle>
                             <Wallet className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
@@ -83,7 +145,7 @@ export default function HRReportsPage() {
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Horas Extras Acumuladas (Mes)</CardTitle>
+                            <CardTitle className="text-sm font-medium">Horas Extras Acumuladas</CardTitle>
                             <DollarSign className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
@@ -96,7 +158,7 @@ export default function HRReportsPage() {
                     <Card className="col-span-1 lg:col-span-4">
                         <CardHeader>
                             <CardTitle className="font-headline">Costo de Nómina por Departamento</CardTitle>
-                            <CardDescription>Distribución del costo de sueldos base por área.</CardDescription>
+                            <CardDescription>Distribución del costo de sueldos base por área para el período seleccionado.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <ResponsiveContainer width="100%" height={350}>
