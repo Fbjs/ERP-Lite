@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera, Building, UserCheck, Edit } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera, Building, UserCheck, Edit, ArrowLeft } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useEffect } from 'react';
@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Link from 'next/link';
 
 type Document = {
     name: string;
@@ -304,9 +305,15 @@ export default function StaffPage() {
                     <CardDescription className="font-body">Administra la información y documentos de los trabajadores.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
+                     <Button asChild variant="outline">
+                        <Link href="/hr">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Volver
+                        </Link>
+                    </Button>
                      <Button variant="outline" onClick={handleDownloadPdf}>
                         <Download className="mr-2 h-4 w-4" />
-                        Descargar Nómina (PDF)
+                        Descargar Nómina
                     </Button>
                     <Button onClick={() => { setEditingEmployee(null); setFormModalOpen(true); }}>
                         <PlusCircle className="mr-2 h-4 w-4" />
