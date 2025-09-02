@@ -99,40 +99,38 @@ export default function ContractForm({ employees, onSubmit, isGenerating }: Cont
             </Select>
         </div>
         
-        <div className="grid grid-cols-2 gap-4">
-             <div className="space-y-2">
-                <Label htmlFor="startDate">Fecha de Inicio</Label>
-                 <Popover>
-                    <PopoverTrigger asChild>
-                    <Button
-                        id="startDate"
-                        variant={"outline"}
-                        className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {startDate ? format(startDate, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
-                    </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus locale={es}/></PopoverContent>
-                </Popover>
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="endDate">Fecha de Término</Label>
-                 <Popover>
-                    <PopoverTrigger asChild>
-                    <Button
-                        id="endDate"
-                        variant={"outline"}
-                        className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}
-                        disabled={contractType === 'Indefinido'}
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {endDate ? format(endDate, "PPP", { locale: es }) : <span>(Opcional)</span>}
-                    </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus locale={es}/></PopoverContent>
-                </Popover>
-            </div>
+        <div className="space-y-2">
+            <Label htmlFor="startDate">Fecha de Inicio</Label>
+                <Popover>
+                <PopoverTrigger asChild>
+                <Button
+                    id="startDate"
+                    variant={"outline"}
+                    className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP", { locale: es }) : <span>Seleccionar fecha</span>}
+                </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={startDate} onSelect={setStartDate} initialFocus locale={es}/></PopoverContent>
+            </Popover>
+        </div>
+            <div className="space-y-2">
+            <Label htmlFor="endDate">Fecha de Término</Label>
+                <Popover>
+                <PopoverTrigger asChild>
+                <Button
+                    id="endDate"
+                    variant={"outline"}
+                    className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}
+                    disabled={contractType === 'Indefinido'}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP", { locale: es }) : <span>(Opcional)</span>}
+                </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={endDate} onSelect={setEndDate} initialFocus locale={es}/></PopoverContent>
+            </Popover>
         </div>
       
       <Button type="submit" disabled={isGenerating || !employeeRut}>
