@@ -4,10 +4,10 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera, Building, UserCheck, Edit, ArrowLeft } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera, Building, UserCheck, Edit, ArrowLeft, Search } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import EmployeeForm from '@/components/employee-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -66,6 +66,7 @@ const initialEmployees: Employee[] = [
 
 export default function StaffPage() {
     const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+    const [searchQuery, setSearchQuery] = useState('');
     const [isFormModalOpen, setFormModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isGenerateDocModalOpen, setGenerateDocModalOpen] = useState(false);
@@ -79,6 +80,21 @@ export default function StaffPage() {
     const { toast } = useToast();
     const pdfContentRef = useRef<HTMLDivElement>(null);
     const [generationDate, setGenerationDate] = useState<Date | null>(null);
+
+    const filteredEmployees = useMemo(() => {
+        if (!searchQuery) {
+            return employees;
+        }
+        const lowercasedQuery = searchQuery.toLowerCase();
+        return employees.filter(employee =>
+            employee.name.toLowerCase().includes(lowercasedQuery) ||
+            employee.rut.toLowerCase().includes(lowercasedQuery) ||
+            employee.position.toLowerCase().includes(lowercasedQuery) ||
+            employee.department.toLowerCase().includes(lowercasedQuery) ||
+            employee.status.toLowerCase().includes(lowercasedQuery)
+        );
+    }, [employees, searchQuery]);
+
 
     useEffect(() => {
         setGenerationDate(new Date());
@@ -286,7 +302,7 @@ export default function StaffPage() {
                             <td className="p-2">${employee.salary.toLocaleString('es-CL')}</td>
                             <td className="p-2">{employee.healthInsurance}</td>
                             <td className="p-2">{employee.pensionFund}</td>
-                            <td className="p-2">{new Date(employee.startDate + 'T00:00:00').toLocaleDateString('es-CL')}</td>
+                            <td className="p-2">{new Date(employee.startDate + 'T00:00:00').toLocaleDateString('es-CL', { timeZone: 'UTC' })}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -304,7 +320,17 @@ export default function StaffPage() {
                     <CardTitle className="font-headline">Gestión de Personal</CardTitle>
                     <CardDescription className="font-body">Administra la información y documentos de los trabajadores.</CardDescription>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="Buscar trabajador..."
+                            className="pl-8 sm:w-[300px]"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
                      <Button asChild variant="outline">
                         <Link href="/hr">
                             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -313,11 +339,11 @@ export default function StaffPage() {
                     </Button>
                      <Button variant="outline" onClick={handleDownloadPdf}>
                         <Download className="mr-2 h-4 w-4" />
-                        Descargar Nómina
+                        Nómina
                     </Button>
                     <Button onClick={() => { setEditingEmployee(null); setFormModalOpen(true); }}>
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Nuevo Trabajador
+                        Nuevo
                     </Button>
                 </div>
             </div>
@@ -338,7 +364,7 @@ export default function StaffPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {employees.map((employee) => (
+                  {filteredEmployees.map((employee) => (
                     <TableRow key={employee.id}>
                       <TableCell data-label="Nombre" className="font-medium flex items-center gap-3">
                         <Avatar className="h-8 w-8">
@@ -455,7 +481,7 @@ export default function StaffPage() {
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Tipo Contrato</p><p>{selectedEmployee.contractType}</p></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Estado</p><Badge variant={selectedEmployee.status === 'Activo' ? 'default' : 'secondary'}>{selectedEmployee.status}</Badge></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Supervisor</p><p>{selectedEmployee.supervisor}</p></div>
-                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Fecha Ingreso</p><p>{new Date(selectedEmployee.startDate + 'T00:00:00').toLocaleDateString('es-ES')}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Fecha Ingreso</p><p>{new Date(selectedEmployee.startDate + 'T00:00:00').toLocaleDateString('es-ES', { timeZone: 'UTC' })}</p></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Previsión Salud</p><p>{selectedEmployee.healthInsurance}</p></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">AFP</p><p>{selectedEmployee.pensionFund}</p></div>
                          <div className="space-y-1 col-span-full"><p className="font-semibold text-muted-foreground text-xs">Sueldo Bruto</p><p className="text-lg font-bold">${selectedEmployee.salary.toLocaleString('es-CL')}</p></div>
