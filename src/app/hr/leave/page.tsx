@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Check, X, Calendar as CalendarIcon, Filter, Users, Plane, Stethoscope } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Check, X, Calendar as CalendarIcon, Filter, Users, Plane, Stethoscope, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { useState, useMemo } from 'react';
@@ -19,6 +19,7 @@ import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import Link from 'next/link';
 
 type LeaveType = 'Vacaciones' | 'Licencia Médica' | 'Permiso sin Goce' | 'Permiso Justificado';
 
@@ -157,10 +158,18 @@ export default function LeavePage() {
                                     <CardTitle className="font-headline">Gestión de Solicitudes</CardTitle>
                                     <CardDescription className="font-body">Revisa y aprueba las solicitudes de vacaciones y permisos.</CardDescription>
                                 </div>
-                                <Button onClick={() => setIsFormModalOpen(true)}>
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Nueva Solicitud
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                    <Button asChild variant="outline">
+                                        <Link href="/hr">
+                                            <ArrowLeft className="mr-2 h-4 w-4" />
+                                            Volver
+                                        </Link>
+                                    </Button>
+                                    <Button onClick={() => setIsFormModalOpen(true)}>
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        Nueva Solicitud
+                                    </Button>
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent>
