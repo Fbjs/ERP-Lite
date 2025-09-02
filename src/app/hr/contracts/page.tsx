@@ -4,13 +4,13 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, FileText, Bell, ShieldAlert, FileWarning } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, FileText, Bell, ShieldAlert, FileWarning, ArrowLeft, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useState, useMemo } from 'react';
 import { addDays, differenceInDays, parseISO } from 'date-fns';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import Link from 'next/link';
 
 type ContractType = 'Indefinido' | 'Plazo Fijo' | 'Part-time' | 'Reemplazo' | 'Borrador';
 
@@ -36,16 +36,20 @@ const initialContracts: Contract[] = [
 
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<Contract[]>(initialContracts);
-  const [statusFilter, setStatusFilter] = useState('Todos');
-  const [typeFilter, setTypeFilter] = useState('Todos');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredContracts = useMemo(() => {
-    return contracts.filter(contract => {
-        const statusMatch = statusFilter === 'Todos' || contract.status === statusFilter;
-        const typeMatch = typeFilter === 'Todos' || contract.contractType === typeFilter;
-        return statusMatch && typeMatch;
-    });
-  }, [contracts, statusFilter, typeFilter]);
+    if (!searchQuery) {
+        return contracts;
+    }
+    const lowercasedQuery = searchQuery.toLowerCase();
+    return contracts.filter(contract =>
+        contract.employeeName.toLowerCase().includes(lowercasedQuery) ||
+        contract.employeeRut.toLowerCase().includes(lowercasedQuery) ||
+        contract.contractType.toLowerCase().includes(lowercasedQuery) ||
+        contract.status.toLowerCase().includes(lowercasedQuery)
+    );
+  }, [contracts, searchQuery]);
 
   const today = new Date();
   const expiringContracts = contracts.filter(c => 
@@ -103,41 +107,31 @@ export default function ContractsPage() {
                 <CardTitle className="font-headline">Contratos de Trabajadores</CardTitle>
                 <CardDescription className="font-body">Administra los contratos laborales de todo el personal.</CardDescription>
               </div>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Generar Nuevo Contrato
-              </Button>
+              <div className="flex items-center gap-2 flex-wrap">
+                  <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                          type="search"
+                          placeholder="Buscar contrato..."
+                          className="pl-8 sm:w-[300px]"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                  </div>
+                   <Button asChild variant="outline">
+                      <Link href="/hr">
+                          <ArrowLeft className="mr-2 h-4 w-4" />
+                          Volver
+                      </Link>
+                  </Button>
+                  <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Generar Nuevo Contrato
+                  </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b">
-                <div className="flex-1 min-w-[200px] space-y-2">
-                    <Label>Filtrar por Estado</Label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger><SelectValue/></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Todos">Todos</SelectItem>
-                            <SelectItem value="Activo">Activo</SelectItem>
-                            <SelectItem value="Terminado">Terminado</SelectItem>
-                            <SelectItem value="Borrador">Borrador</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="flex-1 min-w-[200px] space-y-2">
-                    <Label>Filtrar por Tipo</Label>
-                     <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger><SelectValue/></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Todos">Todos</SelectItem>
-                            <SelectItem value="Indefinido">Indefinido</SelectItem>
-                            <SelectItem value="Plazo Fijo">Plazo Fijo</SelectItem>
-                            <SelectItem value="Part-time">Part-time</SelectItem>
-                            <SelectItem value="Reemplazo">Reemplazo</SelectItem>
-                            <SelectItem value="Borrador">Borrador</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-            </div>
             <Table>
               <TableHeader>
                 <TableRow>
