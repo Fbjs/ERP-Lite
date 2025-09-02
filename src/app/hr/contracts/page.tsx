@@ -1,75 +1,100 @@
+
 "use client";
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, FileText } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, FileText, Bell, ShieldAlert, FileWarning } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { addDays, differenceInDays, parseISO } from 'date-fns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+
+type ContractType = 'Indefinido' | 'Plazo Fijo' | 'Part-time' | 'Reemplazo' | 'Borrador';
 
 type Contract = {
   id: string;
   employeeName: string;
   employeeRut: string;
-  contractType: 'Indefinido' | 'Plazo Fijo' | 'Por Obra' | 'Honorarios';
+  contractType: ContractType;
   startDate: string;
   endDate?: string;
+  trialPeriodEndDate?: string;
   status: 'Activo' | 'Terminado' | 'Borrador';
 };
 
 const initialContracts: Contract[] = [
-  { id: 'CON-001', employeeName: 'Juan Pérez', employeeRut: '12.345.678-9', contractType: 'Indefinido', startDate: '2022-01-15', status: 'Activo' },
-  { id: 'CON-002', employeeName: 'Ana Gómez', employeeRut: '23.456.789-0', contractType: 'Plazo Fijo', startDate: '2023-03-01', endDate: '2024-02-29', status: 'Terminado' },
+  { id: 'CON-001', employeeName: 'Juan Pérez', employeeRut: '12.345.678-9', contractType: 'Indefinido', startDate: '2022-01-15', status: 'Activo', trialPeriodEndDate: '2022-04-15' },
+  { id: 'CON-002', employeeName: 'Ana Gómez', employeeRut: '23.456.789-0', contractType: 'Plazo Fijo', startDate: '2024-06-01', endDate: '2024-08-31', status: 'Activo' },
   { id: 'CON-003', employeeName: 'Luis Martínez', employeeRut: '11.222.333-4', contractType: 'Indefinido', startDate: '2021-08-20', status: 'Activo' },
   { id: 'CON-004', employeeName: 'Sofía Castro', employeeRut: '18.765.432-1', contractType: 'Borrador', startDate: '2024-09-01', status: 'Borrador' },
+  { id: 'CON-005', employeeName: 'Carlos Diaz', employeeRut: '19.876.543-2', contractType: 'Reemplazo', startDate: '2024-07-01', endDate: '2024-09-30', status: 'Activo', trialPeriodEndDate: '2024-07-15' },
+  { id: 'CON-006', employeeName: 'Laura Fernandez', employeeRut: '20.123.456-7', contractType: 'Part-time', startDate: '2023-02-01', status: 'Activo' },
 ];
 
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<Contract[]>(initialContracts);
+  const [statusFilter, setStatusFilter] = useState('Todos');
+  const [typeFilter, setTypeFilter] = useState('Todos');
+
+  const filteredContracts = useMemo(() => {
+    return contracts.filter(contract => {
+        const statusMatch = statusFilter === 'Todos' || contract.status === statusFilter;
+        const typeMatch = typeFilter === 'Todos' || contract.contractType === typeFilter;
+        return statusMatch && typeMatch;
+    });
+  }, [contracts, statusFilter, typeFilter]);
+
+  const today = new Date();
+  const expiringContracts = contracts.filter(c => 
+    c.endDate && c.status === 'Activo' && differenceInDays(parseISO(c.endDate), today) <= 30 && differenceInDays(parseISO(c.endDate), today) >= 0
+  );
+  
+  const expiringTrials = contracts.filter(c => 
+    c.trialPeriodEndDate && c.status === 'Activo' && differenceInDays(parseISO(c.trialPeriodEndDate), today) <= 15 && differenceInDays(parseISO(c.trialPeriodEndDate), today) >= 0
+  );
 
   return (
     <AppLayout pageTitle="Gestión de Contratos">
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-wrap justify-between items-center gap-4">
-              <div>
-                <CardTitle className="font-headline">Plantillas de Documentos</CardTitle>
-                <CardDescription className="font-body">Gestiona las plantillas para contratos, anexos y otros documentos laborales.</CardDescription>
-              </div>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Nueva Plantilla
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border rounded-lg flex items-center gap-4 hover:bg-muted/50 cursor-pointer">
-                <FileText className="h-8 w-8 text-primary" />
-                <div>
-                  <h3 className="font-semibold">Contrato Indefinido</h3>
-                  <p className="text-xs text-muted-foreground">Última actualización: 2024-01-10</p>
-                </div>
-              </div>
-              <div className="p-4 border rounded-lg flex items-center gap-4 hover:bg-muted/50 cursor-pointer">
-                <FileText className="h-8 w-8 text-primary" />
-                <div>
-                  <h3 className="font-semibold">Contrato Plazo Fijo</h3>
-                  <p className="text-xs text-muted-foreground">Última actualización: 2024-01-10</p>
-                </div>
-              </div>
-              <div className="p-4 border rounded-lg flex items-center gap-4 hover:bg-muted/50 cursor-pointer">
-                <FileText className="h-8 w-8 text-primary" />
-                <div>
-                  <h3 className="font-semibold">Anexo de Contrato</h3>
-                  <p className="text-xs text-muted-foreground">Última actualización: 2023-11-05</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
+        {(expiringContracts.length > 0 || expiringTrials.length > 0) && (
+            <Card className="border-amber-400 bg-amber-50/50">
+                <CardHeader>
+                    <div className="flex items-center gap-3">
+                        <Bell className="h-6 w-6 text-amber-600"/>
+                        <CardTitle className="font-headline text-amber-700">Alertas Importantes</CardTitle>
+                    </div>
+                    <CardDescription className="text-amber-600">Revisa los siguientes vencimientos y toma las acciones necesarias.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {expiringContracts.map(c => (
+                        <div key={c.id} className="p-3 border rounded-lg bg-background flex items-center gap-3">
+                            <FileWarning className="h-5 w-5 text-amber-600" />
+                            <div>
+                                <p className="text-sm font-semibold">{c.employeeName}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Contrato vence en {differenceInDays(parseISO(c.endDate!), today)} días ({new Date(c.endDate!).toLocaleDateString('es-CL')})
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                     {expiringTrials.map(c => (
+                        <div key={c.id} className="p-3 border rounded-lg bg-background flex items-center gap-3">
+                            <ShieldAlert className="h-5 w-5 text-amber-600" />
+                            <div>
+                                <p className="text-sm font-semibold">{c.employeeName}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Período de prueba vence en {differenceInDays(parseISO(c.trialPeriodEndDate!), today)} días ({new Date(c.trialPeriodEndDate!).toLocaleDateString('es-CL')})
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </CardContent>
+            </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -85,25 +110,55 @@ export default function ContractsPage() {
             </div>
           </CardHeader>
           <CardContent>
+            <div className="flex flex-wrap gap-4 mb-4 pb-4 border-b">
+                <div className="flex-1 min-w-[200px] space-y-2">
+                    <Label>Filtrar por Estado</Label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger><SelectValue/></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Todos">Todos</SelectItem>
+                            <SelectItem value="Activo">Activo</SelectItem>
+                            <SelectItem value="Terminado">Terminado</SelectItem>
+                            <SelectItem value="Borrador">Borrador</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="flex-1 min-w-[200px] space-y-2">
+                    <Label>Filtrar por Tipo</Label>
+                     <Select value={typeFilter} onValueChange={setTypeFilter}>
+                        <SelectTrigger><SelectValue/></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Todos">Todos</SelectItem>
+                            <SelectItem value="Indefinido">Indefinido</SelectItem>
+                            <SelectItem value="Plazo Fijo">Plazo Fijo</SelectItem>
+                            <SelectItem value="Part-time">Part-time</SelectItem>
+                            <SelectItem value="Reemplazo">Reemplazo</SelectItem>
+                            <SelectItem value="Borrador">Borrador</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Trabajador</TableHead>
-                  <TableHead>Tipo de Contrato</TableHead>
-                  <TableHead>Fecha de Inicio</TableHead>
+                  <TableHead>Tipo Contrato</TableHead>
+                  <TableHead>Inicio</TableHead>
+                  <TableHead>Fin</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead><span className="sr-only">Acciones</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contracts.map((contract) => (
+                {filteredContracts.map((contract) => (
                   <TableRow key={contract.id}>
                     <TableCell>
                       <div className="font-medium">{contract.employeeName}</div>
                       <div className="text-sm text-muted-foreground">{contract.employeeRut}</div>
                     </TableCell>
                     <TableCell>{contract.contractType}</TableCell>
-                    <TableCell>{new Date(contract.startDate).toLocaleDateString('es-CL')}</TableCell>
+                    <TableCell>{new Date(contract.startDate + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
+                     <TableCell>{contract.endDate ? new Date(contract.endDate + 'T00:00:00').toLocaleDateString('es-CL') : 'N/A'}</TableCell>
                     <TableCell>
                       <Badge variant={contract.status === 'Activo' ? 'default' : contract.status === 'Terminado' ? 'secondary' : 'outline'}>
                         {contract.status}
