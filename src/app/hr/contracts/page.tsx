@@ -4,13 +4,19 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, FileText, Bell, ShieldAlert, FileWarning, ArrowLeft, Search } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, FileText, Bell, ShieldAlert, FileWarning, ArrowLeft, Search, Wand2, Loader2, Clipboard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useState, useMemo } from 'react';
-import { addDays, differenceInDays, parseISO } from 'date-fns';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { useState, useMemo, useRef } from 'react';
+import { addDays, differenceInDays, parseISO, format } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import ContractForm, { ContractFormData } from '@/components/contract-form';
+import { useToast } from '@/hooks/use-toast';
+import { initialEmployees } from '../staff/page';
+import { generateHrDocument, GenerateHrDocumentOutput } from '@/ai/flows/generate-hr-document';
+import { Textarea } from '@/components/ui/textarea';
 
 type ContractType = 'Indefinido' | 'Plazo Fijo' | 'Part-time' | 'Reemplazo' | 'Borrador';
 
@@ -37,6 +43,10 @@ const initialContracts: Contract[] = [
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<Contract[]>(initialContracts);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [generatedDoc, setGeneratedDoc] = useState<GenerateHrDocumentOutput | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { toast } = useToast();
 
   const filteredContracts = useMemo(() => {
     if (!searchQuery) {
@@ -59,6 +69,68 @@ export default function ContractsPage() {
   const expiringTrials = contracts.filter(c => 
     c.trialPeriodEndDate && c.status === 'Activo' && differenceInDays(parseISO(c.trialPeriodEndDate), today) <= 15 && differenceInDays(parseISO(c.trialPeriodEndDate), today) >= 0
   );
+
+  const handleOpenForm = () => {
+    setGeneratedDoc(null);
+    setIsGenerating(false);
+    setIsFormModalOpen(true);
+  }
+
+  const handleGenerateContract = async (data: ContractFormData) => {
+    setIsGenerating(true);
+    setGeneratedDoc(null);
+    try {
+        const employee = initialEmployees.find(e => e.rut === data.employeeRut);
+        if (!employee) {
+            throw new Error("Empleado no encontrado.");
+        }
+        
+        const result = await generateHrDocument({
+            employeeName: employee.name,
+            employeeRut: employee.rut,
+            employeePosition: data.position,
+            employeeStartDate: format(data.startDate, 'yyyy-MM-dd'),
+            employeeSalary: data.salary,
+            employeeContractType: data.contractType,
+            documentType: 'Contrato de Trabajo',
+        });
+
+        const newContractRecord: Contract = {
+            id: `CON-${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+            employeeName: employee.name,
+            employeeRut: employee.rut,
+            contractType: data.contractType as ContractType,
+            startDate: format(data.startDate, 'yyyy-MM-dd'),
+            endDate: data.endDate ? format(data.endDate, 'yyyy-MM-dd') : undefined,
+            status: 'Borrador',
+        };
+        setContracts(prev => [newContractRecord, ...prev]);
+
+        setGeneratedDoc(result);
+        toast({
+            title: 'Borrador de Contrato Generado',
+            description: `Revisa el documento generado por la IA. Se ha añadido un registro de contrato en estado "Borrador".`,
+        });
+    } catch (error) {
+        console.error(error);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Ocurrió un error al generar el contrato.',
+        });
+    } finally {
+        setIsGenerating(false);
+    }
+  };
+  
+    const handleCopyToClipboard = () => {
+        if (!generatedDoc?.documentContent) return;
+        navigator.clipboard.writeText(generatedDoc.documentContent);
+        toast({
+            title: "Copiado",
+            description: "El contenido del contrato se ha copiado al portapapeles.",
+        });
+    };
 
   return (
     <AppLayout pageTitle="Gestión de Contratos">
@@ -124,7 +196,7 @@ export default function ContractsPage() {
                           Volver
                       </Link>
                   </Button>
-                  <Button>
+                  <Button onClick={handleOpenForm}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Generar Nuevo Contrato
                   </Button>
@@ -181,6 +253,45 @@ export default function ContractsPage() {
             </Table>
           </CardContent>
         </Card>
+
+        <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
+            <DialogContent className="sm:max-w-3xl">
+                 <DialogHeader>
+                    <DialogTitle className="font-headline">Generar Nuevo Contrato</DialogTitle>
+                     <DialogDescription className="font-body">
+                        Completa los datos para generar un borrador del contrato de trabajo usando IA.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                    <ContractForm 
+                        employees={initialEmployees}
+                        onSubmit={handleGenerateContract}
+                        isGenerating={isGenerating}
+                    />
+                    <div className="space-y-4">
+                         <h3 className="font-headline text-lg">Documento Generado</h3>
+                         <div className="h-[450px] border rounded-md p-4 bg-secondary/50 overflow-y-auto">
+                            {isGenerating ? (
+                                <div className="flex items-center justify-center h-full">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                </div>
+                            ) : generatedDoc ? (
+                                <Textarea readOnly value={generatedDoc.documentContent} className="min-h-full font-mono text-xs bg-white" />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-center text-muted-foreground">
+                                    <p>El borrador del contrato aparecerá aquí.</p>
+                                </div>
+                            )}
+                         </div>
+                         <Button variant="outline" onClick={handleCopyToClipboard} disabled={!generatedDoc || isGenerating}>
+                            <Clipboard className="mr-2 h-4 w-4" />
+                            Copiar al Portapapeles
+                        </Button>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+
       </div>
     </AppLayout>
   );
