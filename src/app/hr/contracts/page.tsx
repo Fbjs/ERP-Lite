@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useMemo, useRef } from 'react';
 import { addDays, differenceInDays, parseISO, format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import ContractForm, { ContractFormData } from '@/components/contract-form';
