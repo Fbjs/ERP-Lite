@@ -36,10 +36,10 @@ type LeaveRequest = {
 };
 
 const initialLeaveRequests: LeaveRequest[] = [
-  { id: 'LV-001', employeeId: 'EMP003', employeeName: 'Luis Martínez', department: 'Logística', leaveType: 'Vacaciones', startDate: new Date('2024-07-20'), endDate: new Date('2024-07-26'), days: 5, status: 'Aprobado', justification: 'Viaje familiar' },
-  { id: 'LV-002', employeeId: 'EMP002', employeeName: 'Ana Gómez', department: 'Producción', leaveType: 'Licencia Médica', startDate: new Date('2024-07-22'), endDate: new Date('2024-07-24'), days: 3, status: 'Aprobado', justification: 'Reposo médico por 3 días' },
-  { id: 'LV-003', employeeId: 'EMP001', employeeName: 'Juan Pérez', department: 'Producción', leaveType: 'Vacaciones', startDate: new Date('2024-08-05'), endDate: new Date('2024-08-16'), days: 10, status: 'Pendiente' },
-  { id: 'LV-004', employeeId: 'EMP004', employeeName: 'María Rodríguez', department: 'Administración', leaveType: 'Permiso sin Goce', startDate: new Date('2024-07-30'), endDate: new Date('2024-07-30'), days: 1, status: 'Rechazado', justification: 'Motivos personales' },
+  { id: 'LV-001', employeeId: 'EMP003', employeeName: 'Luis Martínez', department: 'Logística', leaveType: 'Vacaciones', startDate: new Date(2024, 6, 20), endDate: new Date(2024, 6, 26), days: 5, status: 'Aprobado', justification: 'Viaje familiar' },
+  { id: 'LV-002', employeeId: 'EMP002', employeeName: 'Ana Gómez', department: 'Producción', leaveType: 'Licencia Médica', startDate: new Date(2024, 6, 22), endDate: new Date(2024, 6, 24), days: 3, status: 'Aprobado', justification: 'Reposo médico por 3 días' },
+  { id: 'LV-003', employeeId: 'EMP001', employeeName: 'Juan Pérez', department: 'Producción', leaveType: 'Vacaciones', startDate: new Date(2024, 7, 5), endDate: new Date(2024, 7, 16), days: 10, status: 'Pendiente' },
+  { id: 'LV-004', employeeId: 'EMP004', employeeName: 'María Rodríguez', department: 'Administración', leaveType: 'Permiso sin Goce', startDate: new Date(2024, 6, 30), endDate: new Date(2024, 6, 30), days: 1, status: 'Rechazado', justification: 'Motivos personales' },
 ];
 
 export default function LeavePage() {
