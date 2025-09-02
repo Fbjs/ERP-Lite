@@ -1,9 +1,10 @@
+
 "use client";
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar as CalendarIcon, Upload, Download, AlertTriangle, Users, Clock, UserX, RefreshCcw } from 'lucide-react';
+import { Calendar as CalendarIcon, Upload, Download, AlertTriangle, Users, Clock, UserX, RefreshCcw, ArrowLeft } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { useState, useMemo, useRef } from 'react';
@@ -19,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import Logo from '@/components/logo';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import Link from 'next/link';
 
 type AttendanceRecord = {
   id: string;
@@ -237,6 +239,12 @@ export default function AttendancePage() {
                     </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
+                    <Button asChild variant="outline">
+                        <Link href="/hr">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Volver
+                        </Link>
+                    </Button>
                     <Button variant="outline"><Upload className="mr-2 h-4 w-4" /> Cargar Marcajes</Button>
                      <Button onClick={handleDownloadPdf} disabled={filteredRecords.length === 0}><Download className="mr-2 h-4 w-4" /> Descargar Reporte</Button>
                     </div>
