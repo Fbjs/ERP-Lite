@@ -18,6 +18,8 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 type PayrollItem = {
   id: string;
@@ -211,7 +213,26 @@ export default function PayrollPage() {
                         Volver
                     </Link>
                 </Button>
-                <Button onClick={handleProcessPayroll}>Procesar Nómina</Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button>Procesar Nómina</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Confirmar Procesamiento de Nómina</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {payrollData.length > 0 
+                                 ? 'Ya existen datos procesados para este período. Si continúas, se sobreescribirán. ¿Estás seguro?'
+                                 : 'Estás a punto de procesar la nómina para el período seleccionado. ¿Deseas continuar?'
+                                }
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleProcessPayroll}>Confirmar y Procesar</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
           </div>
         </CardHeader>
