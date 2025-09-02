@@ -4,9 +4,9 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { MoreHorizontal, Download, FileText, Upload, CalendarIcon, Eye } from 'lucide-react';
+import { MoreHorizontal, Download, FileText, Upload, CalendarIcon, Eye, ArrowLeft, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -16,6 +16,8 @@ import html2canvas from 'html2canvas';
 import Logo from '@/components/logo';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Input } from '@/components/ui/input';
+import Link from 'next/link';
 
 type PayrollItem = {
   id: string;
@@ -41,10 +43,10 @@ type PayrollItem = {
 };
 
 const initialEmployees = [
-  { id: 'EMP001', name: 'Juan Pérez', salary: 850000, afpRate: 0.11, healthRate: 0.07 },
-  { id: 'EMP002', name: 'Ana Gómez', salary: 600000, afpRate: 0.11, healthRate: 0.07 },
-  { id: 'EMP003', name: 'Luis Martínez', salary: 750000, afpRate: 0.11, healthRate: 0.07 },
-  { id: 'EMP004', name: 'María Rodríguez', salary: 950000, afpRate: 0.11, healthRate: 0.07 },
+  { id: 'EMP001', name: 'Juan Pérez', salary: 850000, afpRate: 0.11, healthRate: 0.07, rut: '12.345.678-9' },
+  { id: 'EMP002', name: 'Ana Gómez', salary: 600000, afpRate: 0.11, healthRate: 0.07, rut: '23.456.789-0' },
+  { id: 'EMP003', name: 'Luis Martínez', salary: 750000, afpRate: 0.11, healthRate: 0.07, rut: '11.222.333-4' },
+  { id: 'EMP004', name: 'María Rodríguez', salary: 950000, afpRate: 0.11, healthRate: 0.07, rut: '15.678.901-2' },
 ];
 
 const formatCurrency = (value: number) => {
@@ -55,10 +57,19 @@ const formatCurrency = (value: number) => {
 export default function PayrollPage() {
   const [payrollData, setPayrollData] = useState<PayrollItem[]>([]);
   const [selectedMonth, setSelectedMonth] = useState('2024-07');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<PayrollItem | null>(null);
   const payslipRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  
+  const filteredPayrollData = useMemo(() => {
+    if (!searchQuery) return payrollData;
+    return payrollData.filter(item => 
+        item.employeeName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [payrollData, searchQuery]);
+
 
   const handleProcessPayroll = () => {
     const data = initialEmployees.map(emp => {
@@ -167,7 +178,7 @@ export default function PayrollPage() {
   };
 
 
-  const totals = payrollData.reduce((acc, item) => {
+  const totals = filteredPayrollData.reduce((acc, item) => {
     acc.totalHaberes += item.totalHaberes;
     acc.totalDescuentos += item.totalDescuentos;
     acc.liquidoAPagar += item.liquidoAPagar;
@@ -183,29 +194,49 @@ export default function PayrollPage() {
               <CardTitle className="font-headline">Proceso de Nómina Mensual</CardTitle>
               <CardDescription className="font-body">Calcula y gestiona las liquidaciones de sueldo del personal.</CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-                    <SelectTrigger className="w-[180px]">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        <SelectValue placeholder="Seleccionar Mes" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="2024-07">Julio 2024</SelectItem>
-                        <SelectItem value="2024-06">Junio 2024</SelectItem>
-                        <SelectItem value="2024-05">Mayo 2024</SelectItem>
-                    </SelectContent>
-                </Select>
+            <div className="flex items-center gap-2 flex-wrap">
+                <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder="Buscar por nombre..."
+                        className="pl-8 sm:w-[200px] lg:w-[250px]"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+                 <Button asChild variant="outline">
+                    <Link href="/hr">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Volver
+                    </Link>
+                </Button>
                 <Button onClick={handleProcessPayroll}>Procesar Nómina</Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-            <div className="flex flex-wrap gap-4 mb-6">
-                <Button variant="outline"><Upload className="mr-2 h-4 w-4" /> Cargar Horas Extras</Button>
-                <Button variant="outline"><Upload className="mr-2 h-4 w-4" /> Cargar Bonos/Descuentos</Button>
-                <Button variant="secondary" disabled={payrollData.length === 0} onClick={handleExportPrevired}>
-                    <FileText className="mr-2 h-4 w-4" /> Exportar a Previred
-                </Button>
+            <div className="flex flex-wrap gap-4 mb-6 border-t pt-6">
+                <div className="flex items-end gap-2">
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-medium">Período</label>
+                         <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                            <SelectTrigger className="w-[180px]">
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                <SelectValue placeholder="Seleccionar Mes" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="2024-07">Julio 2024</SelectItem>
+                                <SelectItem value="2024-06">Junio 2024</SelectItem>
+                                <SelectItem value="2024-05">Mayo 2024</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Button variant="outline"><Upload className="mr-2 h-4 w-4" /> Cargar Variables</Button>
+                    <Button variant="secondary" disabled={payrollData.length === 0} onClick={handleExportPrevired}>
+                        <FileText className="mr-2 h-4 w-4" /> Exportar a Previred
+                    </Button>
+                </div>
             </div>
           <Table>
             <TableHeader>
@@ -218,7 +249,7 @@ export default function PayrollPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {payrollData.map((item) => (
+              {filteredPayrollData.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.employeeName}</TableCell>
                   <TableCell className="text-right text-green-600">{formatCurrency(item.totalHaberes)}</TableCell>
@@ -234,22 +265,22 @@ export default function PayrollPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleShowDetails(item)}>
-                            <Eye className="mr-2 h-4 w-4" /> Ver Detalle
+                            <Eye className="mr-2 h-4 w-4" /> Ver Liquidación
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
-               {payrollData.length === 0 && (
+               {filteredPayrollData.length === 0 && (
                 <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center">
-                        Selecciona un período y procesa la nómina para ver los resultados.
+                        {searchQuery ? 'No se encontraron resultados.' : 'Selecciona un período y procesa la nómina para ver los resultados.'}
                     </TableCell>
                 </TableRow>
                )}
             </TableBody>
-            {payrollData.length > 0 && (
+            {filteredPayrollData.length > 0 && (
             <TableFooter>
                 <TableRow className="font-bold">
                     <TableCell>Totales</TableCell>
@@ -347,3 +378,5 @@ export default function PayrollPage() {
     </AppLayout>
   );
 }
+
+    
