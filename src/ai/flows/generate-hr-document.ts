@@ -48,6 +48,8 @@ Tipo de Documento a Generar: {{{documentType}}}
 Por favor, genera el contenido del documento.
 - Si es un 'Certificado de Antigüedad', debe certificar que el empleado trabaja en la empresa desde su fecha de inicio, su cargo y que se extiende para los fines que el interesado estime convenientes.
 - Si es un 'Contrato de Trabajo', debe ser un borrador básico que incluya las cláusulas esenciales como identificación de las partes, descripción del cargo, jornada, remuneración y duración del contrato. Utiliza placeholders como "[Lugar de Trabajo]" o "[Descripción de Funciones Específicas]" donde sea necesario.
+- Si es un 'Anexo de Contrato', debe ser un borrador que modifique una cláusula específica del contrato original. Utiliza placeholders como "[Cláusula a modificar]" y "[Nuevo contenido de la cláusula]".
+- Si es un 'Finiquito', debe ser un borrador que detalle el término de la relación laboral, incluyendo causales y montos (usa placeholders como "[Causal de Término]", "[Monto Indemnización Años de Servicio]", "[Monto Vacaciones Proporcionales]").
 - No incluyas la fecha de generación dentro del contenido del documento, solo el cuerpo principal del mismo.
 `,
 });

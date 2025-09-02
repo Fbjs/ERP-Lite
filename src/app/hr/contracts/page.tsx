@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MoreHorizontal, PlusCircle, Download, FileText, Bell, ShieldAlert, FileWarning, ArrowLeft, Search, Wand2, Loader2, Clipboard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useMemo, useRef } from 'react';
 import { addDays, differenceInDays, parseISO, format } from 'date-fns';
@@ -17,6 +17,9 @@ import { useToast } from '@/hooks/use-toast';
 import { initialEmployees } from '../data';
 import { generateHrDocument, GenerateHrDocumentOutput } from '@/ai/flows/generate-hr-document';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import Logo from '@/components/logo';
 
 type ContractType = 'Indefinido' | 'Plazo Fijo' | 'Part-time' | 'Reemplazo' | 'Borrador';
 
@@ -44,9 +47,15 @@ export default function ContractsPage() {
   const [contracts, setContracts] = useState<Contract[]>(initialContracts);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [isGenerateDocModalOpen, setGenerateDocModalOpen] = useState(false);
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+  const [docType, setDocType] = useState('');
   const [generatedDoc, setGeneratedDoc] = useState<GenerateHrDocumentOutput | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const pdfContentRef = useRef<HTMLDivElement>(null);
+
 
   const filteredContracts = useMemo(() => {
     if (!searchQuery) {
@@ -75,8 +84,20 @@ export default function ContractsPage() {
     setIsGenerating(false);
     setIsFormModalOpen(true);
   }
-
-  const handleGenerateContract = async (data: ContractFormData) => {
+  
+  const handleOpenDetails = (contract: Contract) => {
+    setSelectedContract(contract);
+    setDetailsModalOpen(true);
+  }
+  
+  const handleOpenGenerateDoc = (contract: Contract) => {
+    setSelectedContract(contract);
+    setDocType('');
+    setGeneratedDoc(null);
+    setGenerateDocModalOpen(true);
+  };
+  
+    const handleGenerateContract = async (data: ContractFormData) => {
     setIsGenerating(true);
     setGeneratedDoc(null);
     try {
@@ -123,13 +144,68 @@ export default function ContractsPage() {
     }
   };
   
-    const handleCopyToClipboard = () => {
-        if (!generatedDoc?.documentContent) return;
-        navigator.clipboard.writeText(generatedDoc.documentContent);
+  const handleGenerateOtherDocument = async () => {
+        if (!selectedContract || !docType) return;
+        setIsGenerating(true);
+        setGeneratedDoc(null);
+        try {
+            const employee = initialEmployees.find(e => e.rut === selectedContract.employeeRut);
+            if (!employee) throw new Error("Empleado no encontrado.");
+
+            const result = await generateHrDocument({
+                employeeName: employee.name,
+                employeeRut: employee.rut,
+                employeePosition: employee.position,
+                employeeStartDate: selectedContract.startDate,
+                employeeSalary: employee.salary,
+                employeeContractType: selectedContract.contractType,
+                documentType: docType as any,
+            });
+            setGeneratedDoc(result);
+            toast({
+                title: 'Documento Generado',
+                description: `El ${docType} para ${employee.name} ha sido generado.`,
+            });
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Ocurrió un error al generar el documento.',
+            });
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+  
+    const handleCopyToClipboard = (content: string) => {
+        if (!content) return;
+        navigator.clipboard.writeText(content);
         toast({
             title: "Copiado",
-            description: "El contenido del contrato se ha copiado al portapapeles.",
+            description: "El contenido del documento se ha copiado al portapapeles.",
         });
+    };
+
+    const handleDownloadPdf = async () => {
+        const input = pdfContentRef.current;
+        if (input) {
+            const { default: jsPDF } = await import('jspdf');
+            const { default: html2canvas } = await import('html2canvas');
+            
+            const canvas = await html2canvas(input, { scale: 2, backgroundColor: '#ffffff' });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'px', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            
+            pdf.addImage(imgData, 'PNG', 15, 15, pdfWidth - 30, 0);
+            pdf.save(`contrato-${selectedContract?.id}.pdf`);
+            
+            toast({
+                title: "PDF Descargado",
+                description: `El contrato de ${selectedContract?.employeeName} ha sido descargado.`,
+            });
+        }
     };
 
   return (
@@ -240,10 +316,10 @@ export default function ContractsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                          <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
-                          <DropdownMenuItem>Generar Anexo</DropdownMenuItem>
-                          <DropdownMenuItem>Generar Finiquito</DropdownMenuItem>
-                          <DropdownMenuItem><Download className="mr-2 h-4 w-4" />Descargar PDF</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleOpenDetails(contract)}>Ver Detalles</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadPdf()}><Download className="mr-2 h-4 w-4" />Descargar PDF</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleOpenGenerateDoc(contract)}>Generar Documento con IA</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -283,7 +359,7 @@ export default function ContractsPage() {
                                 </div>
                             )}
                          </div>
-                         <Button variant="outline" onClick={handleCopyToClipboard} disabled={!generatedDoc || isGenerating}>
+                         <Button variant="outline" onClick={() => handleCopyToClipboard(generatedDoc?.documentContent || '')} disabled={!generatedDoc || isGenerating}>
                             <Clipboard className="mr-2 h-4 w-4" />
                             Copiar al Portapapeles
                         </Button>
@@ -291,6 +367,78 @@ export default function ContractsPage() {
                 </div>
             </DialogContent>
         </Dialog>
+
+         <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle className="font-headline">Detalles del Contrato: {selectedContract?.id}</DialogTitle>
+                </DialogHeader>
+                {selectedContract && (
+                     <div ref={pdfContentRef}>
+                        <div className="space-y-4 p-4 rounded-lg border">
+                             <div className="flex justify-between items-center">
+                                <Logo className="w-24" />
+                                <h3 className="text-xl font-bold font-headline text-primary">CONTRATO DE TRABAJO</h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div><span className="font-semibold">Trabajador:</span> {selectedContract.employeeName}</div>
+                                <div><span className="font-semibold">RUT:</span> {selectedContract.employeeRut}</div>
+                                <div><span className="font-semibold">Tipo:</span> <Badge>{selectedContract.contractType}</Badge></div>
+                                <div><span className="font-semibold">Estado:</span> <Badge variant={selectedContract.status === 'Activo' ? 'default' : 'secondary'}>{selectedContract.status}</Badge></div>
+                                <div><span className="font-semibold">Fecha de Inicio:</span> {format(parseISO(selectedContract.startDate), 'P', {locale: es})}</div>
+                                <div><span className="font-semibold">Fecha de Término:</span> {selectedContract.endDate ? format(parseISO(selectedContract.endDate), 'P', {locale: es}) : 'Indefinido'}</div>
+                                {selectedContract.trialPeriodEndDate && (
+                                     <div className="col-span-2 text-amber-700"><span className="font-semibold">Fin Período Prueba:</span> {format(parseISO(selectedContract.trialPeriodEndDate), 'P', {locale: es})}</div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
+        
+        <Dialog open={isGenerateDocModalOpen} onOpenChange={setGenerateDocModalOpen}>
+            <DialogContent className="sm:max-w-xl">
+                 <DialogHeader>
+                    <DialogTitle className="font-headline">Generar Documento con IA</DialogTitle>
+                     <DialogDescription className="font-body">
+                        Genera un anexo o finiquito para {selectedContract?.employeeName}.
+                    </DialogDescription>
+                </DialogHeader>
+                 <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="doc-type" className="font-body">Tipo de Documento a Generar</Label>
+                        <Select value={docType} onValueChange={setDocType}>
+                            <SelectTrigger id="doc-type">
+                                <SelectValue placeholder="Selecciona un tipo..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Anexo de Contrato">Anexo de Contrato</SelectItem>
+                                <SelectItem value="Finiquito">Finiquito</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Button onClick={handleGenerateOtherDocument} disabled={isGenerating || !docType} className="w-full">
+                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                        Generar Documento
+                    </Button>
+                </div>
+
+                {isGenerating ? (
+                    <div className="flex items-center justify-center h-48">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                ) : generatedDoc && (
+                     <div className="space-y-4">
+                        <Label className="font-body">Contenido Generado</Label>
+                        <Textarea readOnly value={generatedDoc.documentContent} className="min-h-[250px] font-mono text-xs bg-secondary"/>
+                         <Button variant="outline" onClick={() => handleCopyToClipboard(generatedDoc.documentContent)}><Clipboard className="mr-2 h-4 w-4" />Copiar</Button>
+                    </div>
+                )}
+
+            </DialogContent>
+        </Dialog>
+
 
       </div>
     </AppLayout>

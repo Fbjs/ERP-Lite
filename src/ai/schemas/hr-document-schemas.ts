@@ -11,7 +11,7 @@ export const GenerateHrDocumentInputSchema = z.object({
   employeeStartDate: z.string().describe('Fecha de ingreso del empleado (YYYY-MM-DD).'),
   employeeSalary: z.number().describe('Sueldo bruto del empleado en CLP.'),
   employeeContractType: z.string().describe('Tipo de contrato del empleado.'),
-  documentType: z.enum(['Contrato de Trabajo', 'Certificado de Antigüedad']).describe('El tipo de documento a generar.'),
+  documentType: z.enum(['Contrato de Trabajo', 'Certificado de Antigüedad', 'Anexo de Contrato', 'Finiquito']).describe('El tipo de documento a generar.'),
 });
 export type GenerateHrDocumentInput = z.infer<typeof GenerateHrDocumentInputSchema>;
 
