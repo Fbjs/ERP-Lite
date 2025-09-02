@@ -208,7 +208,11 @@ export default function ContractsPage() {
   
     const handleCopyToClipboard = (content: string | undefined) => {
         if (!content) return;
-        navigator.clipboard.writeText(content);
+        
+        const el = document.createElement('div');
+        el.innerHTML = content;
+        navigator.clipboard.writeText(el.innerText || content);
+
         toast({
             title: "Copiado",
             description: "El contenido del documento se ha copiado al portapapeles.",
@@ -223,18 +227,28 @@ export default function ContractsPage() {
             
             const canvas = await html2canvas(input, { scale: 2, backgroundColor: '#ffffff' });
             const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'px', 'a4');
+            const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
             
-            pdf.html(input, {
-              callback: function(doc) {
-                doc.save(`contrato-${selectedContract?.id}.pdf`);
-              },
-              x: 15,
-              y: 15,
-              width: 180,
-              windowWidth: 650
-            });
+            const imgProps= pdf.getImageProperties(imgData);
+            const imgWidth = imgProps.width;
+            const imgHeight = imgProps.height;
+            
+            const ratio = imgWidth / imgHeight;
+            let newWidth = pdfWidth - 20; // with margin
+            let newHeight = newWidth / ratio;
+            
+             if (newHeight > pdfHeight - 20) {
+                newHeight = pdfHeight - 20;
+                newWidth = newHeight * ratio;
+            }
+
+            const x = (pdfWidth - newWidth) / 2;
+            const y = 10;
+            
+            pdf.addImage(imgData, 'PNG', x, y, newWidth, newHeight);
+            pdf.save(`contrato-${selectedContract?.id}.pdf`);
             
             toast({
                 title: "PDF Descargado",
@@ -413,13 +427,10 @@ export default function ContractsPage() {
                 </DialogHeader>
                 {selectedContract && (
                     <>
-                        <div className="max-h-[75vh] overflow-y-auto p-1 space-y-4" >
-                            <div className="p-4 bg-white text-black space-y-4">
+                        <div className="max-h-[75vh] overflow-y-auto p-1" >
+                            <div className="space-y-4">
                                 <div className="space-y-4 p-4 rounded-lg border">
-                                    <div className="flex justify-between items-center">
-                                        <Logo className="w-24" />
-                                        <h3 className="text-xl font-bold font-headline text-primary">RESUMEN DE CONTRATO</h3>
-                                    </div>
+                                    <h3 className="text-xl font-bold font-headline text-primary">Resumen de Contrato</h3>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div><span className="font-semibold">Trabajador:</span> {selectedContract.employeeName}</div>
                                         <div><span className="font-semibold">RUT:</span> {selectedContract.employeeRut}</div>
@@ -432,17 +443,18 @@ export default function ContractsPage() {
                                         )}
                                     </div>
                                 </div>
-                                <div className="h-[400px] border rounded-md p-4 bg-secondary/50 overflow-y-auto">
+                                 <div 
+                                    ref={pdfContentRef}
+                                    className="h-[400px] border rounded-md p-4 bg-secondary/50 overflow-y-auto"
+                                >
                                     {isGenerating ? (
                                         <div className="flex items-center justify-center h-full">
                                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                         </div>
                                     ) : detailsDocContent ? (
                                          <div 
-                                          ref={pdfContentRef}
-                                          contentEditable 
                                           dangerouslySetInnerHTML={{ __html: detailsDocContent.documentHtmlContent }} 
-                                          className="prose prose-sm max-w-none bg-white p-4 rounded focus:outline-none focus:ring-2 focus:ring-primary min-h-full"
+                                          className="prose prose-sm max-w-none bg-white p-4 rounded min-h-full"
                                         />
                                     ) : (
                                         <div className="flex items-center justify-center h-full text-center text-muted-foreground">
@@ -465,48 +477,60 @@ export default function ContractsPage() {
         </Dialog>
         
         <Dialog open={isGenerateDocModalOpen} onOpenChange={setGenerateDocModalOpen}>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent className="sm:max-w-2xl">
                  <DialogHeader>
-                    <DialogTitle className="font-headline">Generar Documento con IA</DialogTitle>
+                    <DialogTitle className="font-headline">Generar Documento Adicional con IA</DialogTitle>
                      <DialogDescription className="font-body">
-                        Genera un anexo o finiquito para {selectedContract?.employeeName}.
+                        Selecciona el tipo de documento a generar para {selectedContract?.employeeName}.
                     </DialogDescription>
                 </DialogHeader>
-                 <div className="space-y-4 py-4">
+                <div className="grid md:grid-cols-2 gap-6 pt-4">
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="doc-type" className="font-body">Tipo de Documento a Generar</Label>
+                            <Select value={docType} onValueChange={setDocType}>
+                                <SelectTrigger id="doc-type">
+                                    <SelectValue placeholder="Selecciona un tipo..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Anexo de Contrato">Anexo de Contrato</SelectItem>
+                                    <SelectItem value="Finiquito">Finiquito</SelectItem>
+                                    <SelectItem value="Certificado de Antigüedad">Certificado de Antigüedad</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <Button onClick={handleGenerateOtherDocument} disabled={isGenerating || !docType} className="w-full">
+                            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                            Generar Documento
+                        </Button>
+                    </div>
+
                     <div className="space-y-2">
-                        <Label htmlFor="doc-type" className="font-body">Tipo de Documento a Generar</Label>
-                        <Select value={docType} onValueChange={setDocType}>
-                            <SelectTrigger id="doc-type">
-                                <SelectValue placeholder="Selecciona un tipo..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Anexo de Contrato">Anexo de Contrato</SelectItem>
-                                <SelectItem value="Finiquito">Finiquito</SelectItem>
-                            </SelectContent>
-                        </Select>
+                         <Label className="font-body">Contenido Generado</Label>
+                         <div className="h-[300px] border rounded-md p-4 bg-secondary/50 overflow-y-auto">
+                            {isGenerating && !generatedDoc ? (
+                                <div className="flex items-center justify-center h-full">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                </div>
+                            ) : generatedDoc ? (
+                                 <div 
+                                  contentEditable 
+                                  dangerouslySetInnerHTML={{ __html: generatedDoc.documentHtmlContent }} 
+                                  className="prose prose-sm max-w-none h-full bg-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-center text-muted-foreground">
+                                    <p>El documento aparecerá aquí.</p>
+                                </div>
+                            )}
+                         </div>
                     </div>
-                    <Button onClick={handleGenerateOtherDocument} disabled={isGenerating || !docType} className="w-full">
-                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                        Generar Documento
-                    </Button>
                 </div>
-
-                {isGenerating ? (
-                    <div className="flex items-center justify-center h-48">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
-                ) : generatedDoc && (
-                     <div className="space-y-4">
-                        <Label className="font-body">Contenido Generado</Label>
-                         <div 
-                          contentEditable 
-                          dangerouslySetInnerHTML={{ __html: generatedDoc.documentHtmlContent }} 
-                          className="prose prose-sm max-w-none h-[300px] overflow-y-auto border rounded-md p-4 bg-white focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                         <Button variant="outline" onClick={() => handleCopyToClipboard(generatedDoc.documentHtmlContent)}><Clipboard className="mr-2 h-4 w-4" />Copiar</Button>
-                    </div>
-                )}
-
+                 <DialogFooter>
+                    <Button variant="outline" onClick={() => handleCopyToClipboard(generatedDoc?.documentHtmlContent)} disabled={!generatedDoc || isGenerating}>
+                        <Clipboard className="mr-2 h-4 w-4" />Copiar
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
 
