@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import ContractForm, { ContractFormData } from '@/components/contract-form';
 import { useToast } from '@/hooks/use-toast';
-import { initialEmployees } from './data';
+import { initialEmployees } from '../data';
 import { generateHrDocument, GenerateHrDocumentOutput } from '@/ai/flows/generate-hr-document';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -67,7 +67,7 @@ export default function ContractsPage() {
   );
   
   const expiringTrials = contracts.filter(c => 
-    c.trialPeriodEndDate && c.status === 'Activo' && differenceInDays(parseISO(c.trialPeriodEndDate), today) <= 15 && differenceInDays(parseISO(c.trialPeriodEndDate), today) >= 0
+    c.trialPeriodEndDate && c.status === 'Activo' && differenceInDays(parseISO(c.trialPeriodEndDate!), today) <= 15 && differenceInDays(parseISO(c.trialPeriodEndDate!), today) >= 0
   );
 
   const handleOpenForm = () => {
@@ -296,5 +296,3 @@ export default function ContractsPage() {
     </AppLayout>
   );
 }
-
-    

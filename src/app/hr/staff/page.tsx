@@ -21,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
-import { initialEmployees, type Employee, type WorkHistoryEvent } from './data';
+import { initialEmployees, type Employee, type WorkHistoryEvent } from '../data';
 
 export default function StaffPage() {
     const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
@@ -549,5 +549,3 @@ export default function StaffPage() {
     </AppLayout>
   );
 }
-
-    

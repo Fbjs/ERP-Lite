@@ -142,5 +142,3 @@ export default function ContractForm({ employees, onSubmit, isGenerating }: Cont
     </form>
   );
 }
-
-    
