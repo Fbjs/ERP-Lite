@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera, Building, UserCheck } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera, Building, UserCheck, Edit } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useEffect } from 'react';
@@ -65,10 +65,11 @@ const initialEmployees: Employee[] = [
 
 export default function StaffPage() {
     const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
-    const [isNewEmployeeModalOpen, setNewEmployeeModalOpen] = useState(false);
+    const [isFormModalOpen, setFormModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
     const [isGenerateDocModalOpen, setGenerateDocModalOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+    const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
     const [uploadedPhoto, setUploadedPhoto] = useState<File | null>(null);
     
     const [docType, setDocType] = useState('');
@@ -82,22 +83,51 @@ export default function StaffPage() {
         setGenerationDate(new Date());
     }, []);
 
+    const handleSaveEmployee = (employeeData: Omit<Employee, 'id' | 'status' | 'documents' | 'workHistory'>) => {
+        const today = new Date().toISOString();
 
-    const handleCreateEmployee = (newEmployeeData: Omit<Employee, 'id' | 'status' | 'documents' | 'workHistory'>) => {
-        const newEmployee: Employee = {
-            ...newEmployeeData,
-            id: `EMP${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
-            status: 'Activo',
-            documents: [],
-            workHistory: [],
-            photoUrl: `https://placehold.co/100x100/D2AD5B/131011/png?text=${newEmployeeData.name.split(' ').map(n => n[0]).join('')}`
-        };
-        setEmployees(prev => [newEmployee, ...prev]);
-        setNewEmployeeModalOpen(false);
-        toast({
-            title: "Trabajador Creado",
-            description: `Se ha añadido a ${newEmployee.name} a la nómina.`,
-        });
+        if (editingEmployee) {
+            // Editing existing employee
+            let newHistory: WorkHistoryEvent[] = [...editingEmployee.workHistory];
+            
+            // Compare fields and add to history
+            if(editingEmployee.position !== employeeData.position) {
+                newHistory.push({ date: today, event: 'Cambio de Cargo', description: `De '${editingEmployee.position}' a '${employeeData.position}'.` });
+            }
+            if(editingEmployee.salary !== employeeData.salary) {
+                newHistory.push({ date: today, event: 'Modificación Salarial', description: `De ${editingEmployee.salary.toLocaleString('es-CL')} a ${employeeData.salary.toLocaleString('es-CL')}.` });
+            }
+            if(editingEmployee.department !== employeeData.department) {
+                newHistory.push({ date: today, event: 'Cambio de Área', description: `De '${editingEmployee.department}' a '${employeeData.department}'.` });
+            }
+             if(editingEmployee.supervisor !== employeeData.supervisor) {
+                newHistory.push({ date: today, event: 'Cambio de Supervisor', description: `De '${editingEmployee.supervisor}' a '${employeeData.supervisor}'.` });
+            }
+
+            const updatedEmployee: Employee = {
+                ...editingEmployee,
+                ...employeeData,
+                workHistory: newHistory,
+            };
+            setEmployees(prev => prev.map(emp => emp.id === editingEmployee.id ? updatedEmployee : emp));
+            setSelectedEmployee(updatedEmployee); // Also update the view in the details modal if open
+            toast({ title: "Trabajador Actualizado", description: `Se han guardado los cambios para ${employeeData.name}.` });
+        } else {
+            // Creating new employee
+            const newEmployee: Employee = {
+                ...employeeData,
+                id: `EMP${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+                status: 'Activo',
+                documents: [],
+                workHistory: [{ date: today, event: 'Contratación', description: `Ingreso a la empresa como ${employeeData.position}.`}],
+                photoUrl: `https://placehold.co/100x100/D2AD5B/131011/png?text=${employeeData.name.split(' ').map(n => n[0]).join('')}`
+            };
+            setEmployees(prev => [newEmployee, ...prev]);
+            toast({ title: "Trabajador Creado", description: `Se ha añadido a ${newEmployee.name} a la nómina.` });
+        }
+
+        setFormModalOpen(false);
+        setEditingEmployee(null);
     };
 
     const handleOpenDetails = (employee: Employee) => {
@@ -105,6 +135,12 @@ export default function StaffPage() {
         setUploadedPhoto(null);
         setDetailsModalOpen(true);
     }
+    
+    const handleOpenEditModal = (employee: Employee) => {
+        setEditingEmployee(employee);
+        setDetailsModalOpen(false); // Close details modal if open
+        setFormModalOpen(true);
+    };
     
     const handleOpenGenerateDoc = (employee: Employee) => {
         setSelectedEmployee(employee);
@@ -272,7 +308,7 @@ export default function StaffPage() {
                         <Download className="mr-2 h-4 w-4" />
                         Descargar Nómina (PDF)
                     </Button>
-                    <Button onClick={() => setNewEmployeeModalOpen(true)}>
+                    <Button onClick={() => { setEditingEmployee(null); setFormModalOpen(true); }}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Nuevo Trabajador
                     </Button>
@@ -321,6 +357,7 @@ export default function StaffPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => handleOpenDetails(employee)}>Ver Ficha</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenEditModal(employee)}>Editar</DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleOpenGenerateDoc(employee)}>Generar Documento con IA</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -333,17 +370,18 @@ export default function StaffPage() {
         </CardContent>
       </Card>
       
-      <Dialog open={isNewEmployeeModalOpen} onOpenChange={setNewEmployeeModalOpen}>
+      <Dialog open={isFormModalOpen} onOpenChange={setFormModalOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">Añadir Nuevo Trabajador</DialogTitle>
+            <DialogTitle className="font-headline">{editingEmployee ? 'Editar Trabajador' : 'Añadir Nuevo Trabajador'}</DialogTitle>
             <DialogDescription className="font-body">
-              Completa los detalles para registrar a un nuevo trabajador.
+              {editingEmployee ? `Editando los datos de ${editingEmployee.name}` : 'Completa los detalles para registrar a un nuevo trabajador.'}
             </DialogDescription>
           </DialogHeader>
           <EmployeeForm
-            onSubmit={handleCreateEmployee}
-            onCancel={() => setNewEmployeeModalOpen(false)}
+            onSubmit={handleSaveEmployee}
+            onCancel={() => setFormModalOpen(false)}
+            initialData={editingEmployee}
             />
         </DialogContent>
       </Dialog>
@@ -351,10 +389,18 @@ export default function StaffPage() {
       <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
         <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">Ficha del Trabajador</DialogTitle>
-             <DialogDescription className="font-body">
-              Información completa de {selectedEmployee?.name}.
-            </DialogDescription>
+             <div className="flex justify-between items-center">
+                 <div>
+                    <DialogTitle className="font-headline">Ficha del Trabajador</DialogTitle>
+                    <DialogDescription className="font-body">
+                    Información completa de {selectedEmployee?.name}.
+                    </DialogDescription>
+                </div>
+                <Button variant="outline" onClick={() => selectedEmployee && handleOpenEditModal(selectedEmployee)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Editar
+                </Button>
+            </div>
           </DialogHeader>
           {selectedEmployee && (
             <div className="max-h-[75vh] overflow-y-auto p-1 space-y-6">
@@ -511,4 +557,3 @@ export default function StaffPage() {
     </AppLayout>
   );
 }
-
