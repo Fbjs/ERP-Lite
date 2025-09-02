@@ -42,3 +42,26 @@ export const initialEmployees: Employee[] = [
   { id: 'EMP003', name: 'Luis Martínez', rut: '11.222.333-4', position: 'Conductor Despacho', department: 'Logística', contractType: 'Indefinido', startDate: '2021-08-20', salary: 750000, status: 'Activo', phone: '+56955554444', address: 'Pasaje Corto 45', healthInsurance: 'Cruz Blanca', pensionFund: 'Capital', documents: [], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=LM', emergencyContact: { name: 'Marta Soto', phone: '+56955556666'}, supervisor: 'Ricardo Soto', workHistory: [], diasVacacionesDisponibles: 8, diasProgresivos: 1 },
   { id: 'EMP004', name: 'María Rodríguez', rut: '15.678.901-2', position: 'Administrativa', department: 'Administración', contractType: 'Indefinido', startDate: '2020-05-10', salary: 950000, status: 'Activo', phone: '+56999998888', address: 'El Roble 1010', healthInsurance: 'Fonasa', pensionFund: 'PlanVital', documents: [], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=MR', emergencyContact: { name: 'Jorge Rodríguez', phone: '+56977778888'}, supervisor: 'Carlos Araya', workHistory: [], diasVacacionesDisponibles: 18, diasProgresivos: 3 },
 ];
+
+
+export type LeaveType = 'Vacaciones' | 'Licencia Médica' | 'Permiso sin Goce' | 'Permiso Justificado';
+
+export type LeaveRequest = {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  department: Employee['department'];
+  leaveType: LeaveType;
+  startDate: Date;
+  endDate: Date;
+  days: number;
+  status: 'Pendiente' | 'Aprobado' | 'Rechazado';
+  justification?: string;
+};
+
+export const initialLeaveRequests: LeaveRequest[] = [
+  { id: 'LV-001', employeeId: 'EMP003', employeeName: 'Luis Martínez', department: 'Logística', leaveType: 'Vacaciones', startDate: new Date(2024, 6, 20), endDate: new Date(2024, 6, 26), days: 5, status: 'Aprobado', justification: 'Viaje familiar' },
+  { id: 'LV-002', employeeId: 'EMP002', employeeName: 'Ana Gómez', department: 'Producción', leaveType: 'Licencia Médica', startDate: new Date(2024, 6, 22), endDate: new Date(2024, 6, 24), days: 3, status: 'Aprobado', justification: 'Reposo médico por 3 días' },
+  { id: 'LV-003', employeeId: 'EMP001', employeeName: 'Juan Pérez', department: 'Producción', leaveType: 'Vacaciones', startDate: new Date(2024, 7, 5), endDate: new Date(2024, 7, 16), days: 10, status: 'Pendiente' },
+  { id: 'LV-004', employeeId: 'EMP004', employeeName: 'María Rodríguez', department: 'Administración', leaveType: 'Permiso sin Goce', startDate: new Date(2024, 6, 30), endDate: new Date(2024, 6, 30), days: 1, status: 'Rechazado', justification: 'Motivos personales' },
+];

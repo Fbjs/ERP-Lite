@@ -2,8 +2,7 @@
 "use client";
 import AppLayout from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { initialEmployees, Employee } from '../data';
-import { initialLeaveRequests } from '../leave/page';
+import { initialEmployees, Employee, initialLeaveRequests } from '../data';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { ArrowDown, ArrowUp, BarChart3, Clock, DollarSign, FileText, UserMinus, UserPlus, Users, Wallet } from 'lucide-react';
 import Link from 'next/link';
@@ -156,4 +155,3 @@ export default function HRReportsPage() {
         </AppLayout>
     );
 }
-

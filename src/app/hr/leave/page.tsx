@@ -10,7 +10,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { useState, useMemo } from 'react';
 import { es } from 'date-fns/locale';
 import { format, differenceInBusinessDays, parseISO } from 'date-fns';
-import { initialEmployees, Employee } from '../data';
+import { initialEmployees, Employee, initialLeaveRequests, LeaveRequest, LeaveType } from '../data';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -20,28 +20,6 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
-
-type LeaveType = 'Vacaciones' | 'Licencia Médica' | 'Permiso sin Goce' | 'Permiso Justificado';
-
-type LeaveRequest = {
-  id: string;
-  employeeId: string;
-  employeeName: string;
-  department: Employee['department'];
-  leaveType: LeaveType;
-  startDate: Date;
-  endDate: Date;
-  days: number;
-  status: 'Pendiente' | 'Aprobado' | 'Rechazado';
-  justification?: string;
-};
-
-const initialLeaveRequests: LeaveRequest[] = [
-  { id: 'LV-001', employeeId: 'EMP003', employeeName: 'Luis Martínez', department: 'Logística', leaveType: 'Vacaciones', startDate: new Date(2024, 6, 20), endDate: new Date(2024, 6, 26), days: 5, status: 'Aprobado', justification: 'Viaje familiar' },
-  { id: 'LV-002', employeeId: 'EMP002', employeeName: 'Ana Gómez', department: 'Producción', leaveType: 'Licencia Médica', startDate: new Date(2024, 6, 22), endDate: new Date(2024, 6, 24), days: 3, status: 'Aprobado', justification: 'Reposo médico por 3 días' },
-  { id: 'LV-003', employeeId: 'EMP001', employeeName: 'Juan Pérez', department: 'Producción', leaveType: 'Vacaciones', startDate: new Date(2024, 7, 5), endDate: new Date(2024, 7, 16), days: 10, status: 'Pendiente' },
-  { id: 'LV-004', employeeId: 'EMP004', employeeName: 'María Rodríguez', department: 'Administración', leaveType: 'Permiso sin Goce', startDate: new Date(2024, 6, 30), endDate: new Date(2024, 6, 30), days: 1, status: 'Rechazado', justification: 'Motivos personales' },
-];
 
 export default function LeavePage() {
   const [requests, setRequests] = useState<LeaveRequest[]>(initialLeaveRequests);
