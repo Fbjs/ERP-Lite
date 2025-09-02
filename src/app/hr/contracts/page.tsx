@@ -19,7 +19,7 @@ import { initialEmployees } from '../data';
 import { generateHrDocument, GenerateHrDocumentOutput } from '@/ai/flows/generate-hr-document';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import Logo from '@/components/logo';
+import { Textarea } from '@/components/ui/textarea';
 
 type ContractType = 'Indefinido' | 'Plazo Fijo' | 'Part-time' | 'Reemplazo' | 'Borrador';
 
@@ -51,6 +51,7 @@ export default function ContractsPage() {
   const [isGenerateDocModalOpen, setGenerateDocModalOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [docType, setDocType] = useState('');
+  const [annexData, setAnnexData] = useState({ newSalary: 0, newSchedule: '', newFunctions: '' });
   const [generatedDoc, setGeneratedDoc] = useState<GenerateHrDocumentOutput | null>(null);
   const [detailsDocContent, setDetailsDocContent] = useState<GenerateHrDocumentOutput | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -122,6 +123,7 @@ export default function ContractsPage() {
     setSelectedContract(contract);
     setDocType('');
     setGeneratedDoc(null);
+    setAnnexData({ newSalary: 0, newSchedule: '', newFunctions: '' });
     setGenerateDocModalOpen(true);
   };
   
@@ -188,6 +190,9 @@ export default function ContractsPage() {
                 employeeSalary: employee.salary,
                 employeeContractType: selectedContract.contractType,
                 documentType: docType as any,
+                newSalary: annexData.newSalary > 0 ? annexData.newSalary : undefined,
+                newSchedule: annexData.newSchedule || undefined,
+                newFunctions: annexData.newFunctions || undefined,
             });
             setGeneratedDoc(result);
             toast({
@@ -487,7 +492,7 @@ export default function ContractsPage() {
                 <div className="grid md:grid-cols-2 gap-6 pt-4">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="doc-type" className="font-body">Tipo de Documento a Generar</Label>
+                            <Label htmlFor="doc-type" className="font-body">Tipo de Documento</Label>
                             <Select value={docType} onValueChange={setDocType}>
                                 <SelectTrigger id="doc-type">
                                     <SelectValue placeholder="Selecciona un tipo..." />
@@ -499,6 +504,25 @@ export default function ContractsPage() {
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        {docType === 'Anexo de Contrato' && (
+                            <div className="space-y-4 p-4 border rounded-md">
+                                <h4 className="font-semibold">Detalles del Anexo</h4>
+                                <div className="space-y-2">
+                                    <Label htmlFor="newSalary">Nuevo Sueldo Bruto (Opcional)</Label>
+                                    <Input id="newSalary" type="number" placeholder="Ej: 950000" value={annexData.newSalary || ''} onChange={(e) => setAnnexData(p => ({...p, newSalary: Number(e.target.value)}))} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="newSchedule">Nuevo Horario (Opcional)</Label>
+                                    <Textarea id="newSchedule" placeholder="Ej: Lunes a Viernes de 09:00 a 18:00 hrs." value={annexData.newSchedule} onChange={(e) => setAnnexData(p => ({...p, newSchedule: e.target.value}))} />
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="newFunctions">Nuevas Funciones (Opcional)</Label>
+                                    <Textarea id="newFunctions" placeholder="Ej: Supervisar al equipo de pastelería..." value={annexData.newFunctions} onChange={(e) => setAnnexData(p => ({...p, newFunctions: e.target.value}))} />
+                                </div>
+                            </div>
+                        )}
+                        
                         <Button onClick={handleGenerateOtherDocument} disabled={isGenerating || !docType} className="w-full">
                             {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                             Generar Documento
@@ -507,7 +531,7 @@ export default function ContractsPage() {
 
                     <div className="space-y-2">
                          <Label className="font-body">Contenido Generado</Label>
-                         <div className="h-[300px] border rounded-md p-4 bg-secondary/50 overflow-y-auto">
+                         <div className="h-[400px] border rounded-md p-4 bg-secondary/50 overflow-y-auto">
                             {isGenerating && !generatedDoc ? (
                                 <div className="flex items-center justify-center h-full">
                                     <Loader2 className="h-8 w-8 animate-spin text-primary" />

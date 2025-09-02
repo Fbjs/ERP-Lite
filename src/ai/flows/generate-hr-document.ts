@@ -58,7 +58,10 @@ Tipo de Documento a Generar: {{{documentType}}}
 Contenido a generar:
 - Si es un 'Certificado de Antigüedad', debe certificar en HTML que el empleado trabaja en la empresa desde su fecha de inicio, su cargo y que se extiende para los fines que el interesado estime convenientes.
 - Si es un 'Contrato de Trabajo', debe ser un borrador HTML básico que incluya las cláusulas esenciales como identificación de las partes, descripción del cargo, jornada, remuneración y duración del contrato.
-- Si es un 'Anexo de Contrato', debe ser un borrador HTML que modifique una cláusula específica del contrato original.
+- Si es un 'Anexo de Contrato', genera un anexo que modifique el contrato original. Debe identificar a las partes y luego detallar las cláusulas que se modifican. Utiliza la siguiente información para generar las cláusulas modificadas. Si un campo no se proporciona, no incluyas esa cláusula de modificación:
+  - Nuevo Sueldo Bruto: {{{newSalary}}} CLP. Redacta una cláusula que establezca que la nueva remuneración bruta será este monto a partir de una fecha específica (usa un placeholder como [Fecha de vigencia del cambio]).
+  - Nuevo Horario: {{{newSchedule}}}. Redacta una cláusula que detalle la nueva jornada de trabajo.
+  - Nuevas Funciones: {{{newFunctions}}}. Redacta una cláusula que describa las nuevas funciones y responsabilidades que asumirá el trabajador.
 - Si es un 'Finiquito', debe ser un borrador HTML que detalle el término de la relación laboral, incluyendo causales y montos (usa placeholders como "[Causal de Término]", "[Monto Indemnización Años de Servicio]", "[Monto Vacaciones Proporcionales]").
 `,
 });
