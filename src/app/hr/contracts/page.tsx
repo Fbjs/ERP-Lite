@@ -346,7 +346,6 @@ export default function ContractsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => handleOpenDetails(contract)}>Ver Detalles</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadPdf()}><Download className="mr-2 h-4 w-4" />Descargar PDF</DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleOpenGenerateDoc(contract)}>Generar Documento con IA</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -403,38 +402,49 @@ export default function ContractsPage() {
                     <DialogTitle className="font-headline">Detalles del Contrato: {selectedContract?.id}</DialogTitle>
                 </DialogHeader>
                 {selectedContract && (
-                     <div className="max-h-[75vh] overflow-y-auto p-1 space-y-4" ref={pdfContentRef}>
-                        <div className="space-y-4 p-4 rounded-lg border">
-                             <div className="flex justify-between items-center">
-                                <Logo className="w-24" />
-                                <h3 className="text-xl font-bold font-headline text-primary">CONTRATO DE TRABAJO</h3>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div><span className="font-semibold">Trabajador:</span> {selectedContract.employeeName}</div>
-                                <div><span className="font-semibold">RUT:</span> {selectedContract.employeeRut}</div>
-                                <div><span className="font-semibold">Tipo:</span> <Badge>{selectedContract.contractType}</Badge></div>
-                                <div><span className="font-semibold">Estado:</span> <Badge variant={selectedContract.status === 'Activo' ? 'default' : 'secondary'}>{selectedContract.status}</Badge></div>
-                                <div><span className="font-semibold">Fecha de Inicio:</span> {format(parseISO(selectedContract.startDate), 'P', {locale: es})}</div>
-                                <div><span className="font-semibold">Fecha de Término:</span> {selectedContract.endDate ? format(parseISO(selectedContract.endDate), 'P', {locale: es}) : 'Indefinido'}</div>
-                                {selectedContract.trialPeriodEndDate && (
-                                     <div className="col-span-2 text-amber-700"><span className="font-semibold">Fin Período Prueba:</span> {format(parseISO(selectedContract.trialPeriodEndDate), 'P', {locale: es})}</div>
-                                )}
+                    <>
+                        <div className="max-h-[75vh] overflow-y-auto p-1 space-y-4" >
+                            <div ref={pdfContentRef} className="p-4 bg-white text-black space-y-4">
+                                <div className="space-y-4 p-4 rounded-lg border">
+                                    <div className="flex justify-between items-center">
+                                        <Logo className="w-24" />
+                                        <h3 className="text-xl font-bold font-headline text-primary">CONTRATO DE TRABAJO</h3>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4 text-sm">
+                                        <div><span className="font-semibold">Trabajador:</span> {selectedContract.employeeName}</div>
+                                        <div><span className="font-semibold">RUT:</span> {selectedContract.employeeRut}</div>
+                                        <div><span className="font-semibold">Tipo:</span> <Badge>{selectedContract.contractType}</Badge></div>
+                                        <div><span className="font-semibold">Estado:</span> <Badge variant={selectedContract.status === 'Activo' ? 'default' : 'secondary'}>{selectedContract.status}</Badge></div>
+                                        <div><span className="font-semibold">Fecha de Inicio:</span> {format(parseISO(selectedContract.startDate), 'P', {locale: es})}</div>
+                                        <div><span className="font-semibold">Fecha de Término:</span> {selectedContract.endDate ? format(parseISO(selectedContract.endDate), 'P', {locale: es}) : 'Indefinido'}</div>
+                                        {selectedContract.trialPeriodEndDate && (
+                                            <div className="col-span-2 text-amber-700"><span className="font-semibold">Fin Período Prueba:</span> {format(parseISO(selectedContract.trialPeriodEndDate), 'P', {locale: es})}</div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="h-[400px] border rounded-md p-4 bg-secondary/50 overflow-y-auto">
+                                    {isGenerating ? (
+                                        <div className="flex items-center justify-center h-full">
+                                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                        </div>
+                                    ) : detailsDocContent ? (
+                                        <Textarea readOnly value={detailsDocContent.documentContent} className="min-h-full font-mono text-xs bg-white" />
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-center text-muted-foreground">
+                                            <p>No se pudo cargar el contenido del contrato.</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                        <div className="h-[400px] border rounded-md p-4 bg-secondary/50 overflow-y-auto">
-                            {isGenerating ? (
-                                <div className="flex items-center justify-center h-full">
-                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                                </div>
-                            ) : detailsDocContent ? (
-                                <Textarea readOnly value={detailsDocContent.documentContent} className="min-h-full font-mono text-xs bg-white" />
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-center text-muted-foreground">
-                                    <p>No se pudo cargar el contenido del contrato.</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Cerrar</Button>
+                            <Button onClick={handleDownloadPdf}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Descargar PDF
+                            </Button>
+                        </DialogFooter>
+                    </>
                 )}
             </DialogContent>
         </Dialog>
