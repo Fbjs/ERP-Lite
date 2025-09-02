@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import ContractForm, { ContractFormData } from '@/components/contract-form';
 import { useToast } from '@/hooks/use-toast';
-import { initialEmployees } from '../staff/page';
+import { initialEmployees } from './data';
 import { generateHrDocument, GenerateHrDocumentOutput } from '@/ai/flows/generate-hr-document';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -296,3 +296,5 @@ export default function ContractsPage() {
     </AppLayout>
   );
 }
+
+    
