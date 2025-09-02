@@ -53,6 +53,7 @@ export default function ContractsPage() {
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [docType, setDocType] = useState('');
   const [generatedDoc, setGeneratedDoc] = useState<GenerateHrDocumentOutput | null>(null);
+  const [detailsDocContent, setDetailsDocContent] = useState<GenerateHrDocumentOutput | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const pdfContentRef = useRef<HTMLDivElement>(null);
@@ -86,9 +87,36 @@ export default function ContractsPage() {
     setIsFormModalOpen(true);
   }
   
-  const handleOpenDetails = (contract: Contract) => {
+  const handleOpenDetails = async (contract: Contract) => {
     setSelectedContract(contract);
+    setDetailsDocContent(null);
     setDetailsModalOpen(true);
+    setIsGenerating(true); // Reuse for loading state
+    
+    try {
+        const employee = initialEmployees.find(e => e.rut === contract.employeeRut);
+        if (!employee) throw new Error("Empleado no encontrado.");
+
+        const result = await generateHrDocument({
+            employeeName: employee.name,
+            employeeRut: employee.rut,
+            employeePosition: employee.position,
+            employeeStartDate: contract.startDate,
+            employeeSalary: employee.salary,
+            employeeContractType: contract.contractType,
+            documentType: 'Contrato de Trabajo', // Generate the base contract content
+        });
+        setDetailsDocContent(result);
+    } catch (error) {
+        console.error(error);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Ocurrió un error al cargar el contenido del contrato.',
+        });
+    } finally {
+        setIsGenerating(false);
+    }
   }
   
   const handleOpenGenerateDoc = (contract: Contract) => {
@@ -370,12 +398,12 @@ export default function ContractsPage() {
         </Dialog>
 
          <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
-            <DialogContent>
+            <DialogContent className="sm:max-w-3xl">
                 <DialogHeader>
                     <DialogTitle className="font-headline">Detalles del Contrato: {selectedContract?.id}</DialogTitle>
                 </DialogHeader>
                 {selectedContract && (
-                     <div ref={pdfContentRef}>
+                     <div className="max-h-[75vh] overflow-y-auto p-1 space-y-4" ref={pdfContentRef}>
                         <div className="space-y-4 p-4 rounded-lg border">
                              <div className="flex justify-between items-center">
                                 <Logo className="w-24" />
@@ -392,6 +420,19 @@ export default function ContractsPage() {
                                      <div className="col-span-2 text-amber-700"><span className="font-semibold">Fin Período Prueba:</span> {format(parseISO(selectedContract.trialPeriodEndDate), 'P', {locale: es})}</div>
                                 )}
                             </div>
+                        </div>
+                        <div className="h-[400px] border rounded-md p-4 bg-secondary/50 overflow-y-auto">
+                            {isGenerating ? (
+                                <div className="flex items-center justify-center h-full">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                                </div>
+                            ) : detailsDocContent ? (
+                                <Textarea readOnly value={detailsDocContent.documentContent} className="min-h-full font-mono text-xs bg-white" />
+                            ) : (
+                                <div className="flex items-center justify-center h-full text-center text-muted-foreground">
+                                    <p>No se pudo cargar el contenido del contrato.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
