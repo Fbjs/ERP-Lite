@@ -13,6 +13,8 @@ import {
     GenerateHrDocumentOutput,
     GenerateHrDocumentOutputSchema
 } from "@/ai/schemas/hr-document-schemas";
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export async function generateHrDocument(input: GenerateHrDocumentInput): Promise<GenerateHrDocumentOutput> {
   return generateHrDocumentFlow(input);
@@ -28,7 +30,16 @@ const prompt = ai.definePrompt({
   name: 'generateHrDocumentPrompt',
   input: {schema: GenerateHrDocumentInputSchema},
   output: {schema: GenerateHrDocumentOutputSchema},
-  prompt: `Eres un asistente experto en Recursos Humanos para una empresa chilena. Tu tarea es generar un documento laboral basado en la información proporcionada. El tono debe ser formal y el contenido debe ser preciso y cumplir con la estructura estándar para este tipo de documentos en Chile.
+  prompt: `Eres un asistente experto en Recursos Humanos para una empresa chilena. Tu tarea es generar un documento laboral basado en la información proporcionada.
+
+Primero, crea un encabezado corporativo claro y profesional. Este encabezado debe incluir:
+1.  El título del documento en mayúsculas (ej: "CONTRATO DE TRABAJO").
+2.  Los datos completos de la empresa.
+3.  La fecha de generación del documento.
+
+Después del encabezado, genera el contenido del documento. El tono debe ser formal y el contenido preciso, cumpliendo con la estructura estándar para este tipo de documentos en Chile. No incluyas la fecha de nuevo en el cuerpo del documento.
+
+Fecha de Generación: ${format(new Date(), 'PPP', { locale: es })}
 
 Datos de la Empresa:
 - Nombre: ${companyDetails.name}
@@ -45,12 +56,11 @@ Datos del Trabajador:
 
 Tipo de Documento a Generar: {{{documentType}}}
 
-Por favor, genera el contenido del documento.
+Contenido a generar:
 - Si es un 'Certificado de Antigüedad', debe certificar que el empleado trabaja en la empresa desde su fecha de inicio, su cargo y que se extiende para los fines que el interesado estime convenientes.
 - Si es un 'Contrato de Trabajo', debe ser un borrador básico que incluya las cláusulas esenciales como identificación de las partes, descripción del cargo, jornada, remuneración y duración del contrato. Utiliza placeholders como "[Lugar de Trabajo]" o "[Descripción de Funciones Específicas]" donde sea necesario.
 - Si es un 'Anexo de Contrato', debe ser un borrador que modifique una cláusula específica del contrato original. Utiliza placeholders como "[Cláusula a modificar]" y "[Nuevo contenido de la cláusula]".
 - Si es un 'Finiquito', debe ser un borrador que detalle el término de la relación laboral, incluyendo causales y montos (usa placeholders como "[Causal de Término]", "[Monto Indemnización Años de Servicio]", "[Monto Vacaciones Proporcionales]").
-- No incluyas la fecha de generación dentro del contenido del documento, solo el cuerpo principal del mismo.
 `,
 });
 
