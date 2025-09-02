@@ -16,6 +16,6 @@ export const GenerateHrDocumentInputSchema = z.object({
 export type GenerateHrDocumentInput = z.infer<typeof GenerateHrDocumentInputSchema>;
 
 export const GenerateHrDocumentOutputSchema = z.object({
-  documentContent: z.string().describe('El contenido completo del documento generado en formato de texto plano.'),
+  documentHtmlContent: z.string().describe('El contenido completo del documento generado en formato HTML.'),
 });
 export type GenerateHrDocumentOutput = z.infer<typeof GenerateHrDocumentOutputSchema>;

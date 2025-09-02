@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, FileText, Bell, ShieldAlert, FileWarning, ArrowLeft, Search, Wand2, Loader2, Clipboard } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, FileText, Bell, ShieldAlert, FileWarning, ArrowLeft, Search, Wand2, Loader2, Clipboard, Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -17,7 +17,6 @@ import ContractForm, { ContractFormData } from '@/components/contract-form';
 import { useToast } from '@/hooks/use-toast';
 import { initialEmployees } from '../data';
 import { generateHrDocument, GenerateHrDocumentOutput } from '@/ai/flows/generate-hr-document';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import Logo from '@/components/logo';
@@ -207,7 +206,7 @@ export default function ContractsPage() {
         }
     };
   
-    const handleCopyToClipboard = (content: string) => {
+    const handleCopyToClipboard = (content: string | undefined) => {
         if (!content) return;
         navigator.clipboard.writeText(content);
         toast({
@@ -227,8 +226,15 @@ export default function ContractsPage() {
             const pdf = new jsPDF('p', 'px', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             
-            pdf.addImage(imgData, 'PNG', 15, 15, pdfWidth - 30, 0);
-            pdf.save(`contrato-${selectedContract?.id}.pdf`);
+            pdf.html(input, {
+              callback: function(doc) {
+                doc.save(`contrato-${selectedContract?.id}.pdf`);
+              },
+              x: 15,
+              y: 15,
+              width: 180,
+              windowWidth: 650
+            });
             
             toast({
                 title: "PDF Descargado",
@@ -380,14 +386,18 @@ export default function ContractsPage() {
                                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                 </div>
                             ) : generatedDoc ? (
-                                <Textarea readOnly value={generatedDoc.documentContent} className="min-h-full font-mono text-xs bg-white" />
+                                <div 
+                                  contentEditable 
+                                  dangerouslySetInnerHTML={{ __html: generatedDoc.documentHtmlContent }} 
+                                  className="prose prose-sm max-w-none bg-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+                                />
                             ) : (
                                 <div className="flex items-center justify-center h-full text-center text-muted-foreground">
                                     <p>El borrador del contrato aparecerá aquí.</p>
                                 </div>
                             )}
                          </div>
-                         <Button variant="outline" onClick={() => handleCopyToClipboard(generatedDoc?.documentContent || '')} disabled={!generatedDoc || isGenerating}>
+                         <Button variant="outline" onClick={() => handleCopyToClipboard(generatedDoc?.documentHtmlContent)} disabled={!generatedDoc || isGenerating}>
                             <Clipboard className="mr-2 h-4 w-4" />
                             Copiar al Portapapeles
                         </Button>
@@ -404,11 +414,11 @@ export default function ContractsPage() {
                 {selectedContract && (
                     <>
                         <div className="max-h-[75vh] overflow-y-auto p-1 space-y-4" >
-                            <div ref={pdfContentRef} className="p-4 bg-white text-black space-y-4">
+                            <div className="p-4 bg-white text-black space-y-4">
                                 <div className="space-y-4 p-4 rounded-lg border">
                                     <div className="flex justify-between items-center">
                                         <Logo className="w-24" />
-                                        <h3 className="text-xl font-bold font-headline text-primary">CONTRATO DE TRABAJO</h3>
+                                        <h3 className="text-xl font-bold font-headline text-primary">RESUMEN DE CONTRATO</h3>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div><span className="font-semibold">Trabajador:</span> {selectedContract.employeeName}</div>
@@ -428,7 +438,12 @@ export default function ContractsPage() {
                                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                         </div>
                                     ) : detailsDocContent ? (
-                                        <Textarea readOnly value={detailsDocContent.documentContent} className="min-h-full font-mono text-xs bg-white" />
+                                         <div 
+                                          ref={pdfContentRef}
+                                          contentEditable 
+                                          dangerouslySetInnerHTML={{ __html: detailsDocContent.documentHtmlContent }} 
+                                          className="prose prose-sm max-w-none bg-white p-4 rounded focus:outline-none focus:ring-2 focus:ring-primary min-h-full"
+                                        />
                                     ) : (
                                         <div className="flex items-center justify-center h-full text-center text-muted-foreground">
                                             <p>No se pudo cargar el contenido del contrato.</p>
@@ -439,7 +454,7 @@ export default function ContractsPage() {
                         </div>
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Cerrar</Button>
-                            <Button onClick={handleDownloadPdf}>
+                            <Button onClick={handleDownloadPdf} disabled={isGenerating || !detailsDocContent}>
                                 <Download className="mr-2 h-4 w-4" />
                                 Descargar PDF
                             </Button>
@@ -483,8 +498,12 @@ export default function ContractsPage() {
                 ) : generatedDoc && (
                      <div className="space-y-4">
                         <Label className="font-body">Contenido Generado</Label>
-                        <Textarea readOnly value={generatedDoc.documentContent} className="min-h-[250px] font-mono text-xs bg-secondary"/>
-                         <Button variant="outline" onClick={() => handleCopyToClipboard(generatedDoc.documentContent)}><Clipboard className="mr-2 h-4 w-4" />Copiar</Button>
+                         <div 
+                          contentEditable 
+                          dangerouslySetInnerHTML={{ __html: generatedDoc.documentHtmlContent }} 
+                          className="prose prose-sm max-w-none h-[300px] overflow-y-auto border rounded-md p-4 bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                         <Button variant="outline" onClick={() => handleCopyToClipboard(generatedDoc.documentHtmlContent)}><Clipboard className="mr-2 h-4 w-4" />Copiar</Button>
                     </div>
                 )}
 
