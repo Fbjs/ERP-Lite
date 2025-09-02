@@ -286,7 +286,7 @@ export default function StaffPage() {
                             <td className="p-2">${employee.salary.toLocaleString('es-CL')}</td>
                             <td className="p-2">{employee.healthInsurance}</td>
                             <td className="p-2">{employee.pensionFund}</td>
-                            <td className="p-2">{new Date(employee.startDate).toLocaleDateString('es-CL')}</td>
+                            <td className="p-2">{new Date(employee.startDate + 'T00:00:00').toLocaleDateString('es-CL')}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -455,7 +455,7 @@ export default function StaffPage() {
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Tipo Contrato</p><p>{selectedEmployee.contractType}</p></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Estado</p><Badge variant={selectedEmployee.status === 'Activo' ? 'default' : 'secondary'}>{selectedEmployee.status}</Badge></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Supervisor</p><p>{selectedEmployee.supervisor}</p></div>
-                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Fecha Ingreso</p><p>{new Date(selectedEmployee.startDate).toLocaleDateString('es-ES')}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Fecha Ingreso</p><p>{new Date(selectedEmployee.startDate + 'T00:00:00').toLocaleDateString('es-ES')}</p></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Previsión Salud</p><p>{selectedEmployee.healthInsurance}</p></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">AFP</p><p>{selectedEmployee.pensionFund}</p></div>
                          <div className="space-y-1 col-span-full"><p className="font-semibold text-muted-foreground text-xs">Sueldo Bruto</p><p className="text-lg font-bold">${selectedEmployee.salary.toLocaleString('es-CL')}</p></div>
