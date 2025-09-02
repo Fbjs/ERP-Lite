@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -11,7 +12,7 @@ type EmployeeData = {
     name: string;
     rut: string;
     position: string;
-    role: 'Admin' | 'Producción' | 'Ventas' | 'Logística' | 'Contabilidad';
+    department: 'Producción' | 'Ventas' | 'Logística' | 'Administración' | 'Gerencia';
     contractType: string;
     startDate: string;
     salary: number;
@@ -19,6 +20,11 @@ type EmployeeData = {
     address: string;
     healthInsurance: string;
     pensionFund: string;
+    supervisor: string;
+    emergencyContact: {
+        name: string;
+        phone: string;
+    };
     photoUrl?: string;
 };
 
@@ -32,7 +38,7 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
   const [name, setName] = useState(initialData.name || '');
   const [rut, setRut] = useState(initialData.rut || '');
   const [position, setPosition] = useState(initialData.position || '');
-  const [role, setRole] = useState<EmployeeData['role']>(initialData.role || 'Producción');
+  const [department, setDepartment] = useState<EmployeeData['department']>(initialData.department || 'Producción');
   const [contractType, setContractType] = useState(initialData.contractType || 'Indefinido');
   const [startDate, setStartDate] = useState(initialData.startDate || '');
   const [salary, setSalary] = useState(initialData.salary || 0);
@@ -40,129 +46,79 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
   const [address, setAddress] = useState(initialData.address || '');
   const [healthInsurance, setHealthInsurance] = useState(initialData.healthInsurance || '');
   const [pensionFund, setPensionFund] = useState(initialData.pensionFund || '');
+  const [supervisor, setSupervisor] = useState(initialData.supervisor || '');
+  const [emergencyContactName, setEmergencyContactName] = useState(initialData.emergencyContact?.name || '');
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState(initialData.emergencyContact?.phone || '');
 
   const isEditing = !!initialData.name;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ name, rut, position, role, contractType, startDate, salary, phone, address, healthInsurance, pensionFund });
+    onSubmit({ name, rut, position, department, contractType, startDate, salary, phone, address, healthInsurance, pensionFund, supervisor, emergencyContact: { name: emergencyContactName, phone: emergencyContactPhone } });
   };
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-4 py-4 font-body max-h-[70vh] overflow-y-auto px-2">
+      <h3 className="font-headline text-lg">Datos Personales</h3>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="name" className="text-right">
-          Nombre
-        </Label>
-        <Input
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="col-span-3"
-          required
-        />
+        <Label htmlFor="name" className="text-right">Nombre</Label>
+        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" required/>
       </div>
        <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="rut" className="text-right">
-          RUT
-        </Label>
-        <Input
-          id="rut"
-          value={rut}
-          onChange={(e) => setRut(e.target.value)}
-          className="col-span-3"
-          placeholder="12.345.678-9"
-          required
-        />
+        <Label htmlFor="rut" className="text-right">RUT</Label>
+        <Input id="rut" value={rut} onChange={(e) => setRut(e.target.value)} className="col-span-3" placeholder="12.345.678-9" required/>
       </div>
        <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="phone" className="text-right">
-          Teléfono
-        </Label>
-        <Input
-          id="phone"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="col-span-3"
-          placeholder="+56912345678"
-          required
-        />
+        <Label htmlFor="phone" className="text-right">Teléfono</Label>
+        <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="col-span-3" placeholder="+56912345678" required/>
       </div>
        <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="address" className="text-right">
-          Dirección
-        </Label>
-        <Input
-          id="address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="col-span-3"
-          required
-        />
+        <Label htmlFor="address" className="text-right">Dirección</Label>
+        <Input id="address" value={address} onChange={(e) => setAddress(e.target.value)} className="col-span-3" required/>
+      </div>
+       <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="emergencyContactName" className="text-right">Cont. Emergencia</Label>
+        <Input id="emergencyContactName" value={emergencyContactName} onChange={(e) => setEmergencyContactName(e.target.value)} className="col-span-3" placeholder="Nombre del contacto" required/>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="position" className="text-right">
-          Cargo
-        </Label>
-        <Input
-          id="position"
-          value={position}
-          onChange={(e) => setPosition(e.target.value)}
-          className="col-span-3"
-          required
-        />
+        <Label htmlFor="emergencyContactPhone" className="text-right">Tel. Emergencia</Label>
+        <Input id="emergencyContactPhone" value={emergencyContactPhone} onChange={(e) => setEmergencyContactPhone(e.target.value)} className="col-span-3" placeholder="+569..." required/>
+      </div>
+
+      <h3 className="font-headline text-lg pt-4 border-t">Datos Laborales</h3>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="position" className="text-right">Cargo</Label>
+        <Input id="position" value={position} onChange={(e) => setPosition(e.target.value)} className="col-span-3" required/>
       </div>
        <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="role" className="text-right">
-          Rol
-        </Label>
-         <Select value={role} onValueChange={(value) => setRole(value as EmployeeData['role'])}>
-            <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Selecciona un rol" />
-            </SelectTrigger>
+        <Label htmlFor="department" className="text-right">Área/Depto.</Label>
+         <Select value={department} onValueChange={(value) => setDepartment(value as EmployeeData['department'])}>
+            <SelectTrigger className="col-span-3"><SelectValue placeholder="Selecciona un área" /></SelectTrigger>
             <SelectContent>
-                <SelectItem value="Admin">Admin</SelectItem>
                 <SelectItem value="Producción">Producción</SelectItem>
                 <SelectItem value="Ventas">Ventas</SelectItem>
                 <SelectItem value="Logística">Logística</SelectItem>
-                <SelectItem value="Contabilidad">Contabilidad</SelectItem>
+                <SelectItem value="Administración">Administración</SelectItem>
+                <SelectItem value="Gerencia">Gerencia</SelectItem>
             </SelectContent>
         </Select>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="startDate" className="text-right">
-          Fecha Ingreso
-        </Label>
-        <Input
-          id="startDate"
-          type="date"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="col-span-3"
-          required
-        />
-      </div>
-       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="salary" className="text-right">
-          Sueldo Bruto
-        </Label>
-        <Input
-          id="salary"
-          type="number"
-          value={salary}
-          onChange={(e) => setSalary(parseInt(e.target.value, 10) || 0)}
-          className="col-span-3"
-          required
-        />
+        <Label htmlFor="supervisor" className="text-right">Supervisor</Label>
+        <Input id="supervisor" value={supervisor} onChange={(e) => setSupervisor(e.target.value)} className="col-span-3" placeholder="Nombre del supervisor directo" required/>
       </div>
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="contractType" className="text-right">
-          Contrato
-        </Label>
+        <Label htmlFor="startDate" className="text-right">Fecha Ingreso</Label>
+        <Input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="col-span-3" required/>
+      </div>
+       <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="salary" className="text-right">Sueldo Bruto</Label>
+        <Input id="salary" type="number" value={salary} onChange={(e) => setSalary(parseInt(e.target.value, 10) || 0)} className="col-span-3" required/>
+      </div>
+      <div className="grid grid-cols-4 items-center gap-4">
+        <Label htmlFor="contractType" className="text-right">Contrato</Label>
          <Select value={contractType} onValueChange={setContractType}>
-            <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Selecciona un tipo" />
-            </SelectTrigger>
+            <SelectTrigger className="col-span-3"><SelectValue placeholder="Selecciona un tipo" /></SelectTrigger>
             <SelectContent>
                 <SelectItem value="Indefinido">Indefinido</SelectItem>
                 <SelectItem value="Plazo Fijo">Plazo Fijo</SelectItem>
@@ -172,30 +128,12 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
         </Select>
       </div>
         <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="healthInsurance" className="text-right">
-          Previsión
-        </Label>
-        <Input
-          id="healthInsurance"
-          value={healthInsurance}
-          onChange={(e) => setHealthInsurance(e.target.value)}
-          className="col-span-3"
-          placeholder="Ej: Fonasa, Consalud..."
-          required
-        />
+        <Label htmlFor="healthInsurance" className="text-right">Previsión</Label>
+        <Input id="healthInsurance" value={healthInsurance} onChange={(e) => setHealthInsurance(e.target.value)} className="col-span-3" placeholder="Ej: Fonasa, Consalud..." required/>
       </div>
        <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="pensionFund" className="text-right">
-          AFP
-        </Label>
-        <Input
-          id="pensionFund"
-          value={pensionFund}
-          onChange={(e) => setPensionFund(e.target.value)}
-          className="col-span-3"
-          placeholder="Ej: Modelo, Habitat..."
-          required
-        />
+        <Label htmlFor="pensionFund" className="text-right">AFP</Label>
+        <Input id="pensionFund" value={pensionFund} onChange={(e) => setPensionFund(e.target.value)} className="col-span-3" placeholder="Ej: Modelo, Habitat..." required/>
       </div>
       <DialogFooter className="sticky bottom-0 bg-background pt-4 pb-0 -mx-2 -mb-4">
         <Button variant="outline" type="button" onClick={onCancel}>
@@ -206,3 +144,4 @@ export default function EmployeeForm({ onSubmit, onCancel, initialData = {} }: E
     </form>
   );
 }
+

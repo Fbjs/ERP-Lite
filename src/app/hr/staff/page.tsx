@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera, Building, UserCheck } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useEffect } from 'react';
@@ -26,12 +26,18 @@ type Document = {
     url: string;
 };
 
+type WorkHistoryEvent = {
+    date: string;
+    event: string;
+    description: string;
+};
+
 type Employee = {
     id: string;
     name: string;
     rut: string;
     position: string;
-    role: 'Admin' | 'Producción' | 'Ventas' | 'Logística' | 'Contabilidad';
+    department: 'Producción' | 'Ventas' | 'Logística' | 'Administración' | 'Gerencia';
     contractType: string;
     startDate: string;
     salary: number;
@@ -42,13 +48,19 @@ type Employee = {
     pensionFund: string;
     documents: Document[];
     photoUrl?: string;
+    emergencyContact: {
+        name: string;
+        phone: string;
+    };
+    supervisor: string;
+    workHistory: WorkHistoryEvent[];
 };
 
 const initialEmployees: Employee[] = [
-  { id: 'EMP001', name: 'Juan Pérez', rut: '12.345.678-9', position: 'Panadero Jefe', role: 'Producción', contractType: 'Indefinido', startDate: '2022-01-15', salary: 850000, status: 'Activo', phone: '+56987654321', address: 'Av. Siempre Viva 742', healthInsurance: 'Fonasa', pensionFund: 'Modelo', documents: [{name: 'Contrato.pdf', url: '#'}], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=JP' },
-  { id: 'EMP002', name: 'Ana Gómez', rut: '23.456.789-0', position: 'Auxiliar de Pastelería', role: 'Producción', contractType: 'Plazo Fijo', startDate: '2023-03-01', salary: 600000, status: 'Activo', phone: '+56912345678', address: 'Calle Falsa 123', healthInsurance: 'Consalud', pensionFund: 'Habitat', documents: [], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=AG' },
-  { id: 'EMP003', name: 'Luis Martínez', rut: '11.222.333-4', position: 'Conductor Despacho', role: 'Logística', contractType: 'Indefinido', startDate: '2021-08-20', salary: 750000, status: 'Vacaciones', phone: '+56955554444', address: 'Pasaje Corto 45', healthInsurance: 'Cruz Blanca', pensionFund: 'Capital', documents: [], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=LM' },
-  { id: 'EMP004', name: 'María Rodríguez', rut: '15.678.901-2', position: 'Administrativa', role: 'Admin', contractType: 'Indefinido', startDate: '2020-05-10', salary: 950000, status: 'Activo', phone: '+56999998888', address: 'El Roble 1010', healthInsurance: 'Fonasa', pensionFund: 'PlanVital', documents: [], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=MR' },
+  { id: 'EMP001', name: 'Juan Pérez', rut: '12.345.678-9', position: 'Panadero Jefe', department: 'Producción', contractType: 'Indefinido', startDate: '2022-01-15', salary: 850000, status: 'Activo', phone: '+56987654321', address: 'Av. Siempre Viva 742', healthInsurance: 'Fonasa', pensionFund: 'Modelo', documents: [{name: 'Contrato.pdf', url: '#'}], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=JP', emergencyContact: { name: 'Ana Pérez', phone: '+56911112222'}, supervisor: 'Carlos Araya', workHistory: [{date: '2023-01-15', event: 'Promoción', description: 'Promovido a Panadero Jefe.'}] },
+  { id: 'EMP002', name: 'Ana Gómez', rut: '23.456.789-0', position: 'Auxiliar de Pastelería', department: 'Producción', contractType: 'Plazo Fijo', startDate: '2023-03-01', salary: 600000, status: 'Activo', phone: '+56912345678', address: 'Calle Falsa 123', healthInsurance: 'Consalud', pensionFund: 'Habitat', documents: [], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=AG', emergencyContact: { name: 'Luis Gómez', phone: '+56933334444'}, supervisor: 'Juan Pérez', workHistory: [] },
+  { id: 'EMP003', name: 'Luis Martínez', rut: '11.222.333-4', position: 'Conductor Despacho', department: 'Logística', contractType: 'Indefinido', startDate: '2021-08-20', salary: 750000, status: 'Vacaciones', phone: '+56955554444', address: 'Pasaje Corto 45', healthInsurance: 'Cruz Blanca', pensionFund: 'Capital', documents: [], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=LM', emergencyContact: { name: 'Marta Soto', phone: '+56955556666'}, supervisor: 'Ricardo Soto', workHistory: [] },
+  { id: 'EMP004', name: 'María Rodríguez', rut: '15.678.901-2', position: 'Administrativa', department: 'Administración', contractType: 'Indefinido', startDate: '2020-05-10', salary: 950000, status: 'Activo', phone: '+56999998888', address: 'El Roble 1010', healthInsurance: 'Fonasa', pensionFund: 'PlanVital', documents: [], photoUrl: 'https://placehold.co/100x100/D2AD5B/131011/png?text=MR', emergencyContact: { name: 'Jorge Rodríguez', phone: '+56977778888'}, supervisor: 'Carlos Araya', workHistory: [] },
 ];
 
 export default function StaffPage() {
@@ -71,12 +83,13 @@ export default function StaffPage() {
     }, []);
 
 
-    const handleCreateEmployee = (newEmployeeData: Omit<Employee, 'id' | 'status' | 'documents'>) => {
+    const handleCreateEmployee = (newEmployeeData: Omit<Employee, 'id' | 'status' | 'documents' | 'workHistory'>) => {
         const newEmployee: Employee = {
             ...newEmployeeData,
             id: `EMP${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
             status: 'Activo',
             documents: [],
+            workHistory: [],
             photoUrl: `https://placehold.co/100x100/D2AD5B/131011/png?text=${newEmployeeData.name.split(' ').map(n => n[0]).join('')}`
         };
         setEmployees(prev => [newEmployee, ...prev]);
@@ -274,7 +287,7 @@ export default function StaffPage() {
                     <TableHead>Nombre</TableHead>
                     <TableHead>RUT</TableHead>
                     <TableHead>Cargo</TableHead>
-                    <TableHead>Rol</TableHead>
+                    <TableHead>Área</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>
                       <span className="sr-only">Acciones</span>
@@ -293,7 +306,7 @@ export default function StaffPage() {
                       </TableCell>
                       <TableCell data-label="RUT">{employee.rut}</TableCell>
                       <TableCell data-label="Cargo">{employee.position}</TableCell>
-                      <TableCell data-label="Rol"><Badge variant="secondary">{employee.role}</Badge></TableCell>
+                      <TableCell data-label="Área"><Badge variant="secondary">{employee.department}</Badge></TableCell>
                       <TableCell data-label="Estado">
                         <Badge variant={employee.status === 'Activo' ? 'default' : 'secondary'}>{employee.status}</Badge>
                       </TableCell>
@@ -308,7 +321,7 @@ export default function StaffPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => handleOpenDetails(employee)}>Ver Ficha</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleOpenGenerateDoc(employee)}>Generar Documento</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleOpenGenerateDoc(employee)}>Generar Documento con IA</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -321,7 +334,7 @@ export default function StaffPage() {
       </Card>
       
       <Dialog open={isNewEmployeeModalOpen} onOpenChange={setNewEmployeeModalOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-headline">Añadir Nuevo Trabajador</DialogTitle>
             <DialogDescription className="font-body">
@@ -336,7 +349,7 @@ export default function StaffPage() {
       </Dialog>
 
       <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle className="font-headline">Ficha del Trabajador</DialogTitle>
              <DialogDescription className="font-body">
@@ -344,8 +357,8 @@ export default function StaffPage() {
             </DialogDescription>
           </DialogHeader>
           {selectedEmployee && (
-            <div className="max-h-[75vh] overflow-y-auto p-1">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="max-h-[75vh] overflow-y-auto p-1 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-1 flex flex-col items-center gap-4 pt-4">
                         <Avatar className="h-32 w-32 border-4 border-primary">
                             <AvatarImage src={uploadedPhoto ? URL.createObjectURL(uploadedPhoto) : selectedEmployee.photoUrl} alt={selectedEmployee.name} />
@@ -361,90 +374,79 @@ export default function StaffPage() {
                             </div>
                         </div>
                     </div>
-                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 font-body pt-4 border-t md:border-t-0 md:border-l pl-6">
-                        <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">Nombre Completo</p>
-                            <p>{selectedEmployee.name}</p>
-                        </div>
-                         <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">RUT</p>
-                            <p>{selectedEmployee.rut}</p>
-                        </div>
-                         <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">Teléfono</p>
-                            <p>{selectedEmployee.phone}</p>
-                        </div>
-                         <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">Dirección</p>
-                            <p>{selectedEmployee.address}</p>
-                        </div>
-                         <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">Cargo</p>
-                            <p>{selectedEmployee.position}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">Tipo Contrato</p>
-                            <p>{selectedEmployee.contractType}</p>
-                        </div>
-                         <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">Rol</p>
-                            <p>{selectedEmployee.role}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">Fecha Ingreso</p>
-                            <p>{new Date(selectedEmployee.startDate).toLocaleDateString('es-ES')}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">Sueldo Bruto</p>
-                            <p>${selectedEmployee.salary.toLocaleString('es-CL')}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">Previsión Salud</p>
-                            <p>{selectedEmployee.healthInsurance}</p>
-                        </div>
-                         <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">AFP</p>
-                            <p>{selectedEmployee.pensionFund}</p>
-                        </div>
-                         <div className="space-y-1">
-                            <p className="font-semibold text-muted-foreground text-sm">Estado</p>
-                            <Badge variant={selectedEmployee.status === 'Activo' ? 'default' : 'secondary'}>{selectedEmployee.status}</Badge>
-                        </div>
+                    <div className="md:col-span-2 space-y-4">
+                         <Card>
+                            <CardHeader className="flex-row items-center gap-4 space-y-0 pb-2">
+                                <UserCheck className="w-6 h-6 text-primary"/>
+                                <CardTitle className="font-headline text-lg">Datos Personales</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4 font-body text-sm">
+                                <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Nombre</p><p>{selectedEmployee.name}</p></div>
+                                <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">RUT</p><p>{selectedEmployee.rut}</p></div>
+                                <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Teléfono</p><p>{selectedEmployee.phone}</p></div>
+                                <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Dirección</p><p>{selectedEmployee.address}</p></div>
+                                <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Contacto Emergencia</p><p>{selectedEmployee.emergencyContact.name}</p></div>
+                                <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Tel. Emergencia</p><p>{selectedEmployee.emergencyContact.phone}</p></div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="font-headline text-lg">Documentación</CardTitle>
+                 <Card>
+                    <CardHeader className="flex-row items-center gap-4 space-y-0 pb-2">
+                        <Building className="w-6 h-6 text-primary"/>
+                        <CardTitle className="font-headline text-lg">Datos Laborales</CardTitle>
                     </CardHeader>
+                    <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-4 font-body text-sm pt-4">
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Cargo</p><p>{selectedEmployee.position}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Área</p><p>{selectedEmployee.department}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Tipo Contrato</p><p>{selectedEmployee.contractType}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Estado</p><Badge variant={selectedEmployee.status === 'Activo' ? 'default' : 'secondary'}>{selectedEmployee.status}</Badge></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Supervisor</p><p>{selectedEmployee.supervisor}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Fecha Ingreso</p><p>{new Date(selectedEmployee.startDate).toLocaleDateString('es-ES')}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Previsión Salud</p><p>{selectedEmployee.healthInsurance}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">AFP</p><p>{selectedEmployee.pensionFund}</p></div>
+                         <div className="space-y-1 col-span-full"><p className="font-semibold text-muted-foreground text-xs">Sueldo Bruto</p><p className="text-lg font-bold">${selectedEmployee.salary.toLocaleString('es-CL')}</p></div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle className="font-headline text-lg">Historial Laboral</CardTitle></CardHeader>
+                    <CardContent>
+                         {selectedEmployee.workHistory.length > 0 ? (
+                            <ul className="space-y-3">
+                                {selectedEmployee.workHistory.map((event, index) => (
+                                    <li key={index} className="flex items-start gap-4">
+                                        <div className="flex-shrink-0 mt-1"><Badge>{event.event}</Badge></div>
+                                        <div>
+                                            <p className="font-semibold">{format(new Date(event.date), "P", { locale: es })}</p>
+                                            <p className="text-sm text-muted-foreground">{event.description}</p>
+                                        </div>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-muted-foreground font-body text-center py-4">No hay eventos en el historial.</p>
+                        )}
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle className="font-headline text-lg">Documentación</CardTitle></CardHeader>
                     <CardContent>
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 items-end gap-4">
-                                <div>
-                                    <Label htmlFor="document-upload" className="font-body">Cargar nuevo documento</Label>
-                                    <Input id="document-upload" type="file" />
-                                </div>
-                                <Button variant="outline">
-                                    <Upload className="mr-2 h-4 w-4" />
-                                    Cargar
-                                </Button>
+                                <div><Label htmlFor="document-upload" className="font-body">Cargar nuevo documento</Label><Input id="document-upload" type="file" /></div>
+                                <Button variant="outline"><Upload className="mr-2 h-4 w-4" />Cargar</Button>
                             </div>
-
                             <div className="space-y-2">
-                                <Label className="font-body">Documentos existentes</Label>
+                                <Label className="font-body">Documentos existentes (Contratos, Certificados, etc.)</Label>
                                 {selectedEmployee.documents.length > 0 ? (
                                     <ul className="divide-y rounded-md border">
                                         {selectedEmployee.documents.map((doc, index) => (
                                             <li key={index} className="flex items-center justify-between p-3">
                                                 <div className="flex items-center gap-2">
                                                     <Paperclip className="h-4 w-4 text-muted-foreground" />
-                                                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="font-body text-primary hover:underline">
-                                                        {doc.name}
-                                                    </a>
+                                                    <a href={doc.url} target="_blank" rel="noopener noreferrer" className="font-body text-primary hover:underline">{doc.name}</a>
                                                 </div>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8"><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                             </li>
                                         ))}
                                     </ul>
@@ -466,9 +468,9 @@ export default function StaffPage() {
       <Dialog open={isGenerateDocModalOpen} onOpenChange={setGenerateDocModalOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="font-headline">Generar Documento Laboral</DialogTitle>
+            <DialogTitle className="font-headline">Generar Documento Laboral con IA</DialogTitle>
              <DialogDescription className="font-body">
-              Genera documentos para {selectedEmployee?.name} usando IA.
+              Genera documentos para {selectedEmployee?.name}. La IA usará los datos de su ficha.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -497,25 +499,16 @@ export default function StaffPage() {
         ) : generatedDoc && (
              <div className="space-y-4">
                 <Label htmlFor="generated-content" className="font-body">Contenido Generado</Label>
-                <Textarea
-                    id="generated-content"
-                    readOnly
-                    value={generatedDoc.documentContent}
-                    className="min-h-[300px] font-mono text-sm bg-secondary"
-                />
-                 <Button variant="outline" onClick={handleCopyToClipboard}>
-                    <Clipboard className="mr-2 h-4 w-4" />
-                    Copiar al Portapapeles
-                </Button>
+                <Textarea id="generated-content" readOnly value={generatedDoc.documentContent} className="min-h-[300px] font-mono text-sm bg-secondary"/>
+                 <Button variant="outline" onClick={handleCopyToClipboard}><Clipboard className="mr-2 h-4 w-4" />Copiar al Portapapeles</Button>
             </div>
         )}
 
-        <DialogFooter className="mt-4">
-             <Button variant="outline" onClick={() => setGenerateDocModalOpen(false)}>Cerrar</Button>
-        </DialogFooter>
+        <DialogFooter className="mt-4"><Button variant="outline" onClick={() => setGenerateDocModalOpen(false)}>Cerrar</Button></DialogFooter>
 
         </DialogContent>
       </Dialog>
     </AppLayout>
   );
 }
+
