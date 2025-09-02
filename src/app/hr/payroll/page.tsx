@@ -61,6 +61,7 @@ export default function PayrollPage() {
   const [selectedMonth, setSelectedMonth] = useState('2024-07');
   const [searchQuery, setSearchQuery] = useState('');
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<PayrollItem | null>(null);
   const payslipRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -118,6 +119,7 @@ export default function PayrollPage() {
       };
     });
     setPayrollData(data);
+    setIsPreviewModalOpen(false);
     toast({
         title: "Nómina Procesada",
         description: `Se ha procesado la nómina para el período seleccionado.`,
@@ -213,26 +215,9 @@ export default function PayrollPage() {
                         Volver
                     </Link>
                 </Button>
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button>Procesar Nómina</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Confirmar Procesamiento de Nómina</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                {payrollData.length > 0 
-                                 ? 'Ya existen datos procesados para este período. Si continúas, se sobreescribirán. ¿Estás seguro?'
-                                 : 'Estás a punto de procesar la nómina para el período seleccionado. ¿Deseas continuar?'
-                                }
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleProcessPayroll}>Confirmar y Procesar</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                <Button onClick={() => setIsPreviewModalOpen(true)}>
+                    Procesar Nómina
+                </Button>
             </div>
           </div>
         </CardHeader>
@@ -315,6 +300,43 @@ export default function PayrollPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
+        <DialogContent className="sm:max-w-xl">
+            <DialogHeader>
+                <DialogTitle className="font-headline">Vista Previa de Procesamiento de Nómina</DialogTitle>
+                <DialogDescription>
+                    Se procesará la nómina para {initialEmployees.length} trabajadores en el período {selectedMonth}.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[60vh] overflow-y-auto my-4">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Trabajador</TableHead>
+                            <TableHead>RUT</TableHead>
+                            <TableHead className="text-right">Sueldo Base</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {initialEmployees.map((emp) => (
+                            <TableRow key={emp.id}>
+                                <TableCell>{emp.name}</TableCell>
+                                <TableCell>{emp.rut}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(emp.salary)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsPreviewModalOpen(false)}>Cancelar</Button>
+                <Button onClick={handleProcessPayroll}>Confirmar y Procesar Nómina</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
        <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
                 <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
