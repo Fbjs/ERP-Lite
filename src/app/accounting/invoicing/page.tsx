@@ -41,10 +41,10 @@ type Document = {
 };
 
 const initialDocuments: Document[] = [
-  { id: 'F001', type: 'Factura', client: 'Panaderia San Jose', date: '2025-07-15', total: 450.00, status: 'Pagada', details: '100 x Pan de Masa Madre, 50 x Baguettes. \nLocal: Local Principal (SJ-MAIPU) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez', purchaseOrderNumber: 'OC-2025-101' },
-  { id: 'F002', type: 'Factura', client: 'Cafe Central', date: '2025-07-20', total: 1200.50, status: 'Pendiente', details: '200 x Croissants, 150 x Ciabattas. \nLocal: Providencia (CC-PROVI) \nVendedor: Vendedor 2', createdBy: 'Usuario Admin' },
-  { id: 'F003', type: 'Factura', client: 'Supermercado del Sur', date: '2025-07-10', total: 875.00, status: 'Pagada', details: '50 x Pain au Levain, 50 x Baguette Tradition. \nLocal: Sucursal La Cisterna (SDS-CIST) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez', purchaseOrderNumber: 'OC-2025-102' },
-  { id: 'F004', type: 'Factura', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320.75, status: 'Vencida', details: '300 x Pan de Centeno', createdBy: 'Usuario Admin' },
+  { id: 'F001', type: 'Factura', client: 'Panaderia San Jose', date: '2025-07-15', total: 450000, status: 'Pagada', details: '100 x Pan de Masa Madre, 50 x Baguettes. \nLocal: Local Principal (SJ-MAIPU) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez', purchaseOrderNumber: 'OC-2025-101' },
+  { id: 'F002', type: 'Factura', client: 'Cafe Central', date: '2025-07-20', total: 1200500, status: 'Pendiente', details: '200 x Croissants, 150 x Ciabattas. \nLocal: Providencia (CC-PROVI) \nVendedor: Vendedor 2', createdBy: 'Usuario Admin' },
+  { id: 'F003', type: 'Factura', client: 'Supermercado del Sur', date: '2025-07-10', total: 875000, status: 'Pagada', details: '50 x Pain au Levain, 50 x Baguette Tradition. \nLocal: Sucursal La Cisterna (SDS-CIST) \nVendedor: Vendedor 1', createdBy: 'Ana Gómez', purchaseOrderNumber: 'OC-2025-102' },
+  { id: 'F004', type: 'Factura', client: 'Restaurante El Tenedor', date: '2025-06-25', total: 320750, status: 'Vencida', details: '300 x Pan de Centeno', createdBy: 'Usuario Admin' },
 ];
 
 function AccountingPageContent() {
@@ -226,7 +226,7 @@ function AccountingPageContent() {
             const { default: jsPDF } = await import('jspdf');
             const { default: html2canvas } = await import('html2canvas');
             
-            const canvas = await html2canvas(input, { scale: 2, backgroundColor: null });
+            const canvas = await html2canvas(input, { scale: 2, backgroundColor: '#ffffff' });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'px', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -373,11 +373,11 @@ function AccountingPageContent() {
                                     {dateRange?.from ? (
                                     dateRange.to ? (
                                         <>
-                                        {format(dateRange.from, "LLL dd, y")} -{" "}
-                                        {format(dateRange.to, "LLL dd, y")}
+                                        {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                                        {format(dateRange.to, "LLL dd, y", { locale: es })}
                                         </>
                                     ) : (
-                                        format(dateRange.from, "LLL dd, y")
+                                        format(dateRange.from, "LLL dd, y", { locale: es })
                                     )
                                     ) : (
                                     <span>Selecciona un rango</span>
