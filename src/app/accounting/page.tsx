@@ -3,7 +3,7 @@
 
 import AppLayout from '@/components/layout/app-layout';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AreaChart, Banknote, BookCopy, BookOpen, Briefcase, FileText, Landmark, Library, PieChart, Scale, BookKey } from 'lucide-react';
+import { AreaChart, Banknote, BookCopy, BookOpen, Briefcase, FileText, Landmark, Library, PieChart, Scale, BookKey, Users, Receipt } from 'lucide-react';
 import Link from 'next/link';
 
 
@@ -12,6 +12,8 @@ const modules = [
         category: "Tesorería",
         links: [
             { href: '/accounting/cash-flow', title: 'Flujo de Caja', description: 'Proyecta y analiza los flujos de efectivo.', icon: AreaChart },
+            { href: '/accounting/accounts-receivable', title: 'Cuentas por Cobrar', description: 'Gestiona facturas de clientes y pagos.', icon: Users },
+            { href: '/accounting/accounts-payable', title: 'Cuentas por Pagar', description: 'Controla pagos a proveedores.', icon: Receipt },
             { href: '/accounting/reconciliation', title: 'Conciliación Bancaria', description: 'Concilia extractos con movimientos.', icon: Landmark },
         ]
     },
