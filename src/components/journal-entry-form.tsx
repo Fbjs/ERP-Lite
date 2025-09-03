@@ -38,9 +38,9 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
   const handleEntryChange = (index: number, field: keyof JournalEntryLine, value: string | number) => {
     const newEntries = [...entries];
     if (typeof value === 'string') {
-        newEntries[index][field] = value;
+        (newEntries[index] as any)[field] = value;
     } else {
-        newEntries[index][field] = value || 0;
+        (newEntries[index] as any)[field] = value || 0;
     }
     // Ensure only one of debit or credit has a value
     if (field === 'debit' && value > 0) newEntries[index].credit = 0;
