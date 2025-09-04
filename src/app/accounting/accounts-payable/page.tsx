@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, FileCheck, Clock, AlertTriangle } from 'lucide-react';
+import { DollarSign, FileCheck, Clock, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { useMemo } from 'react';
 import { differenceInDays, parseISO, addDays } from 'date-fns';
 import { initialPurchases } from '../purchase-ledger/page';
 import { initialFees } from '../fees-ledger/page';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import Link from 'next/link';
 
 const formatCurrency = (value: number) => {
     return value.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
@@ -135,43 +137,55 @@ const AccountsPayablePage = () => {
                 
                 <Card>
                     <CardHeader>
-                        <CardTitle className="font-headline">Detalle de Cuentas por Pagar</CardTitle>
-                        <CardDescription className="font-body">Listado de documentos de proveedores pendientes de pago.</CardDescription>
+                         <div className="flex flex-wrap justify-between items-center gap-4">
+                             <div>
+                                <CardTitle className="font-headline">Detalle de Cuentas por Pagar</CardTitle>
+                                <CardDescription className="font-body">Listado de documentos de proveedores pendientes de pago.</CardDescription>
+                            </div>
+                            <Button asChild variant="outline">
+                                <Link href="/accounting">
+                                    <ArrowLeft className="mr-2 h-4 w-4" />
+                                    Volver
+                                </Link>
+                            </Button>
+                         </div>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Proveedor</TableHead>
-                                    <TableHead>Tipo Doc.</TableHead>
-                                    <TableHead>Fecha Vencimiento</TableHead>
-                                    <TableHead className="text-right">Monto</TableHead>
-                                    <TableHead>Estado</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {payableDocuments.map(doc => (
-                                    <TableRow key={doc.id}>
-                                        <TableCell>{doc.supplier}</TableCell>
-                                        <TableCell>{doc.type}</TableCell>
-                                        <TableCell>{doc.dueDate.toLocaleDateString('es-CL')}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(doc.amount)}</TableCell>
-                                        <TableCell>
-                                            <Badge variant={doc.agingCategory === 'Corriente' ? 'default' : 'destructive'}>
-                                                {doc.agingCategory}
-                                            </Badge>
-                                        </TableCell>
+                        <ScrollArea className="h-[400px]">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Proveedor</TableHead>
+                                        <TableHead>Tipo Doc.</TableHead>
+                                        <TableHead>Fecha Vencimiento</TableHead>
+                                        <TableHead className="text-right">Monto</TableHead>
+                                        <TableHead>Estado</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                             <TableFooter>
-                                <TableRow>
-                                    <TableCell colSpan={3} className="text-right font-bold">Total por Pagar</TableCell>
-                                    <TableCell className="text-right font-bold">{formatCurrency(summary.totalPayable)}</TableCell>
-                                    <TableCell></TableCell>
-                                </TableRow>
-                            </TableFooter>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {payableDocuments.map(doc => (
+                                        <TableRow key={doc.id}>
+                                            <TableCell>{doc.supplier}</TableCell>
+                                            <TableCell>{doc.type}</TableCell>
+                                            <TableCell>{doc.dueDate.toLocaleDateString('es-CL')}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(doc.amount)}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={doc.agingCategory === 'Corriente' ? 'default' : 'destructive'}>
+                                                    {doc.agingCategory}
+                                                </Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                                <TableFooter>
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-right font-bold">Total por Pagar</TableCell>
+                                        <TableCell className="text-right font-bold">{formatCurrency(summary.totalPayable)}</TableCell>
+                                        <TableCell></TableCell>
+                                    </TableRow>
+                                </TableFooter>
+                            </Table>
+                        </ScrollArea>
                     </CardContent>
                 </Card>
             </div>
