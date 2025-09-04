@@ -1,16 +1,23 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Upload, CheckCircle2, AlertCircle, RefreshCw, Wand2 } from 'lucide-react';
+import { Upload, CheckCircle2, AlertCircle, RefreshCw, Wand2, Download, FileSpreadsheet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import * as XLSX from 'xlsx';
+import Logo from './logo';
 
 type BankTransaction = {
     id: string;
@@ -59,9 +66,17 @@ export default function BankReconciliation() {
     const [systemTransactions, setSystemTransactions] = useState<SystemTransaction[]>(initialSystemTransactions);
     const [selectedBank, setSelectedBank] = useState<string[]>([]);
     const [selectedSystem, setSelectedSystem] = useState<string[]>([]);
+    const [selectedBankAccount, setSelectedBankAccount] = useState<string>('');
+    const historyReportRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
+    
+    const reconciledTransactions = useMemo(() => systemTransactions.filter(tx => tx.isReconciled), [systemTransactions]);
 
     const handleLoadStatement = () => {
+        if(!selectedBankAccount) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Por favor, selecciona una cuenta bancaria.' });
+            return;
+        }
         setBankTransactions(initialBankTransactions);
         toast({
             title: "Extracto Cargado",
@@ -145,27 +160,113 @@ export default function BankReconciliation() {
     };
     
     const summary = useMemo(() => {
-        const reconciled = systemTransactions.filter(tx => tx.isReconciled);
         const unreconciled = systemTransactions.filter(tx => !tx.isReconciled);
 
-        const reconciledAmount = reconciled.reduce((sum, tx) => sum + (tx.debit - tx.credit), 0);
+        const reconciledAmount = reconciledTransactions.reduce((sum, tx) => sum + (tx.debit - tx.credit), 0);
         const unreconciledAmount = unreconciled.reduce((sum, tx) => sum + (tx.debit - tx.credit), 0);
 
         return {
-            reconciledCount: reconciled.length,
+            reconciledCount: reconciledTransactions.length,
             reconciledAmount: reconciledAmount,
             unreconciledCount: unreconciled.length,
             unreconciledAmount: unreconciledAmount,
         };
-    }, [systemTransactions]);
-    
+    }, [systemTransactions, reconciledTransactions]);
+
     const formatCurrency = (value: number) => {
         return value === 0 ? '-' : value.toLocaleString('es-CL', {style: 'currency', currency: 'CLP'});
     }
+    
+    const handleDownloadHistoryPdf = async () => {
+        const input = historyReportRef.current;
+        if (!input) return;
+        const canvas = await html2canvas(input, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('l', 'px', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const ratio = canvas.width / canvas.height;
+        let newWidth = pdfWidth - 20;
+        let newHeight = newWidth / ratio;
+        if (newHeight > pdfHeight - 20) {
+            newHeight = pdfHeight - 20;
+            newWidth = newHeight * ratio;
+        }
+        const xOffset = (pdfWidth - newWidth) / 2;
+        pdf.addImage(imgData, 'PNG', xOffset, 10, newWidth, newHeight);
+        pdf.save(`historial-conciliaciones-${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
+    const handleDownloadHistoryExcel = () => {
+        const dataForSheet = reconciledTransactions.map(tx => ({
+            'Fecha': format(new Date(tx.date + 'T00:00:00'), 'P', { locale: es }),
+            'Glosa': tx.description,
+            'Cuenta Cargo': tx.chargeAccount,
+            'Debe': tx.debit,
+            'Haber': tx.credit,
+            'Estado': 'Conciliado',
+        }));
+        const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Historial Conciliaciones");
+        XLSX.writeFile(workbook, `historial-conciliaciones-${new Date().toISOString().split('T')[0]}.xlsx`);
+    };
+
 
     return (
         <div className="space-y-6">
+            <div ref={historyReportRef} className="fixed -left-[9999px] top-0 bg-white text-black p-4 font-body" style={{ width: '11in' }}>
+                 <header className="flex justify-between items-start mb-4 border-b-2 border-gray-800 pb-2">
+                    <div className="flex items-center gap-3">
+                        <Logo className="w-24" />
+                        <div>
+                            <h1 className="text-xl font-bold font-headline text-gray-800">Historial de Conciliaciones</h1>
+                            <p className="text-xs text-gray-500">Panificadora Vollkorn</p>
+                        </div>
+                    </div>
+                     <div className="text-right text-xs">
+                        <p><span className="font-semibold">Fecha Emisión:</span> {format(new Date(), "P p", { locale: es })}</p>
+                     </div>
+                </header>
+                 <Table className="w-full text-xs">
+                    <TableHeader className="bg-gray-100">
+                        <TableRow>
+                            <TableHead className="p-1 font-bold text-gray-700">Fecha</TableHead>
+                            <TableHead className="p-1 font-bold text-gray-700">Glosa</TableHead>
+                            <TableHead className="p-1 font-bold text-gray-700">Cta. Cargo</TableHead>
+                            <TableHead className="p-1 font-bold text-gray-700 text-right">Debe</TableHead>
+                            <TableHead className="p-1 font-bold text-gray-700 text-right">Haber</TableHead>
+                            <TableHead className="p-1 font-bold text-gray-700 text-center">Estado</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {reconciledTransactions.map(tx => (
+                            <TableRow key={tx.id}>
+                                <TableCell className="p-1">{format(new Date(tx.date + 'T00:00:00'), 'P', { locale: es })}</TableCell>
+                                <TableCell className="p-1">{tx.description}</TableCell>
+                                <TableCell className="p-1">{tx.chargeAccount}</TableCell>
+                                <TableCell className="p-1 text-right">{formatCurrency(tx.debit)}</TableCell>
+                                <TableCell className="p-1 text-right">{formatCurrency(tx.credit)}</TableCell>
+                                <TableCell className="p-1 text-center">Conciliado</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
             <div className="flex flex-wrap items-end gap-4">
+                 <div className="grid w-full max-w-sm items-center gap-1.5">
+                    <Label htmlFor="bank-account">Cuenta Bancaria</Label>
+                    <Select value={selectedBankAccount} onValueChange={setSelectedBankAccount}>
+                        <SelectTrigger id="bank-account">
+                            <SelectValue placeholder="Selecciona un banco..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="bci">BCI - Cta. Cte. 12345678</SelectItem>
+                            <SelectItem value="estado">BancoEstado - Cta. Cte. 87654321</SelectItem>
+                            <SelectItem value="santander">Santander - Cta. Cte. 55556666</SelectItem>
+                        </SelectContent>
+                    </Select>
+                 </div>
                  <div className="grid w-full max-w-sm items-center gap-1.5">
                     <Label htmlFor="bank-statement">Extracto Bancario (.csv, .xlsx)</Label>
                     <Input id="bank-statement" type="file" />
@@ -300,10 +401,22 @@ export default function BankReconciliation() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Historial de Conciliaciones</CardTitle>
-                    <CardDescription>
-                        Movimientos del sistema que ya han sido conciliados.
-                    </CardDescription>
+                     <div className="flex flex-wrap justify-between items-center gap-4">
+                        <div>
+                             <CardTitle>Historial de Conciliaciones</CardTitle>
+                            <CardDescription>
+                                Movimientos del sistema que ya han sido conciliados.
+                            </CardDescription>
+                        </div>
+                         <div className="flex items-center gap-2">
+                            <Button variant="outline" disabled={reconciledTransactions.length === 0} onClick={handleDownloadHistoryExcel}>
+                                <FileSpreadsheet className="mr-2 h-4 w-4"/> Exportar Excel
+                            </Button>
+                             <Button variant="outline" disabled={reconciledTransactions.length === 0} onClick={handleDownloadHistoryPdf}>
+                                <Download className="mr-2 h-4 w-4"/> Exportar PDF
+                            </Button>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <div className="h-96 overflow-y-auto border rounded-md">
@@ -319,7 +432,7 @@ export default function BankReconciliation() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {systemTransactions.filter(tx => tx.isReconciled).map(tx => (
+                                {reconciledTransactions.map(tx => (
                                     <TableRow key={tx.id} className="bg-green-50/50">
                                         <TableCell>{new Date(tx.date + 'T00:00:00').toLocaleDateString('es-CL', {timeZone: 'UTC'})}</TableCell>
                                         <TableCell>{tx.description}</TableCell>
@@ -334,7 +447,7 @@ export default function BankReconciliation() {
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {systemTransactions.filter(tx => tx.isReconciled).length === 0 && (
+                                {reconciledTransactions.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                                             No hay movimientos conciliados aún.
