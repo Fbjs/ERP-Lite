@@ -18,6 +18,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import Logo from './logo';
+import { initialBankAccounts } from '../app/admin/bank-accounts/page';
 
 type BankTransaction = {
     id: string;
@@ -261,9 +262,11 @@ export default function BankReconciliation() {
                             <SelectValue placeholder="Selecciona un banco..." />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="bci">BCI - Cta. Cte. 12345678</SelectItem>
-                            <SelectItem value="estado">BancoEstado - Cta. Cte. 87654321</SelectItem>
-                            <SelectItem value="santander">Santander - Cta. Cte. 55556666</SelectItem>
+                           {initialBankAccounts.map(account => (
+                                <SelectItem key={account.id} value={account.id}>
+                                    {account.banco} - {account.tipoCuenta} {account.numeroCuenta}
+                                </SelectItem>
+                           ))}
                         </SelectContent>
                     </Select>
                  </div>
