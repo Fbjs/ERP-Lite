@@ -319,7 +319,7 @@ export default function PurchaseLedgerPage() {
                             <TableBody>
                                 {filteredPurchases.length > 0 ? filteredPurchases.map(doc => (
                                     <TableRow key={doc.id}>
-                                        <TableCell>{format(new Date(doc.date), "P", { locale: es })}</TableCell>
+                                        <TableCell>{format(new Date(doc.date + 'T00:00:00'), "P", { locale: es, timeZone: 'UTC' })}</TableCell>
                                         <TableCell>{doc.docType}</TableCell>
                                         <TableCell>{doc.folio}</TableCell>
                                         <TableCell>{doc.supplier}</TableCell>
@@ -347,5 +347,5 @@ export default function PurchaseLedgerPage() {
                 </CardContent>
             </Card>
         </AppLayout>
-    )
+    );
 }
