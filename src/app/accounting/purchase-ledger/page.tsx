@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { Download, Calendar as CalendarIcon, RefreshCcw } from 'lucide-react';
+import { Download, Calendar as CalendarIcon, RefreshCcw, ArrowLeft } from 'lucide-react';
 import { useState, useMemo, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils';
 import Logo from '@/components/logo';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import Link from 'next/link';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type PurchaseDocument = {
     id: number;
@@ -204,10 +206,18 @@ export default function PurchaseLedgerPage() {
                             <CardTitle className="font-headline">Libro de Compras</CardTitle>
                             <CardDescription className="font-body">Consulta los documentos de compra recibidos en un período.</CardDescription>
                         </div>
-                         <Button onClick={handleDownloadPdf}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Descargar PDF
-                        </Button>
+                        <div className='flex items-center gap-2'>
+                             <Button asChild variant="outline">
+                                <Link href="/accounting">
+                                    <ArrowLeft className="mr-2 h-4 w-4" />
+                                    Volver
+                                </Link>
+                            </Button>
+                            <Button onClick={handleDownloadPdf}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Descargar PDF
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -287,50 +297,50 @@ export default function PurchaseLedgerPage() {
                             </Button>
                         </div>
                     </div>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Fecha</TableHead>
-                                <TableHead>Tipo Doc.</TableHead>
-                                <TableHead>Folio</TableHead>
-                                <TableHead>Proveedor</TableHead>
-                                <TableHead>RUT</TableHead>
-                                <TableHead className="text-right">Neto</TableHead>
-                                <TableHead className="text-right">IVA</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredPurchases.length > 0 ? filteredPurchases.map(doc => (
-                                <TableRow key={doc.id}>
-                                    <TableCell>{format(new Date(doc.date), "P", { locale: es })}</TableCell>
-                                    <TableCell>{doc.docType}</TableCell>
-                                    <TableCell>{doc.folio}</TableCell>
-                                    <TableCell>{doc.supplier}</TableCell>
-                                    <TableCell>{doc.rut}</TableCell>
-                                    <TableCell className="text-right">${formatCurrency(doc.net)}</TableCell>
-                                    <TableCell className="text-right">${formatCurrency(doc.tax)}</TableCell>
-                                    <TableCell className="text-right">${formatCurrency(doc.total)}</TableCell>
+                    <ScrollArea className="h-[400px]">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Fecha</TableHead>
+                                    <TableHead>Tipo Doc.</TableHead>
+                                    <TableHead>Folio</TableHead>
+                                    <TableHead>Proveedor</TableHead>
+                                    <TableHead>RUT</TableHead>
+                                    <TableHead className="text-right">Neto</TableHead>
+                                    <TableHead className="text-right">IVA</TableHead>
+                                    <TableHead className="text-right">Total</TableHead>
                                 </TableRow>
-                            )) : (
-                                 <TableRow>
-                                    <TableCell colSpan={8} className="text-center h-24">No se encontraron documentos con los filtros seleccionados.</TableCell>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredPurchases.length > 0 ? filteredPurchases.map(doc => (
+                                    <TableRow key={doc.id}>
+                                        <TableCell>{format(new Date(doc.date), "P", { locale: es })}</TableCell>
+                                        <TableCell>{doc.docType}</TableCell>
+                                        <TableCell>{doc.folio}</TableCell>
+                                        <TableCell>{doc.supplier}</TableCell>
+                                        <TableCell>{doc.rut}</TableCell>
+                                        <TableCell className="text-right">${formatCurrency(doc.net)}</TableCell>
+                                        <TableCell className="text-right">${formatCurrency(doc.tax)}</TableCell>
+                                        <TableCell className="text-right">${formatCurrency(doc.total)}</TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow>
+                                        <TableCell colSpan={8} className="text-center h-24">No se encontraron documentos con los filtros seleccionados.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                            <TableFooter>
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-right font-bold">TOTALES</TableCell>
+                                    <TableCell className="text-right font-bold">${formatCurrency(totals.net)}</TableCell>
+                                    <TableCell className="text-right font-bold">${formatCurrency(totals.tax)}</TableCell>
+                                    <TableCell className="text-right font-bold">${formatCurrency(totals.total)}</TableCell>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                        <TableFooter>
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-right font-bold">TOTALES</TableCell>
-                                <TableCell className="text-right font-bold">${formatCurrency(totals.net)}</TableCell>
-                                <TableCell className="text-right font-bold">${formatCurrency(totals.tax)}</TableCell>
-                                <TableCell className="text-right font-bold">${formatCurrency(totals.total)}</TableCell>
-                            </TableRow>
-                        </TableFooter>
-                    </Table>
+                            </TableFooter>
+                        </Table>
+                    </ScrollArea>
                 </CardContent>
             </Card>
         </AppLayout>
     )
 }
-
-    
