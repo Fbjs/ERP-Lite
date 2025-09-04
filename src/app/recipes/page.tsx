@@ -12,6 +12,7 @@ import { useState, useRef, ComponentProps } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ProductionPage from '../production/page';
+import Logo from '@/components/logo';
 
 
 export type Ingredient = {
@@ -333,7 +334,7 @@ export default function RecipesPage() {
         const { default: jsPDF } = await import('jspdf');
         const { default: html2canvas } = await import('html2canvas');
         
-        const canvas = await html2canvas(input, { scale: 2, backgroundColor: null });
+        const canvas = await html2canvas(input, { scale: 2, backgroundColor: '#ffffff' });
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p', 'px', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -378,7 +379,7 @@ export default function RecipesPage() {
         <CardContent>
            <ScrollArea className="border rounded-md h-[calc(100vh-280px)]">
               <Table className="relative">
-                 <TableHeader className="sticky top-0 bg-background z-10">
+                <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>
                         <TableHead>SKU / Código</TableHead>
                         <TableHead>Nombre Producto (Receta)</TableHead>
@@ -448,16 +449,29 @@ export default function RecipesPage() {
             </DialogDescription>
           </DialogHeader>
           {selectedRecipe && (
-             <div ref={detailsModalContentRef} className="max-h-[70vh] overflow-y-auto font-body p-1 bg-white text-black rounded-md">
-                <div className="p-6">
+             <div className="max-h-[70vh] overflow-y-auto p-1 font-body">
+                <div ref={detailsModalContentRef} className="p-8 bg-white text-black rounded-md">
+                     <header className="flex justify-between items-start mb-10 border-b-2 border-gray-800 pb-4">
+                        <div className="flex items-center gap-3">
+                            <Logo className="w-28 text-orange-600" />
+                            <div>
+                                <h1 className="text-2xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
+                                <p className="text-sm text-gray-500">Avenida Principal 123, Santiago, Chile</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <h2 className="text-3xl font-headline font-bold uppercase text-gray-700">Ficha de Producto</h2>
+                            <p className="text-sm text-gray-500">SKU: {selectedRecipe.id}</p>
+                        </div>
+                    </header>
                     <div className="mb-6 text-center">
                         <p className="font-semibold text-gray-600">Familia:</p>
-                        <p className="text-lg font-bold font-headline">{selectedRecipe.family}</p>
+                        <p className="text-2xl font-bold font-headline text-primary">{selectedRecipe.family}</p>
                     </div>
 
                     <div className="space-y-6">
                        <div>
-                            <h3 className="font-headline text-xl mb-2 border-b pb-2">Formatos de Venta</h3>
+                            <h3 className="font-headline text-xl mb-2 border-b pb-2 text-gray-800">Formatos de Venta</h3>
                              {selectedRecipe.formats.length > 0 ? (
                                 <Table>
                                     <TableHeader>
@@ -478,11 +492,11 @@ export default function RecipesPage() {
                                     </TableBody>
                                 </Table>
                             ) : (
-                                <p className="text-sm text-muted-foreground text-center py-4">No hay formatos de venta definidos.</p>
+                                <p className="text-sm text-center py-4 text-gray-500">No hay formatos de venta definidos.</p>
                             )}
                         </div>
                         <div>
-                            <h3 className="font-headline text-xl mb-2 border-b pb-2">Receta Base</h3>
+                            <h3 className="font-headline text-xl mb-2 border-b pb-2 text-gray-800">Receta Base</h3>
                             {selectedRecipe.ingredients.length > 0 ? (
                                 <Table>
                                     <TableHeader>
@@ -503,14 +517,15 @@ export default function RecipesPage() {
                                     </TableBody>
                                 </Table>
                             ) : (
-                                <p className="text-sm text-muted-foreground text-center py-4">No hay ingredientes definidos para esta receta.</p>
+                                <p className="text-sm text-center py-4 text-gray-500">No hay ingredientes definidos para esta receta.</p>
                             )}
                         </div>
                     </div>
                     
-                    <div className="border-t-2 border-gray-200 pt-4 mt-6 text-center text-xs text-gray-500">
+                    <footer className="border-t-2 border-gray-200 pt-4 mt-6 text-center text-xs text-gray-500">
+                        <p>Última actualización: {new Date(selectedRecipe.lastUpdated + 'T00:00:00').toLocaleDateString('es-ES')}</p>
                         <p>Documento generado el {new Date().toLocaleDateString('es-ES')}</p>
-                    </div>
+                    </footer>
                 </div>
              </div>
           )}
