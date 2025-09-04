@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { ReactNode } from 'react';
@@ -26,10 +27,8 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
         { href: '/recipes', label: 'Recetas', icon: NotebookText, roles: ['Admin', 'Producción'] },
         { href: '/sales', label: 'Ventas', icon: ShoppingCart, roles: ['Admin', 'Ventas', 'Contabilidad'] },
         { href: '/inventory', label: 'Inventario', icon: Warehouse, roles: ['Admin', 'Producción', 'Logística'] },
-        { href: '/logistics', label: 'Logística', icon: Truck, roles: ['Admin', 'Ventas', 'Logística'] },
         { href: '/hr', label: 'Recursos Humanos', icon: Users, roles: ['Admin'] },
         { href: '/accounting', label: 'Contabilidad', icon: BookCopy, roles: ['Admin', 'Contabilidad'] },
-        { href: '/forecast', label: 'Pronóstico IA', icon: BrainCircuit, roles: ['Admin'] },
         { 
             href: '/admin', 
             label: 'Administración', 
