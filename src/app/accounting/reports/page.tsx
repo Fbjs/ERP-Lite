@@ -11,7 +11,7 @@ import { initialFees } from '../fees-ledger/page';
 import { initialJournalEntries } from '../journal/page';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { AreaChart } from 'lucide-react';
+import { AreaChart, ArrowLeft } from 'lucide-react';
 
 
 const formatCurrency = (value: number) => {
@@ -119,19 +119,29 @@ export default function ReportsPage() {
              <div className="space-y-6">
                 <Card>
                     <CardHeader>
-                         <CardTitle className="font-headline">Central de Reportes</CardTitle>
-                        <CardDescription className="font-body">
-                            Visualiza los reportes financieros clave para la toma de decisiones.
-                        </CardDescription>
+                        <div className="flex flex-wrap justify-between items-center gap-4">
+                            <div>
+                                <CardTitle className="font-headline">Central de Reportes</CardTitle>
+                                <CardDescription className="font-body">
+                                    Visualiza los reportes financieros clave para la toma de decisiones.
+                                </CardDescription>
+                            </div>
+                             <div className="flex items-center gap-2">
+                                <Button asChild variant="outline">
+                                    <Link href="/accounting">
+                                        <ArrowLeft className="mr-2 h-4 w-4" />
+                                        Volver
+                                    </Link>
+                                </Button>
+                                <Button asChild>
+                                   <Link href="/accounting/cash-flow">
+                                    <AreaChart className="mr-2 h-4 w-4"/>
+                                     Ver Flujo de Caja
+                                   </Link>
+                                </Button>
+                            </div>
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <Button asChild>
-                           <Link href="/accounting/cash-flow">
-                            <AreaChart className="mr-2 h-4 w-4"/>
-                             Ver Flujo de Caja
-                           </Link>
-                        </Button>
-                    </CardContent>
                 </Card>
                 
                 <Card>
@@ -140,7 +150,7 @@ export default function ReportsPage() {
                          <CardDescription className="font-body">Un desglose completo de sumas y saldos, y su clasificación.</CardDescription>
                     </CardHeader>
                     <CardContent className="overflow-x-auto">
-                        <Table className="text-xs">
+                        <Table className="text-xs min-w-[1000px]">
                             <TableHeader>
                                 <TableRow>
                                     <TableHead rowSpan={2} className="text-left align-bottom">Cuenta</TableHead>
