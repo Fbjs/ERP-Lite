@@ -33,7 +33,7 @@ const modules = [
     {
         category: "Libros Auxiliares",
         links: [
-            { href: '/accounting/sales-ledger', title: 'Libro de Ventas', description: 'Consulta el registro de ventas.', icon: BookOpen },
+            { href: '/sales', title: 'Libro de Ventas', description: 'Consulta el registro de ventas.', icon: BookOpen },
             { href: '/accounting/purchase-ledger', title: 'Libro de Compras', description: 'Consulta el registro de compras.', icon: BookCopy },
             { href: '/accounting/fees-ledger', title: 'Libro de Honorarios', description: 'Administra las boletas de honorarios.', icon: Briefcase },
         ]

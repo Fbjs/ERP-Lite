@@ -289,7 +289,7 @@ export default function SalesPage() {
 
 
   return (
-    <AppLayout pageTitle="Ventas">
+    <AppLayout pageTitle="Órdenes de Venta y Reportes">
         <Tabs defaultValue="industrial">
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="industrial">Ventas Industriales</TabsTrigger>
