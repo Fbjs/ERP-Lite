@@ -19,6 +19,7 @@ import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import Logo from './logo';
 import { initialBankAccounts } from '../app/admin/bank-accounts/page';
+import { ScrollArea } from './ui/scroll-area';
 
 type BankTransaction = {
     id: string;
@@ -287,41 +288,41 @@ export default function BankReconciliation() {
                         <CardTitle className="text-lg">Movimientos Bancarios (Extracto)</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-96 overflow-y-auto border rounded-md">
-                        <Table>
-                            <TableHeader className="sticky top-0 bg-secondary">
-                                <TableRow>
-                                    <TableHead className="w-[50px]"></TableHead>
-                                    <TableHead>Glosa</TableHead>
-                                    <TableHead className="text-right">Debe</TableHead>
-                                    <TableHead className="text-right">Haber</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {bankTransactions.map(tx => (
-                                    <TableRow key={tx.id} data-state={selectedBank.includes(tx.id) ? 'selected' : undefined}>
-                                        <TableCell>
-                                            <Checkbox
-                                                checked={selectedBank.includes(tx.id)}
-                                                onCheckedChange={checked => {
-                                                    setSelectedBank(prev => checked ? [...prev, tx.id] : prev.filter(id => id !== tx.id))
-                                                }}
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <p>{tx.description}</p>
-                                            <p className="text-xs text-muted-foreground">{new Date(tx.date + 'T00:00:00').toLocaleDateString('es-CL', {timeZone: 'UTC'})}</p>
-                                        </TableCell>
-                                        <TableCell className="text-right font-mono">{formatCurrency(tx.debit)}</TableCell>
-                                        <TableCell className="text-right font-mono">{formatCurrency(tx.credit)}</TableCell>
+                        <ScrollArea className="h-96">
+                            <Table>
+                                <TableHeader className="sticky top-0 bg-secondary">
+                                    <TableRow>
+                                        <TableHead className="w-[50px]"></TableHead>
+                                        <TableHead>Glosa</TableHead>
+                                        <TableHead className="text-right">Debe</TableHead>
+                                        <TableHead className="text-right">Haber</TableHead>
                                     </TableRow>
-                                ))}
-                                 {bankTransactions.length === 0 && (
-                                     <TableRow><TableCell colSpan={4} className="text-center h-48 text-muted-foreground">Cargue un extracto bancario.</TableCell></TableRow>
-                                 )}
-                            </TableBody>
-                        </Table>
-                         </div>
+                                </TableHeader>
+                                <TableBody>
+                                    {bankTransactions.map(tx => (
+                                        <TableRow key={tx.id} data-state={selectedBank.includes(tx.id) ? 'selected' : undefined}>
+                                            <TableCell>
+                                                <Checkbox
+                                                    checked={selectedBank.includes(tx.id)}
+                                                    onCheckedChange={checked => {
+                                                        setSelectedBank(prev => checked ? [...prev, tx.id] : prev.filter(id => id !== tx.id))
+                                                    }}
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <p>{tx.description}</p>
+                                                <p className="text-xs text-muted-foreground">{new Date(tx.date + 'T00:00:00').toLocaleDateString('es-CL', {timeZone: 'UTC'})}</p>
+                                            </TableCell>
+                                            <TableCell className="text-right font-mono">{formatCurrency(tx.debit)}</TableCell>
+                                            <TableCell className="text-right font-mono">{formatCurrency(tx.credit)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {bankTransactions.length === 0 && (
+                                        <TableRow><TableCell colSpan={4} className="text-center h-48 text-muted-foreground">Cargue un extracto bancario.</TableCell></TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </ScrollArea>
                     </CardContent>
                 </Card>
                 <Card>
@@ -329,7 +330,7 @@ export default function BankReconciliation() {
                         <CardTitle className="text-lg">Movimientos del Sistema (Libro Mayor)</CardTitle>
                     </CardHeader>
                      <CardContent>
-                         <div className="h-96 overflow-y-auto border rounded-md">
+                         <ScrollArea className="h-96">
                             <Table>
                                 <TableHeader className="sticky top-0 bg-secondary">
                                     <TableRow>
@@ -360,7 +361,7 @@ export default function BankReconciliation() {
                                     ))}
                                 </TableBody>
                             </Table>
-                        </div>
+                        </ScrollArea>
                     </CardContent>
                 </Card>
             </div>
@@ -466,3 +467,4 @@ export default function BankReconciliation() {
         </div>
     );
 }
+    
