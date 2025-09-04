@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Download, Calendar as CalendarIcon, RefreshCcw, ArrowLeft } from 'lucide-react';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -53,6 +53,11 @@ export default function PurchaseLedgerPage() {
     });
     const [selectedDocType, setSelectedDocType] = useState('all');
     const [selectedSupplier, setSelectedSupplier] = useState('all');
+    const [generationDate, setGenerationDate] = useState<Date | null>(null);
+
+    useEffect(() => {
+        setGenerationDate(new Date());
+    }, []);
 
     const uniqueDocTypes = useMemo(() => ['all', ...Array.from(new Set(initialPurchases.map(doc => doc.docType)))], []);
     const uniqueSuppliers = useMemo(() => ['all', ...Array.from(new Set(initialPurchases.map(doc => doc.supplier)))], []);
@@ -149,7 +154,7 @@ export default function PurchaseLedgerPage() {
                     </div>
                     <div className="text-right text-xs">
                         <p><span className="font-semibold">Período:</span> {dateRange?.from ? format(dateRange.from, "P", { locale: es }) : ''} a {dateRange?.to ? format(dateRange.to, "P", { locale: es }) : 'Ahora'}</p>
-                        <p><span className="font-semibold">Fecha de Emisión:</span> {format(new Date(), "P p", { locale: es })}</p>
+                        {generationDate && <p><span className="font-semibold">Fecha de Emisión:</span> {format(generationDate, "P p", { locale: es })}</p>}
                         <div className="mt-2 text-left bg-gray-50 p-2 rounded-md border border-gray-200">
                              <p><span className="font-semibold">Cant. Documentos:</span> {filteredPurchases.length}</p>
                              <p><span className="font-semibold">Total Neto:</span> {formatCurrency(totals.net)}</p>
