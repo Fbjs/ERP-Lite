@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Lock, PlusCircle, Calendar as CalendarIcon, Edit } from 'lucide-react';
+import { Lock, PlusCircle, Calendar as CalendarIcon, Edit, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval } from 'date-fns';
@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
+import Link from 'next/link';
 
 type MonthlyCashFlowData = {
     month: string;
@@ -270,6 +271,12 @@ export default function CashFlowProjection() {
                             </CardDescription>
                         </div>
                          <div className="flex items-center gap-2">
+                             <Button asChild variant="outline">
+                                <Link href="/accounting">
+                                    <ArrowLeft className="mr-2 h-4 w-4" />
+                                    Volver
+                                </Link>
+                            </Button>
                              <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
