@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -31,26 +32,26 @@ type SystemTransaction = {
 
 
 const initialBankTransactions: BankTransaction[] = [
-    { id: 'BANK001', date: '2025-07-15', description: 'Transferencia de Panaderia San Jose, Factura F001', debit: 0, credit: 450.00 },
+    { id: 'BANK001', date: '2025-07-15', description: 'Transferencia de Panaderia San Jose, Factura F001', debit: 0, credit: 450000 },
     { id: 'BANK002', date: '2025-07-11', description: 'Pago a Harinas del Sur, Factura 78901', debit: 800000, credit: 0 },
-    { id: 'BANK003', date: '2025-07-10', description: 'Depósito de Supermercado del Sur, Factura F003', debit: 0, credit: 875.00 },
-    { id: 'BANK004', date: '2025-07-21', description: 'Transferencia de Cafe Central, Factura F002', debit: 0, credit: 1200.50 },
+    { id: 'BANK003', date: '2025-07-10', description: 'Depósito de Supermercado del Sur, Factura F003', debit: 0, credit: 875000 },
+    { id: 'BANK004', date: '2025-07-21', description: 'Transferencia de Cafe Central, Factura F002', debit: 0, credit: 1200500 },
     { id: 'BANK005', date: '2025-07-30', description: 'Pago Nómina de Sueldos', debit: 2500000, credit: 0 },
-    { id: 'BANK006', date: '2025-07-31', description: 'Abono Intereses a Favor', debit: 0, credit: 50.25 },
-    { id: 'BANK007', date: '2025-07-31', description: 'Comisión por Mantención', debit: 15.00, credit: 0 },
-    { id: 'BANK008', date: '2025-07-29', description: 'Pago Servicio Eléctrico CGE', debit: 120.00, credit: 0 },
+    { id: 'BANK006', date: '2025-07-31', description: 'Abono Intereses a Favor', debit: 0, credit: 50250 },
+    { id: 'BANK007', date: '2025-07-31', description: 'Comisión por Mantención', debit: 15000, credit: 0 },
+    { id: 'BANK008', date: '2025-07-29', description: 'Pago Servicio Eléctrico CGE', debit: 120000, credit: 0 },
 ];
 
 const initialSystemTransactions: SystemTransaction[] = [
-    { id: 'F001', date: '2025-07-15', description: 'Factura a Panaderia San Jose', debit: 450.00, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
-    { id: 'F002', date: '2025-07-20', description: 'Factura a Cafe Central', debit: 1200.50, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
-    { id: 'F003', date: '2025-07-10', description: 'Factura a Supermercado del Sur', debit: 875.00, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
+    { id: 'F001', date: '2025-07-15', description: 'Factura a Panaderia San Jose', debit: 450000, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
+    { id: 'F002', date: '2025-07-20', description: 'Factura a Cafe Central', debit: 1200500, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
+    { id: 'F003', date: '2025-07-10', description: 'Factura a Supermercado del Sur', debit: 875000, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
     { id: 'G001', date: '2025-07-11', description: 'Pago Proveedor Harinas del Sur', debit: 0, credit: 800000, chargeAccount: 'Proveedores', isReconciled: false },
-    { id: 'F005', date: '2025-07-22', description: 'Factura a Hotel Grand Vista', debit: 500.00, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
+    { id: 'F005', date: '2025-07-22', description: 'Factura a Hotel Grand Vista', debit: 500000, credit: 0, chargeAccount: 'Clientes', isReconciled: false },
     { id: 'REM01', date: '2025-07-30', description: 'Centralización Sueldos Julio', debit: 0, credit: 2500000, chargeAccount: 'Sueldos por Pagar', isReconciled: false },
-    { id: 'INT01', date: '2025-07-31', description: 'Reconocimiento Intereses Ganados', debit: 50.25, credit: 0, chargeAccount: 'Ingresos Financieros', isReconciled: false },
-    { id: 'G002', date: '2025-07-31', description: 'Gasto Mantención Cuenta', debit: 0, credit: 15.00, chargeAccount: 'Gastos Bancarios', isReconciled: false },
-    { id: 'G003', date: '2025-07-29', description: 'Provisión Gasto Luz', debit: 0, credit: 120.00, chargeAccount: 'Gasto en Luz', isReconciled: false },
+    { id: 'INT01', date: '2025-07-31', description: 'Reconocimiento Intereses Ganados', debit: 50250, credit: 0, chargeAccount: 'Ingresos Financieros', isReconciled: false },
+    { id: 'G002', date: '2025-07-31', description: 'Gasto Mantención Cuenta', debit: 0, credit: 15000, chargeAccount: 'Gastos Bancarios', isReconciled: false },
+    { id: 'G003', date: '2025-07-29', description: 'Provisión Gasto Luz', debit: 0, credit: 120000, chargeAccount: 'Gasto en Luz', isReconciled: false },
 ];
 
 export default function BankReconciliation() {
@@ -77,7 +78,7 @@ export default function BankReconciliation() {
 
         for (const bankTx of bankTransactions) {
             for (const systemTx of availableSystemTxs) {
-                const isMatch = (bankTx.credit.toFixed(2) === systemTx.debit.toFixed(2) && bankTx.credit > 0) || (bankTx.debit.toFixed(2) === systemTx.credit.toFixed(2) && bankTx.debit > 0);
+                const isMatch = (bankTx.credit === systemTx.debit && bankTx.credit > 0) || (bankTx.debit === systemTx.credit && bankTx.debit > 0);
                 const descriptionIncludesId = systemTx.id.length > 2 && bankTx.description.toUpperCase().includes(systemTx.id.toUpperCase());
 
                 if (isMatch && descriptionIncludesId && !suggestedBankIds.includes(bankTx.id) && !suggestedSystemIds.includes(systemTx.id)) {
@@ -119,7 +120,7 @@ export default function BankReconciliation() {
         const bankSideTotal = totalBankCredit - totalBankDebit;
         const systemSideTotal = totalSystemDebit - totalSystemCredit;
 
-        if (bankSideTotal.toFixed(2) === systemSideTotal.toFixed(2) && selectedBank.length > 0 && selectedSystem.length > 0) {
+        if (bankSideTotal === systemSideTotal && selectedBank.length > 0 && selectedSystem.length > 0) {
             setSystemTransactions(prev =>
                 prev.map(tx =>
                     selectedSystem.includes(tx.id) ? { ...tx, isReconciled: true } : tx
@@ -205,7 +206,7 @@ export default function BankReconciliation() {
                                         </TableCell>
                                         <TableCell>
                                             <p>{tx.description}</p>
-                                            <p className="text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString('es-CL')}</p>
+                                            <p className="text-xs text-muted-foreground">{new Date(tx.date + 'T00:00:00').toLocaleDateString('es-CL', {timeZone: 'UTC'})}</p>
                                         </TableCell>
                                         <TableCell className="text-right font-mono">{formatCurrency(tx.debit)}</TableCell>
                                         <TableCell className="text-right font-mono">{formatCurrency(tx.credit)}</TableCell>
@@ -247,7 +248,7 @@ export default function BankReconciliation() {
                                             </TableCell>
                                             <TableCell>
                                                 <p>{tx.description}</p>
-                                                <p className="text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString('es-CL')} / {tx.chargeAccount}</p>
+                                                <p className="text-xs text-muted-foreground">{new Date(tx.date + 'T00:00:00').toLocaleDateString('es-CL', {timeZone: 'UTC'})} / {tx.chargeAccount}</p>
                                             </TableCell>
                                             <TableCell className="text-right font-mono">{formatCurrency(tx.debit)}</TableCell>
                                             <TableCell className="text-right font-mono">{formatCurrency(tx.credit)}</TableCell>
@@ -320,7 +321,7 @@ export default function BankReconciliation() {
                             <TableBody>
                                 {systemTransactions.filter(tx => tx.isReconciled).map(tx => (
                                     <TableRow key={tx.id} className="bg-green-50/50">
-                                        <TableCell>{new Date(tx.date).toLocaleDateString('es-CL')}</TableCell>
+                                        <TableCell>{new Date(tx.date + 'T00:00:00').toLocaleDateString('es-CL', {timeZone: 'UTC'})}</TableCell>
                                         <TableCell>{tx.description}</TableCell>
                                         <TableCell>{tx.chargeAccount}</TableCell>
                                         <TableCell className="text-right font-mono">{formatCurrency(tx.debit)}</TableCell>
