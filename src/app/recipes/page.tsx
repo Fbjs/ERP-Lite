@@ -376,22 +376,19 @@ export default function RecipesPage() {
             </div>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-md h-[calc(100vh-280px)] flex flex-col">
-            <Table>
-              <TableHeader className="sticky top-0 bg-background z-10">
-                <TableRow>
-                  <TableHead>SKU / Código</TableHead>
-                  <TableHead>Nombre Producto (Receta)</TableHead>
-                  <TableHead>Familia</TableHead>
-                  <TableHead>Última Actualización</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Acciones</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-            </Table>
-            <ScrollArea className="flex-grow">
+           <ScrollArea className="border rounded-md h-[calc(100vh-280px)]">
               <Table className="relative">
+                 <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                        <TableHead>SKU / Código</TableHead>
+                        <TableHead>Nombre Producto (Receta)</TableHead>
+                        <TableHead>Familia</TableHead>
+                        <TableHead>Última Actualización</TableHead>
+                        <TableHead>
+                            <span className="sr-only">Acciones</span>
+                        </TableHead>
+                    </TableRow>
+                </TableHeader>
                 <TableBody>
                   {recipes.map((recipe) => (
                     <TableRow key={recipe.id} className="hover:bg-muted/50">
@@ -421,7 +418,6 @@ export default function RecipesPage() {
                 </TableBody>
               </Table>
             </ScrollArea>
-          </div>
         </CardContent>
       </Card>
 
@@ -536,4 +532,3 @@ export default function RecipesPage() {
     </AppLayout>
   );
 }
-
