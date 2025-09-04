@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { Download, Calendar as CalendarIcon, RefreshCcw } from 'lucide-react';
+import { Download, Calendar as CalendarIcon, RefreshCcw, ArrowLeft } from 'lucide-react';
 import { useState, useMemo, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -17,6 +17,8 @@ import { cn } from '@/lib/utils';
 import Logo from '@/components/logo';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type FeeDocument = {
     id: number;
@@ -195,10 +197,18 @@ export default function FeesLedgerPage() {
                             <CardTitle className="font-headline">Libro de Honorarios</CardTitle>
                             <CardDescription className="font-body">Consulta las boletas de honorarios recibidas en un período.</CardDescription>
                         </div>
-                         <Button onClick={handleDownloadPdf}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Descargar PDF
-                        </Button>
+                         <div className="flex items-center gap-2">
+                             <Button asChild variant="outline">
+                                <Link href="/accounting">
+                                    <ArrowLeft className="mr-2 h-4 w-4" />
+                                    Volver
+                                </Link>
+                            </Button>
+                            <Button onClick={handleDownloadPdf}>
+                                <Download className="mr-2 h-4 w-4" />
+                                Descargar PDF
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -264,48 +274,49 @@ export default function FeesLedgerPage() {
                             </Button>
                         </div>
                     </div>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Fecha</TableHead>
-                                <TableHead>Tipo Doc.</TableHead>
-                                <TableHead>Folio</TableHead>
-                                <TableHead>Emisor</TableHead>
-                                <TableHead className="text-right">Bruto</TableHead>
-                                <TableHead className="text-right">Retención</TableHead>
-                                <TableHead className="text-right">Líquido</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredFees.length > 0 ? filteredFees.map(doc => (
-                                <TableRow key={doc.id}>
-                                    <TableCell>{format(new Date(doc.date), "P", { locale: es })}</TableCell>
-                                    <TableCell>{doc.docType}</TableCell>
-                                    <TableCell>{doc.folio}</TableCell>
-                                    <TableCell>{doc.issuer}</TableCell>
-                                    <TableCell className="text-right">${formatCurrency(doc.gross)}</TableCell>
-                                    <TableCell className="text-right">${formatCurrency(doc.retention)}</TableCell>
-                                    <TableCell className="text-right">${formatCurrency(doc.net)}</TableCell>
-                                </TableRow>
-                            )) : (
+                    <ScrollArea className="h-[400px]">
+                        <Table>
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center h-24">No se encontraron documentos con los filtros seleccionados.</TableCell>
+                                    <TableHead>Fecha</TableHead>
+                                    <TableHead>Tipo Doc.</TableHead>
+                                    <TableHead>Folio</TableHead>
+                                    <TableHead>Emisor</TableHead>
+                                    <TableHead className="text-right">Bruto</TableHead>
+                                    <TableHead className="text-right">Retención</TableHead>
+                                    <TableHead className="text-right">Líquido</TableHead>
                                 </TableRow>
-                            )}
-                        </TableBody>
-                        <TableFooter>
-                            <TableRow>
-                                <TableCell colSpan={4} className="text-right font-bold">TOTALES</TableCell>
-                                <TableCell className="text-right font-bold">${formatCurrency(totals.gross)}</TableCell>
-                                <TableCell className="text-right font-bold">${formatCurrency(totals.retention)}</TableCell>
-                                <TableCell className="text-right font-bold">${formatCurrency(totals.net)}</TableCell>
-                            </TableRow>
-                        </TableFooter>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredFees.length > 0 ? filteredFees.map(doc => (
+                                    <TableRow key={doc.id}>
+                                        <TableCell>{format(new Date(doc.date), "P", { locale: es })}</TableCell>
+                                        <TableCell>{doc.docType}</TableCell>
+                                        <TableCell>{doc.folio}</TableCell>
+                                        <TableCell>{doc.issuer}</TableCell>
+                                        <TableCell className="text-right">${formatCurrency(doc.gross)}</TableCell>
+                                        <TableCell className="text-right">${formatCurrency(doc.retention)}</TableCell>
+                                        <TableCell className="text-right">${formatCurrency(doc.net)}</TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow>
+                                        <TableCell colSpan={7} className="text-center h-24">No se encontraron documentos con los filtros seleccionados.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                            <TableFooter>
+                                <TableRow>
+                                    <TableCell colSpan={4} className="text-right font-bold">TOTALES</TableCell>
+                                    <TableCell className="text-right font-bold">${formatCurrency(totals.gross)}</TableCell>
+                                    <TableCell className="text-right font-bold">${formatCurrency(totals.retention)}</TableCell>
+                                    <TableCell className="text-right font-bold">${formatCurrency(totals.net)}</TableCell>
+                                </TableRow>
+                            </TableFooter>
+                        </Table>
+                    </ScrollArea>
                 </CardContent>
             </Card>
         </AppLayout>
     )
-}
 
     
