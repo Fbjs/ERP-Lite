@@ -8,7 +8,7 @@ import Logo from '@/components/logo';
 export default function LoginPage() {
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-cover bg-center" style={{ backgroundImage: "url('/fondo_volkorn.png')" }}>
-      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0" />
       <Card className="relative z-10 mx-auto max-w-sm w-full shadow-2xl bg-card/80 backdrop-blur-sm">
         <CardHeader className="space-y-1 text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
