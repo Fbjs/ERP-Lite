@@ -322,7 +322,6 @@ export default function RecipesPage() {
     // For now, we just log it to show it's called
     // The actual modal opening will be handled on the parent (likely a new page wrapper)
     // For this example, let's assume we can trigger a modal on another page.
-    // Let's simulate by opening the production order form here directly.
     setPrefilledProduct(recipeName);
     setIsProductionModalOpen(true);
   };
@@ -377,8 +376,8 @@ export default function RecipesPage() {
             </div>
         </CardHeader>
         <CardContent>
-          <div className="border rounded-md">
-            <Table className="relative">
+          <div className="border rounded-md h-[calc(100vh-280px)] flex flex-col">
+            <Table>
               <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
                   <TableHead>SKU / Código</TableHead>
@@ -391,7 +390,7 @@ export default function RecipesPage() {
                 </TableRow>
               </TableHeader>
             </Table>
-            <ScrollArea className="h-[calc(100vh-350px)]">
+            <ScrollArea className="flex-grow">
               <Table className="relative">
                 <TableBody>
                   {recipes.map((recipe) => (
@@ -538,4 +537,3 @@ export default function RecipesPage() {
   );
 }
 
-    
