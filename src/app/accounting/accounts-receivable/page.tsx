@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, FileCheck, Clock, AlertTriangle, Users, DollarSign } from 'lucide-react';
+import { MoreHorizontal, FileCheck, Clock, AlertTriangle, Users, DollarSign, ArrowLeft } from 'lucide-react';
 import { useMemo } from 'react';
 import { initialOrders } from '@/app/sales/page';
 import { differenceInDays, parseISO, addDays } from 'date-fns';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import Link from 'next/link';
 
 const formatCurrency = (value: number) => {
     return value.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
@@ -106,43 +108,55 @@ const AccountsReceivablePage = () => {
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <Card className="lg:col-span-2">
                         <CardHeader>
-                            <CardTitle className="font-headline">Detalle de Cuentas por Cobrar</CardTitle>
-                            <CardDescription className="font-body">Listado de facturas pendientes de pago.</CardDescription>
+                            <div className="flex flex-wrap justify-between items-center gap-4">
+                                <div>
+                                    <CardTitle className="font-headline">Detalle de Cuentas por Cobrar</CardTitle>
+                                    <CardDescription className="font-body">Listado de facturas pendientes de pago.</CardDescription>
+                                </div>
+                                <Button asChild variant="outline">
+                                    <Link href="/accounting">
+                                        <ArrowLeft className="mr-2 h-4 w-4" />
+                                        Volver
+                                    </Link>
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Cliente</TableHead>
-                                        <TableHead>Factura / OV</TableHead>
-                                        <TableHead>Fecha Vencimiento</TableHead>
-                                        <TableHead className="text-right">Monto</TableHead>
-                                        <TableHead>Estado</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {receivableInvoices.map(inv => (
-                                        <TableRow key={inv.id}>
-                                            <TableCell>{inv.customer}</TableCell>
-                                            <TableCell>{inv.id}</TableCell>
-                                            <TableCell>{inv.dueDate.toLocaleDateString('es-CL')}</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(inv.amount)}</TableCell>
-                                            <TableCell>
-                                                <Badge variant={inv.agingCategory === 'Corriente' ? 'default' : 'destructive'}>
-                                                    {inv.agingCategory}
-                                                </Badge>
-                                            </TableCell>
+                            <ScrollArea className="h-[400px]">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Cliente</TableHead>
+                                            <TableHead>Factura / OV</TableHead>
+                                            <TableHead>Fecha Vencimiento</TableHead>
+                                            <TableHead className="text-right">Monto</TableHead>
+                                            <TableHead>Estado</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                                <TableFooter>
-                                    <TableRow>
-                                        <TableCell colSpan={3} className="text-right font-bold">Total</TableCell>
-                                        <TableCell className="text-right font-bold">{formatCurrency(summary.totalReceivable)}</TableCell>
-                                        <TableCell></TableCell>
-                                    </TableRow>
-                                </TableFooter>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {receivableInvoices.map(inv => (
+                                            <TableRow key={inv.id}>
+                                                <TableCell>{inv.customer}</TableCell>
+                                                <TableCell>{inv.id}</TableCell>
+                                                <TableCell>{inv.dueDate.toLocaleDateString('es-CL')}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(inv.amount)}</TableCell>
+                                                <TableCell>
+                                                    <Badge variant={inv.agingCategory === 'Corriente' ? 'default' : 'destructive'}>
+                                                        {inv.agingCategory}
+                                                    </Badge>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                    <TableFooter>
+                                        <TableRow>
+                                            <TableCell colSpan={3} className="text-right font-bold">Total</TableCell>
+                                            <TableCell className="text-right font-bold">{formatCurrency(summary.totalReceivable)}</TableCell>
+                                            <TableCell></TableCell>
+                                        </TableRow>
+                                    </TableFooter>
+                                </Table>
+                            </ScrollArea>
                         </CardContent>
                     </Card>
 
