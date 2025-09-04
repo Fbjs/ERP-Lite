@@ -5,7 +5,7 @@ export default function Logo({ className }: { className?: string }) {
   return (
     <>
       <Image
-        src="/logo-dark.png"
+        src="/logo.png"
         alt="Vollkorn Logo"
         width={120}
         height={60}
@@ -13,7 +13,7 @@ export default function Logo({ className }: { className?: string }) {
         priority 
       />
       <Image
-        src="/logo-light.png"
+        src="/logo.png"
         alt="Vollkorn Logo"
         width={120}
         height={60}
