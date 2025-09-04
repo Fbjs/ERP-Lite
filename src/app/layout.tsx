@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Belleza, Alegreya } from 'next/font/google';
 import { cn } from "@/lib/utils"
+import { ThemeProvider } from '@/components/theme-provider';
 
 const belleza = Belleza({
   subsets: ['latin'],
@@ -33,8 +34,15 @@ export default function RootLayout({
           belleza.variable,
           alegreya.variable
         )}>
-        {children}
-        <Toaster />
+         <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

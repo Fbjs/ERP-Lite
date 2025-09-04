@@ -4,10 +4,11 @@
 import type { ReactNode } from 'react';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, LayoutDashboard, NotebookText, Factory, ShoppingCart, BrainCircuit, Users, BookCopy, Truck, Warehouse, Settings, Building2, ShieldCheck, Contact, ShoppingBag, Trash2 } from 'lucide-react';
+import { LogOut, LayoutDashboard, NotebookText, Factory, ShoppingCart, Users, BookCopy, Truck, Warehouse, Settings, Building2, ShieldCheck, Contact, ShoppingBag, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from '@/components/logo';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 
 type UserRole = 'Admin' | 'Producción' | 'Ventas' | 'Logística' | 'Contabilidad';
@@ -94,6 +95,7 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
                         <SidebarTrigger className="md:hidden" />
                         <h2 className="text-2xl font-headline font-semibold">{pageTitle}</h2>
                     </div>
+                    <ThemeToggle />
                 </header>
                 <main className="p-4 md:p-6 fade-in">
                     {children}
