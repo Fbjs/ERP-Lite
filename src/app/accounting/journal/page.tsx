@@ -5,13 +5,16 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, FileText } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { PlusCircle, FileText, ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import JournalEntryForm, { JournalEntryData } from '@/components/journal-entry-form';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Link from 'next/link';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
 
 export type JournalEntry = {
     id: string;
@@ -101,41 +104,51 @@ export default function JournalPage() {
                                 Registra asientos contables manuales para ingresos, egresos, traspasos y otros ajustes.
                             </CardDescription>
                         </div>
-                        <Button onClick={handleOpenForm}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Nuevo Asiento
-                        </Button>
+                        <div className="flex items-center gap-2">
+                             <Button asChild variant="outline">
+                                <Link href="/accounting">
+                                    <ArrowLeft className="mr-2 h-4 w-4" />
+                                    Volver
+                                </Link>
+                            </Button>
+                            <Button onClick={handleOpenForm}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Nuevo Asiento
+                            </Button>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Nº Asiento</TableHead>
-                                <TableHead>Fecha</TableHead>
-                                <TableHead>Glosa</TableHead>
-                                <TableHead className="text-right">Monto Total</TableHead>
-                                <TableHead>Creado Por</TableHead>
-                                <TableHead><span className="sr-only">Acciones</span></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {entries.map((entry) => (
-                                <TableRow key={entry.id}>
-                                    <TableCell className="font-medium">{entry.id}</TableCell>
-                                    <TableCell>{format(entry.date, "P", { locale: es })}</TableCell>
-                                    <TableCell>{entry.description}</TableCell>
-                                    <TableCell className="text-right">${entry.total.toLocaleString('es-CL')}</TableCell>
-                                    <TableCell>{entry.createdBy}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon" onClick={() => handleOpenDetails(entry)}>
-                                            <FileText className="h-4 w-4" />
-                                        </Button>
-                                    </TableCell>
+                    <ScrollArea className="h-[500px]">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Nº Asiento</TableHead>
+                                    <TableHead>Fecha</TableHead>
+                                    <TableHead>Glosa</TableHead>
+                                    <TableHead className="text-right">Monto Total</TableHead>
+                                    <TableHead>Creado Por</TableHead>
+                                    <TableHead><span className="sr-only">Acciones</span></TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {entries.map((entry) => (
+                                    <TableRow key={entry.id}>
+                                        <TableCell className="font-medium">{entry.id}</TableCell>
+                                        <TableCell>{format(entry.date, "P", { locale: es })}</TableCell>
+                                        <TableCell>{entry.description}</TableCell>
+                                        <TableCell className="text-right">${entry.total.toLocaleString('es-CL')}</TableCell>
+                                        <TableCell>{entry.createdBy}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon" onClick={() => handleOpenDetails(entry)}>
+                                                <FileText className="h-4 w-4" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </ScrollArea>
                 </CardContent>
             </Card>
 
