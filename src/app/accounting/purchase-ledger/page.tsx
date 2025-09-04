@@ -179,7 +179,7 @@ export default function PurchaseLedgerPage() {
                     <TableBody>
                         {filteredPurchases.map((doc) => (
                             <TableRow key={doc.id} className="border-b border-gray-200">
-                                <TableCell className="p-1">{format(new Date(doc.date), "P", { locale: es })}</TableCell>
+                                <TableCell className="p-1">{format(new Date(doc.date + 'T00:00:00'), "P", { locale: es, timeZone: 'UTC' })}</TableCell>
                                 <TableCell className="p-1">{doc.docType}</TableCell>
                                 <TableCell className="p-1">{doc.folio}</TableCell>
                                 <TableCell className="p-1">{doc.supplier}</TableCell>
