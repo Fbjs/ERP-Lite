@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Upload, CheckCircle2, AlertCircle, RefreshCw, Wand2, Download, FileSpreadsheet } from 'lucide-react';
+import { Upload, CheckCircle2, AlertCircle, RefreshCw, Wand2, Download, FileSpreadsheet, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -20,6 +20,7 @@ import * as XLSX from 'xlsx';
 import Logo from './logo';
 import { initialBankAccounts } from '../app/admin/bank-accounts/page';
 import { ScrollArea } from './ui/scroll-area';
+import Link from 'next/link';
 
 type BankTransaction = {
     id: string;
@@ -71,6 +72,11 @@ export default function BankReconciliation() {
     const [selectedBankAccount, setSelectedBankAccount] = useState<string>('');
     const historyReportRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
+    const [generationDate, setGenerationDate] = useState<Date | null>(null);
+
+    useEffect(() => {
+        setGenerationDate(new Date());
+    }, []);
     
     const reconciledTransactions = useMemo(() => systemTransactions.filter(tx => tx.isReconciled), [systemTransactions]);
 
@@ -227,7 +233,7 @@ export default function BankReconciliation() {
                         </div>
                     </div>
                      <div className="text-right text-xs">
-                        <p><span className="font-semibold">Fecha Emisión:</span> {format(new Date(), "P p", { locale: es })}</p>
+                        {generationDate && <p><span className="font-semibold">Fecha Emisión:</span> {format(generationDate, "P p", { locale: es })}</p>}
                      </div>
                 </header>
                  <Table className="w-full text-xs">
@@ -423,7 +429,7 @@ export default function BankReconciliation() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="h-96 overflow-y-auto border rounded-md">
+                    <ScrollArea className="h-96">
                         <Table>
                             <TableHeader className="sticky top-0 bg-secondary">
                                 <TableRow>
@@ -460,11 +466,13 @@ export default function BankReconciliation() {
                                 )}
                             </TableBody>
                         </Table>
-                    </div>
+                    </ScrollArea>
                 </CardContent>
             </Card>
 
         </div>
     );
 }
+    
+
     
