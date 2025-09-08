@@ -9,6 +9,11 @@ import { ArrowLeft, PlusCircle, MoreHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import FixedAssetForm, { FixedAssetFormData } from '@/components/fixed-asset-form';
+import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 type FixedAsset = {
     id: string;
@@ -34,6 +39,44 @@ const formatCurrency = (value: number) => {
 
 export default function FixedAssetsPage() {
     const [assets, setAssets] = useState<FixedAsset[]>(initialAssets);
+    const [isFormModalOpen, setFormModalOpen] = useState(false);
+    const [selectedAsset, setSelectedAsset] = useState<FixedAsset | null>(null);
+    const { toast } = useToast();
+    
+    const handleOpenForm = (asset: FixedAsset | null) => {
+        setSelectedAsset(asset);
+        setFormModalOpen(true);
+    };
+    
+    const handleFormSubmit = (data: FixedAssetFormData) => {
+        if (selectedAsset) {
+            // Editing
+            const updatedAsset: FixedAsset = {
+                ...selectedAsset,
+                ...data,
+                // Recalculate depreciation if needed, for now we keep it simple
+            };
+            setAssets(assets.map(asset => asset.id === selectedAsset.id ? updatedAsset : asset));
+            toast({ title: 'Activo Actualizado', description: `Se guardaron los cambios para ${data.name}.` });
+        } else {
+            // Creating
+            const newAsset: FixedAsset = {
+                ...data,
+                id: `ASSET-${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+                accumulatedDepreciation: 0,
+                bookValue: data.cost,
+            };
+            setAssets(prev => [newAsset, ...prev]);
+            toast({ title: 'Activo Creado', description: `Se ha añadido el activo ${data.name}.` });
+        }
+        setFormModalOpen(false);
+        setSelectedAsset(null);
+    };
+
+    const handleDelete = (assetId: string) => {
+        setAssets(assets.filter(asset => asset.id !== assetId));
+        toast({ title: 'Activo Eliminado', variant: 'destructive', description: `El activo ha sido eliminado.` });
+    };
 
     const totals = useMemo(() => {
         return assets.reduce((acc, asset) => {
@@ -62,7 +105,7 @@ export default function FixedAssetsPage() {
                                     Volver
                                 </Link>
                             </Button>
-                            <Button>
+                            <Button onClick={() => handleOpenForm(null)}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Añadir Activo
                             </Button>
@@ -98,9 +141,26 @@ export default function FixedAssetsPage() {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                <DropdownMenuItem>Ver Detalle</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleOpenForm(asset)}>Editar</DropdownMenuItem>
                                                 <DropdownMenuItem>Registrar Depreciación</DropdownMenuItem>
                                                 <DropdownMenuItem>Dar de Baja</DropdownMenuItem>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">Eliminar</DropdownMenuItem>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Esta acción no se puede deshacer. Esto eliminará permanentemente el activo del sistema.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDelete(asset.id)}>Sí, eliminar</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -119,6 +179,21 @@ export default function FixedAssetsPage() {
                     </Table>
                 </CardContent>
             </Card>
+            
+            <Dialog open={isFormModalOpen} onOpenChange={setFormModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="font-headline">{selectedAsset ? 'Editar Activo Fijo' : 'Añadir Nuevo Activo Fijo'}</DialogTitle>
+                    </DialogHeader>
+                    <FixedAssetForm
+                        onSubmit={handleFormSubmit}
+                        onCancel={() => setFormModalOpen(false)}
+                        initialData={selectedAsset}
+                    />
+                </DialogContent>
+            </Dialog>
+
         </AppLayout>
     );
 }
+
