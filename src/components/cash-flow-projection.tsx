@@ -3,11 +3,11 @@
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Line, LineChart } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Lock, PlusCircle, Calendar as CalendarIcon, Edit, ArrowLeft } from 'lucide-react';
+import { Lock, PlusCircle, Calendar as CalendarIcon, Edit, ArrowLeft, Download, FileSpreadsheet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval } from 'date-fns';
@@ -20,6 +20,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import Link from 'next/link';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import * as XLSX from 'xlsx';
+import Logo from './logo';
+
 
 type MonthlyCashFlowData = {
     month: string;
@@ -89,6 +94,8 @@ export default function CashFlowProjection() {
 
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [detailsContent, setDetailsContent] = useState<{title: string, items: {date: Date, description: string, amount: number}[]}>({title: '', items: []});
+    
+    const pdfContentRef = useRef<HTMLDivElement>(null);
 
     const handleOpenMovementModal = (type: 'income' | 'expense', movementToEdit: FutureMovement | null = null) => {
         setMovementType(type);
@@ -259,8 +266,97 @@ export default function CashFlowProjection() {
         setIsDetailsModalOpen(true);
     };
 
+    const handleDownloadPdf = async () => {
+        const input = pdfContentRef.current;
+        if (!input) return;
+
+        const canvas = await html2canvas(input, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        
+        const pdf = new jsPDF('l', 'px', 'a3');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+
+        let pdfImageWidth = pdfWidth - 20;
+        let pdfImageHeight = pdfImageWidth / ratio;
+        
+        if (pdfImageHeight > pdfHeight - 20) {
+            pdfImageHeight = pdfHeight - 20;
+            pdfImageWidth = pdfImageHeight * ratio;
+        }
+        
+        const xOffset = (pdfWidth - pdfImageWidth) / 2;
+
+        pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
+        pdf.save(`flujo-de-caja-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+        toast({ title: 'PDF Descargado', description: 'La proyección de flujo de caja se ha descargado.' });
+    };
+
+    const handleDownloadExcel = () => {
+        const header = ["Concepto", ...processedMonthlyData.map(d => d.month)];
+        const data = [
+            ["Saldo Inicial", ...processedMonthlyData.map(d => d.initialBalance)],
+            ["Cobranza Clientes", ...processedMonthlyData.map(d => d.collections)],
+            ["Otros Ingresos", ...processedMonthlyData.map(d => d.otherIncome)],
+            ["Ingresos Futuros", ...processedMonthlyData.map(d => (d as any).futureIncomes)],
+            ["Total Ingresos", ...processedMonthlyData.map(d => (d as any).totalIncome)],
+            ["Pago Proveedores", ...processedMonthlyData.map(d => d.supplierPayments)],
+            ["Pago Sueldos", ...processedMonthlyData.map(d => d.salaries)],
+            ["Gastos Operacionales", ...processedMonthlyData.map(d => d.operatingExpenses)],
+            ["Gastos Futuros", ...processedMonthlyData.map(d => (d as any).futureExpenses)],
+            ["Total Egresos", ...processedMonthlyData.map(d => (d as any).totalExpenses)],
+            ["Saldo Final de Caja", ...processedMonthlyData.map(d => (d as any).finalBalance)],
+        ];
+
+        const worksheet = XLSX.utils.aoa_to_sheet([header, ...data]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Flujo de Caja Mensual");
+        XLSX.writeFile(workbook, `flujo-de-caja-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+        toast({ title: 'Excel Exportado', description: 'La proyección de flujo de caja se ha exportado.' });
+    };
+
+
     return (
         <div className="space-y-6">
+            <div ref={pdfContentRef} className="fixed -left-[9999px] top-0 bg-white text-black p-4 font-body" style={{ width: '1200px' }}>
+                <header className="flex justify-between items-start mb-4 border-b-2 border-gray-800 pb-2">
+                    <div className="flex items-center gap-3">
+                        <Logo className="w-24" />
+                        <div>
+                            <h1 className="text-xl font-bold font-headline text-gray-800">Proyección Flujo de Caja</h1>
+                            <p className="text-xs text-gray-500">Panificadora Vollkorn</p>
+                        </div>
+                    </div>
+                </header>
+                 <Table className="w-full text-xs">
+                    <TableHeader className="bg-gray-100">
+                        <TableRow>
+                            <TableHead className="p-1 font-bold">Concepto</TableHead>
+                            {processedMonthlyData.map(d => <TableHead key={d.month} className="text-right p-1 font-bold">{d.month}</TableHead>)}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow><TableCell className="p-1 font-semibold">Saldo Inicial</TableCell>{processedMonthlyData.map(d => <TableCell key={d.month} className="text-right p-1">{formatCurrency(d.initialBalance)}</TableCell>)}</TableRow>
+                        <TableRow><TableCell colSpan={processedMonthlyData.length + 1} className="font-semibold text-green-700 p-1 bg-green-50">Ingresos</TableCell></TableRow>
+                        <TableRow><TableCell className="pl-4 p-1">Cobranza Clientes</TableCell>{processedMonthlyData.map(d => <TableCell key={d.month} className="text-right p-1">{formatCurrency(d.collections)}</TableCell>)}</TableRow>
+                        <TableRow><TableCell className="pl-4 p-1">Otros Ingresos</TableCell>{processedMonthlyData.map(d => <TableCell key={d.month} className="text-right p-1">{formatCurrency(d.otherIncome)}</TableCell>)}</TableRow>
+                        <TableRow><TableCell className="pl-4 p-1">Ingresos Futuros Proyectados</TableCell>{processedMonthlyData.map(d => <TableCell key={d.month} className="text-right p-1">{formatCurrency((d as any).futureIncomes)}</TableCell>)}</TableRow>
+                        <TableRow className="font-semibold"><TableCell className="pl-4 p-1">Total Ingresos</TableCell>{processedMonthlyData.map(d => <TableCell key={d.month} className="text-right p-1">{formatCurrency((d as any).totalIncome)}</TableCell>)}</TableRow>
+                        <TableRow><TableCell colSpan={processedMonthlyData.length + 1} className="font-semibold text-red-700 p-1 bg-red-50">Egresos</TableCell></TableRow>
+                        <TableRow><TableCell className="pl-4 p-1">Pago Proveedores</TableCell>{processedMonthlyData.map(d => <TableCell key={d.month} className="text-right p-1">{formatCurrency(d.supplierPayments)}</TableCell>)}</TableRow>
+                        <TableRow><TableCell className="pl-4 p-1">Pago Sueldos</TableCell>{processedMonthlyData.map(d => <TableCell key={d.month} className="text-right p-1">{formatCurrency(d.salaries)}</TableCell>)}</TableRow>
+                        <TableRow><TableCell className="pl-4 p-1">Gastos Operacionales</TableCell>{processedMonthlyData.map(d => <TableCell key={d.month} className="text-right p-1">{formatCurrency(d.operatingExpenses)}</TableCell>)}</TableRow>
+                        <TableRow><TableCell className="pl-4 p-1">Gastos Futuros Proyectados</TableCell>{processedMonthlyData.map(d => <TableCell key={d.month} className="text-right p-1">{formatCurrency((d as any).futureExpenses)}</TableCell>)}</TableRow>
+                        <TableRow className="font-semibold"><TableCell className="pl-4 p-1">Total Egresos</TableCell>{processedMonthlyData.map(d => <TableCell key={d.month} className="text-right p-1">{formatCurrency((d as any).totalExpenses)}</TableCell>)}</TableRow>
+                        <TableRow className="font-bold text-base bg-gray-200"><TableCell className="p-1">Saldo Final de Caja</TableCell>{processedMonthlyData.map(d => <TableCell key={d.month} className="text-right p-1">{formatCurrency((d as any).finalBalance)}</TableCell>)}</TableRow>
+                    </TableBody>
+                </Table>
+            </div>
+            
             <Card>
                 <CardHeader>
                     <div className="flex flex-wrap justify-between items-center gap-4">
@@ -270,7 +366,7 @@ export default function CashFlowProjection() {
                                 Analiza y proyecta el flujo de caja. Añade gastos futuros para simular escenarios.
                             </CardDescription>
                         </div>
-                         <div className="flex items-center gap-2">
+                         <div className="flex items-center gap-2 flex-wrap">
                              <Button asChild variant="outline">
                                 <Link href="/accounting">
                                     <ArrowLeft className="mr-2 h-4 w-4" />
@@ -314,6 +410,8 @@ export default function CashFlowProjection() {
                                     />
                                 </PopoverContent>
                             </Popover>
+                             <Button variant="outline" onClick={handleDownloadExcel} disabled={processedMonthlyData.length === 0}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
+                            <Button variant="outline" onClick={handleDownloadPdf} disabled={processedMonthlyData.length === 0}><Download className="mr-2 h-4 w-4" /> PDF</Button>
                         </div>
                     </div>
                 </CardHeader>
