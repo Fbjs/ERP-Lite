@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera, Building, UserCheck, Edit, ArrowLeft, Search } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera, Building, UserCheck, Edit, ArrowLeft, Search, FileSpreadsheet } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -22,6 +22,7 @@ import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
 import { initialEmployees, type Employee, type WorkHistoryEvent } from '../data';
+import * as XLSX from 'xlsx';
 
 export default function StaffPage() {
     const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
@@ -157,8 +158,12 @@ export default function StaffPage() {
     };
     
     const handleCopyToClipboard = () => {
-        if (!generatedDoc?.documentContent) return;
-        navigator.clipboard.writeText(generatedDoc.documentContent);
+        if (!generatedDoc?.documentHtmlContent) return;
+
+        const el = document.createElement('div');
+        el.innerHTML = generatedDoc.documentHtmlContent;
+        navigator.clipboard.writeText(el.innerText || generatedDoc.documentHtmlContent);
+        
         toast({
             title: "Copiado",
             description: "El contenido del documento se ha copiado al portapapeles.",
@@ -229,6 +234,24 @@ export default function StaffPage() {
             });
         }
     };
+    
+    const handleDownloadExcel = () => {
+        const dataForSheet = employees.map(employee => ({
+            'Nombre': employee.name,
+            'RUT': employee.rut,
+            'Cargo': employee.position,
+            'Sueldo Bruto': employee.salary,
+            'Previsión': employee.healthInsurance,
+            'AFP': employee.pensionFund,
+            'Fecha de Ingreso': format(parseISO(employee.startDate), 'P', { locale: es })
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Nómina");
+        XLSX.writeFile(workbook, `nomina_trabajadores_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+        toast({ title: "Excel Descargado", description: "La nómina de personal ha sido exportada." });
+    };
 
 
   return (
@@ -296,9 +319,13 @@ export default function StaffPage() {
                             Volver
                         </Link>
                     </Button>
+                     <Button variant="outline" onClick={handleDownloadExcel}>
+                        <FileSpreadsheet className="mr-2 h-4 w-4" />
+                        Excel
+                    </Button>
                      <Button variant="outline" onClick={handleDownloadPdf}>
                         <Download className="mr-2 h-4 w-4" />
-                        Nómina
+                        Nómina PDF
                     </Button>
                     <Button onClick={() => { setEditingEmployee(null); setFormModalOpen(true); }}>
                         <PlusCircle className="mr-2 h-4 w-4" />
@@ -537,7 +564,11 @@ export default function StaffPage() {
         ) : generatedDoc && (
              <div className="space-y-4">
                 <Label htmlFor="generated-content" className="font-body">Contenido Generado</Label>
-                <Textarea id="generated-content" readOnly value={generatedDoc.documentContent} className="min-h-[300px] font-mono text-sm bg-secondary"/>
+                <div
+                  contentEditable
+                  dangerouslySetInnerHTML={{ __html: generatedDoc.documentHtmlContent }}
+                  className="prose prose-sm max-w-none h-64 border rounded-md p-4 bg-secondary/50 overflow-y-auto focus:outline-none focus:ring-2 focus:ring-primary"
+                />
                  <Button variant="outline" onClick={handleCopyToClipboard}><Clipboard className="mr-2 h-4 w-4" />Copiar al Portapapeles</Button>
             </div>
         )}
