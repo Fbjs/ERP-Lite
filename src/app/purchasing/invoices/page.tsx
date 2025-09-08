@@ -129,12 +129,14 @@ export default function SupplierInvoicesPage() {
     const { toast } = useToast();
     const reportRef = useRef<HTMLDivElement>(null);
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+    const [generationDate, setGenerationDate] = useState<Date | null>(null);
 
     useEffect(() => {
         setDateRange({
             from: subMonths(new Date(), 1),
             to: new Date()
         });
+        setGenerationDate(new Date());
     }, []);
     
     const availableOrders = useMemo(() => {
@@ -207,7 +209,7 @@ export default function SupplierInvoicesPage() {
                     </div>
                      <div className="text-right text-xs">
                          <p><span className="font-semibold">Período:</span> {dateRange?.from ? format(dateRange.from, "P", { locale: es }) : ''} a {dateRange?.to ? format(dateRange.to, "P", { locale: es }) : 'Ahora'}</p>
-                         <p><span className="font-semibold">Fecha de Emisión:</span> {format(new Date(), "P p", { locale: es })}</p>
+                         {generationDate && <p><span className="font-semibold">Fecha de Emisión:</span> {format(generationDate, "P p", { locale: es })}</p>}
                      </div>
                 </header>
                  <Table className="w-full text-xs">
