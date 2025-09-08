@@ -9,10 +9,11 @@ import { ArrowLeft, PlusCircle, MoreHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import FixedAssetForm, { FixedAssetFormData } from '@/components/fixed-asset-form';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 
 
 type FixedAsset = {
@@ -23,13 +24,14 @@ type FixedAsset = {
     usefulLifeYears: number; // Vida útil en años
     accumulatedDepreciation: number;
     bookValue: number;
+    status: 'Activo' | 'De Baja';
 };
 
 const initialAssets: FixedAsset[] = [
-    { id: 'ASSET-001', name: 'Horno Industrial Modelo X', acquisitionDate: '2022-01-15', cost: 15000000, usefulLifeYears: 10, accumulatedDepreciation: 3750000, bookValue: 11250000 },
-    { id: 'ASSET-002', name: 'Vehículo de Reparto (Patente XY-1234)', acquisitionDate: '2023-03-20', cost: 12000000, usefulLifeYears: 5, accumulatedDepreciation: 2400000, bookValue: 9600000 },
-    { id: 'ASSET-003', name: 'Amasadora Industrial 200L', acquisitionDate: '2021-11-01', cost: 8000000, usefulLifeYears: 8, accumulatedDepreciation: 2750000, bookValue: 5250000 },
-    { id: 'ASSET-004', name: 'Sistema de Refrigeración', acquisitionDate: '2022-06-30', cost: 5000000, usefulLifeYears: 7, accumulatedDepreciation: 1428571, bookValue: 3571429 },
+    { id: 'ASSET-001', name: 'Horno Industrial Modelo X', acquisitionDate: '2022-01-15', cost: 15000000, usefulLifeYears: 10, accumulatedDepreciation: 3750000, bookValue: 11250000, status: 'Activo' },
+    { id: 'ASSET-002', name: 'Vehículo de Reparto (Patente XY-1234)', acquisitionDate: '2023-03-20', cost: 12000000, usefulLifeYears: 5, accumulatedDepreciation: 2400000, bookValue: 9600000, status: 'Activo' },
+    { id: 'ASSET-003', name: 'Amasadora Industrial 200L', acquisitionDate: '2021-11-01', cost: 8000000, usefulLifeYears: 8, accumulatedDepreciation: 2750000, bookValue: 5250000, status: 'Activo' },
+    { id: 'ASSET-004', name: 'Sistema de Refrigeración', acquisitionDate: '2022-06-30', cost: 5000000, usefulLifeYears: 7, accumulatedDepreciation: 1428571, bookValue: 3571429, status: 'De Baja' },
 ];
 
 
@@ -65,6 +67,7 @@ export default function FixedAssetsPage() {
                 id: `ASSET-${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
                 accumulatedDepreciation: 0,
                 bookValue: data.cost,
+                status: 'Activo'
             };
             setAssets(prev => [newAsset, ...prev]);
             toast({ title: 'Activo Creado', description: `Se ha añadido el activo ${data.name}.` });
@@ -78,8 +81,30 @@ export default function FixedAssetsPage() {
         toast({ title: 'Activo Eliminado', variant: 'destructive', description: `El activo ha sido eliminado.` });
     };
 
+    const handleRegisterDepreciation = (asset: FixedAsset) => {
+        const annualDepreciation = asset.cost / asset.usefulLifeYears;
+        const newAccumulated = asset.accumulatedDepreciation + annualDepreciation;
+        const newBookValue = Math.max(0, asset.cost - newAccumulated);
+
+        setAssets(assets.map(a => 
+            a.id === asset.id 
+            ? { ...a, accumulatedDepreciation: newAccumulated, bookValue: newBookValue } 
+            : a
+        ));
+        toast({ title: 'Depreciación Registrada', description: `Se ha registrado la depreciación para ${asset.name}.` });
+    };
+    
+    const handleWriteOff = (asset: FixedAsset) => {
+        setAssets(assets.map(a => 
+            a.id === asset.id 
+            ? { ...a, status: 'De Baja' } 
+            : a
+        ));
+        toast({ title: 'Activo Dado de Baja', description: `El activo ${asset.name} ha sido dado de baja.` });
+    };
+
     const totals = useMemo(() => {
-        return assets.reduce((acc, asset) => {
+        return assets.filter(a => a.status === 'Activo').reduce((acc, asset) => {
             acc.cost += asset.cost;
             acc.accumulatedDepreciation += asset.accumulatedDepreciation;
             acc.bookValue += asset.bookValue;
@@ -121,17 +146,21 @@ export default function FixedAssetsPage() {
                                 <TableHead className="text-right">Costo Original</TableHead>
                                 <TableHead className="text-right">Depreciación Acumulada</TableHead>
                                 <TableHead className="text-right">Valor Libro</TableHead>
+                                <TableHead>Estado</TableHead>
                                 <TableHead><span className="sr-only">Acciones</span></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {assets.map((asset) => (
-                                <TableRow key={asset.id}>
+                                <TableRow key={asset.id} className={asset.status === 'De Baja' ? 'text-muted-foreground' : ''}>
                                     <TableCell className="font-medium">{asset.name}</TableCell>
                                     <TableCell>{new Date(asset.acquisitionDate + 'T00:00:00').toLocaleDateString('es-CL', { timeZone: 'UTC' })}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(asset.cost)}</TableCell>
                                     <TableCell className="text-right text-red-600">({formatCurrency(asset.accumulatedDepreciation)})</TableCell>
                                     <TableCell className="text-right font-semibold">{formatCurrency(asset.bookValue)}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={asset.status === 'Activo' ? 'default' : 'secondary'}>{asset.status}</Badge>
+                                    </TableCell>
                                     <TableCell>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -141,9 +170,48 @@ export default function FixedAssetsPage() {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                <DropdownMenuItem onClick={() => handleOpenForm(asset)}>Editar</DropdownMenuItem>
-                                                <DropdownMenuItem>Registrar Depreciación</DropdownMenuItem>
-                                                <DropdownMenuItem>Dar de Baja</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleOpenForm(asset)} disabled={asset.status === 'De Baja'}>Editar</DropdownMenuItem>
+                                                
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={asset.status === 'De Baja' || asset.bookValue === 0}>
+                                                            Registrar Depreciación
+                                                        </DropdownMenuItem>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Registrar Depreciación Anual</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Se registrará una depreciación de {formatCurrency(asset.cost / asset.usefulLifeYears)} para {asset.name}. ¿Continuar?
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleRegisterDepreciation(asset)}>Sí, registrar</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                                
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={asset.status === 'De Baja'}>
+                                                            Dar de Baja
+                                                        </DropdownMenuItem>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Dar de Baja Activo</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Esta acción cambiará el estado a "De Baja" y lo excluirá de los totales. No podrá ser revertida.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleWriteOff(asset)}>Sí, dar de baja</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                                
                                                 <AlertDialog>
                                                     <AlertDialogTrigger asChild>
                                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">Eliminar</DropdownMenuItem>
@@ -169,11 +237,11 @@ export default function FixedAssetsPage() {
                         </TableBody>
                         <TableFooter>
                             <TableRow className="font-bold text-base">
-                                <TableCell colSpan={2}>Totales</TableCell>
+                                <TableCell colSpan={2}>Totales Activos</TableCell>
                                 <TableCell className="text-right">{formatCurrency(totals.cost)}</TableCell>
                                 <TableCell className="text-right text-red-600">({formatCurrency(totals.accumulatedDepreciation)})</TableCell>
                                 <TableCell className="text-right">{formatCurrency(totals.bookValue)}</TableCell>
-                                <TableCell></TableCell>
+                                <TableCell colSpan={2}></TableCell>
                             </TableRow>
                         </TableFooter>
                     </Table>
