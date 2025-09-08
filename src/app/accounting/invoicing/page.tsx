@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus, BookOpen, FilePlus2, AreaChart, User, Briefcase, BookKey, BarChart3, ArrowLeft } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Mail, Calendar as CalendarIcon, DollarSign, Clock, AlertTriangle, FileCheck, Landmark, FileMinus, BookOpen, FilePlus2, AreaChart, User, Briefcase, BookKey, BarChart3, ArrowLeft, FileSpreadsheet } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useSearchParams } from 'next/navigation';
@@ -26,6 +26,7 @@ import Link from 'next/link';
 import CreditNoteForm, { CreditNoteFormData } from '@/components/credit-note-form';
 import DebitNoteForm, { DebitNoteFormData } from '@/components/debit-note-form';
 import { initialCustomers } from '@/app/admin/customers/page';
+import * as XLSX from 'xlsx';
 
 
 type Document = {
@@ -252,6 +253,29 @@ function AccountingPageContent() {
             });
         }
     };
+    
+    const handleExportExcel = () => {
+        const dataToExport = filteredDocuments.map(doc => ({
+            'Documento': doc.id,
+            'Tipo': doc.type,
+            'Fecha': new Date(doc.date + 'T00:00:00').toLocaleDateString('es-CL', { timeZone: 'UTC' }),
+            'Cliente': doc.client,
+            'Responsable': doc.createdBy,
+            'Total': doc.total,
+            'Estado': doc.status,
+            'Detalles': doc.details.replace(/\n/g, ' '),
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Documentos");
+        XLSX.writeFile(workbook, `reporte-documentos-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+         toast({
+            title: "Excel Descargado",
+            description: "El listado de documentos ha sido exportado a Excel.",
+        });
+    }
 
 
   return (
@@ -358,51 +382,64 @@ function AccountingPageContent() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                     <div className="flex flex-wrap items-center gap-4 border-t pt-6">
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    id="date"
-                                    variant={"outline"}
-                                    className={cn(
-                                    "w-full sm:w-[300px] justify-start text-left font-normal",
-                                    !dateRange && "text-muted-foreground"
-                                    )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {dateRange?.from ? (
-                                    dateRange.to ? (
-                                        <>
-                                        {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
-                                        {format(dateRange.to, "LLL dd, y", { locale: es })}
-                                        </>
-                                    ) : (
-                                        format(dateRange.from, "LLL dd, y", { locale: es })
-                                    )
-                                    ) : (
-                                    <span>Selecciona un rango</span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="end">
-                                <Calendar
-                                    initialFocus
-                                    mode="range"
-                                    defaultMonth={dateRange?.from}
-                                    selected={dateRange}
-                                    onSelect={setDateRange}
-                                    numberOfMonths={2}
-                                    locale={es}
-                                />
-                            </PopoverContent>
-                        </Popover>
-                        <Button 
-                            onClick={() => handleDownloadPdf(reportContentRef, `reporte-contable-${format(dateRange?.from ?? new Date(), 'yyyy-MM-dd')}-a-${format(dateRange?.to ?? new Date(), 'yyyy-MM-dd')}.pdf`)} 
-                            disabled={!dateRange?.from || !dateRange?.to}
-                        >
-                            <Download className="mr-2 h-4 w-4" />
-                            Generar Reporte
-                        </Button>
+                     <div className="flex flex-wrap items-end gap-4 border-t pt-6">
+                        <div className="flex-1 min-w-[280px]">
+                            <Label>Filtrar por Fecha de Documento</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="date"
+                                        variant={"outline"}
+                                        className={cn(
+                                        "w-full justify-start text-left font-normal",
+                                        !dateRange && "text-muted-foreground"
+                                        )}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dateRange?.from ? (
+                                        dateRange.to ? (
+                                            <>
+                                            {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                                            {format(dateRange.to, "LLL dd, y", { locale: es })}
+                                            </>
+                                        ) : (
+                                            format(dateRange.from, "LLL dd, y", { locale: es })
+                                        )
+                                        ) : (
+                                        <span>Selecciona un rango</span>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="end">
+                                    <Calendar
+                                        initialFocus
+                                        mode="range"
+                                        defaultMonth={dateRange?.from}
+                                        selected={dateRange}
+                                        onSelect={setDateRange}
+                                        numberOfMonths={2}
+                                        locale={es}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                        <div className="flex items-center gap-2">
+                             <Button 
+                                variant="outline"
+                                onClick={handleExportExcel} 
+                                disabled={!dateRange?.from || !dateRange?.to}
+                            >
+                                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                                Exportar Detalle
+                            </Button>
+                            <Button 
+                                onClick={() => handleDownloadPdf(reportContentRef, `reporte-contable-${format(dateRange?.from ?? new Date(), 'yyyy-MM-dd')}-a-${format(dateRange?.to ?? new Date(), 'yyyy-MM-dd')}.pdf`)} 
+                                disabled={!dateRange?.from || !dateRange?.to}
+                            >
+                                <Download className="mr-2 h-4 w-4" />
+                                Reporte Contable
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
