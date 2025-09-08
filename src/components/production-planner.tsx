@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { initialRecipes, Recipe } from '@/app/recipes/page';
@@ -13,9 +13,15 @@ import { es } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { cn } from '@/lib/utils';
-import { Calendar as CalendarIcon, PlusCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Download, FileSpreadsheet, PlusCircle } from 'lucide-react';
 import { Label } from './ui/label';
 import { DialogFooter } from './ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import * as XLSX from 'xlsx';
+import Logo from './logo';
+
 
 export type ProductionNeed = {
     recipe: Recipe;
@@ -36,6 +42,9 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
         from: today,
         to: addDays(today, 2),
     });
+    const reportRef = useRef<HTMLDivElement>(null);
+    const { toast } = useToast();
+
 
     const planningDays = useMemo(() => {
         if (!dateRange?.from || !dateRange.to) return [];
@@ -108,9 +117,109 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
         const needsToProduce = productionNeeds.filter(n => n.netToProduce > 0);
         onCreateOrders(needsToProduce);
     }
+    
+    const handleDownloadPdf = async () => {
+        const input = reportRef.current;
+        if (input) {
+            const canvas = await html2canvas(input, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF('l', 'px', 'a3');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const ratio = canvasWidth / canvasHeight;
+
+            let pdfImageWidth = pdfWidth - 20;
+            let pdfImageHeight = pdfImageWidth / ratio;
+
+            if (pdfImageHeight > pdfHeight - 20) {
+              pdfImageHeight = pdfHeight - 20;
+              pdfImageWidth = pdfImageHeight * ratio;
+            }
+            
+            const xOffset = (pdfWidth - pdfImageWidth) / 2;
+
+            pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
+            pdf.save(`plan-produccion-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+            
+            toast({
+                title: "PDF Descargado",
+                description: "El plan de producción ha sido descargado.",
+            });
+        }
+    };
+    
+    const handleDownloadExcel = () => {
+        const dataForSheet = productionNeeds.map(need => {
+            const row: {[key: string]: any} = {
+                'Producto': need.recipe.name,
+                'Stock Sobrante': need.inventoryStock,
+            };
+            need.demands.forEach(demand => {
+                row[`Pedido ${format(demand.date, 'EEE dd')}`] = demand.quantity || '';
+            });
+            row['A Producir'] = need.netToProduce || '';
+            return row;
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "PlanProduccion");
+        XLSX.writeFile(workbook, `plan-produccion-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+
+        toast({
+            title: "Excel Descargado",
+            description: "El plan de producción ha sido descargado.",
+        });
+    };
 
     return (
         <div className="space-y-4 font-body">
+             <div ref={reportRef} className="fixed -left-[9999px] top-0 bg-white text-black p-4 font-body" style={{ width: '1600px' }}>
+                 <header className="flex justify-between items-start mb-4 border-b-2 border-gray-800 pb-2">
+                    <div className="flex items-center gap-3">
+                        <Logo className="w-24" />
+                        <div>
+                            <h1 className="text-xl font-bold font-headline text-gray-800">Planificador de Producción</h1>
+                            <p className="text-xs text-gray-500">Panificadora Vollkorn</p>
+                        </div>
+                    </div>
+                     <div className="text-right text-xs">
+                         <p><span className="font-semibold">Período:</span> {dateRange?.from ? format(dateRange.from, "P", { locale: es }) : ''} a {dateRange?.to ? format(dateRange.to, "P", { locale: es }) : 'Ahora'}</p>
+                     </div>
+                </header>
+                 <Table className="w-full text-xs">
+                    <TableHeader className="bg-gray-100">
+                        <TableRow>
+                            <TableHead className="p-1 font-bold">Producto</TableHead>
+                            <TableHead className="p-1 font-bold text-center">Stock Sobrante</TableHead>
+                             {planningDays.map(day => (
+                                <TableHead key={day.toISOString()} className="p-1 font-bold text-center">
+                                    Pedido {format(day, 'EEE dd', { locale: es })}
+                                </TableHead>
+                            ))}
+                            <TableHead className="p-1 font-bold text-center">A Producir</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {productionNeeds.map(need => (
+                            <TableRow key={need.recipe.id}>
+                                <TableCell className="p-1">{need.recipe.name}</TableCell>
+                                <TableCell className="p-1 text-center">{need.inventoryStock}</TableCell>
+                                {need.demands.map((demand, index) => (
+                                    <TableCell key={index} className="p-1 text-center">
+                                        {demand.quantity > 0 ? demand.quantity : ''}
+                                    </TableCell>
+                                ))}
+                                <TableCell className="p-1 text-center font-bold">{need.netToProduce > 0 ? need.netToProduce : ''}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
             <div className="flex flex-wrap items-end gap-4 p-4 border rounded-lg bg-secondary/30">
                 <div className="space-y-2">
                     <Label>Rango de Fechas de Entrega a Planificar</Label>
@@ -151,6 +260,10 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                             />
                         </PopoverContent>
                     </Popover>
+                </div>
+                 <div className="flex items-end gap-2">
+                    <Button variant="outline" onClick={handleDownloadExcel}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
+                    <Button variant="outline" onClick={handleDownloadPdf}><Download className="mr-2 h-4 w-4" /> PDF</Button>
                 </div>
             </div>
             <div className="max-h-[60vh] overflow-auto border rounded-lg">
