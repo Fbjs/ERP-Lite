@@ -5,9 +5,9 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, ArrowLeft, Download, FileSpreadsheet, Calendar as CalendarIcon, RefreshCcw } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, ArrowLeft, Download, FileSpreadsheet, Calendar as CalendarIcon, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -115,6 +115,11 @@ export default function PurchaseOrdersPage() {
     const handleDelete = (orderId: string) => {
         setOrders(orders.filter(o => o.id !== orderId));
         toast({ title: 'Orden Eliminada', variant: 'destructive', description: 'La orden de compra ha sido eliminada.' });
+    };
+
+    const handleUpdateStatus = (orderId: string, status: PurchaseOrder['status']) => {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+        toast({ title: 'Estado Actualizado', description: `La orden ${orderId} ahora está ${status}.` });
     };
     
     const handleDownloadPdf = async () => {
@@ -287,9 +292,11 @@ export default function PurchaseOrdersPage() {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                <DropdownMenuItem onClick={() => handleOpenForm(order)}>Editar</DropdownMenuItem>
-                                                <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
-                                                <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(order.id)}>Eliminar</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleOpenForm(order)} disabled={order.status !== 'Borrador'}>Editar</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, 'Aprobado')} disabled={order.status !== 'Borrador'}>Aprobar</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleUpdateStatus(order.id, 'Recibido')} disabled={order.status !== 'Aprobado'}>Marcar como Recibido</DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(order.id)} disabled={order.status !== 'Borrador'}>Eliminar</DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>

@@ -8,6 +8,7 @@ import Link from 'next/link';
 
 const purchasingSections = [
     { href: '/purchasing/orders', title: 'Órdenes de Compra', description: 'Crea y gestiona órdenes de compra a proveedores.', icon: ClipboardList },
+    { href: '/purchasing/receptions', title: 'Recepción de Mercadería', description: 'Registra la entrada de productos al inventario.', icon: Truck },
     { href: '/purchasing/invoices', title: 'Facturas de Proveedores', description: 'Administra y registra las facturas de compra.', icon: FileText },
 ]
 
