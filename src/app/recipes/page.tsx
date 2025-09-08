@@ -4,15 +4,20 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, FileText } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import RecipeForm from '@/components/recipe-form';
-import { useState, useRef, ComponentProps } from 'react';
+import { useState, useRef, ComponentProps, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ProductionPage from '../production/page';
 import Logo from '@/components/logo';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 
 export type Ingredient = {
@@ -274,7 +279,13 @@ export default function RecipesPage() {
   const [isProductionModalOpen, setIsProductionModalOpen] = useState(false);
   const [prefilledProduct, setPrefilledProduct] = useState<string | undefined>(undefined);
   const detailsModalContentRef = useRef<HTMLDivElement>(null);
+  const reportContentRef = useRef<HTMLDivElement>(null);
+  const [generationDate, setGenerationDate] = useState<Date | null>(null);
   const { toast } = useToast();
+
+   useEffect(() => {
+    setGenerationDate(new Date());
+  }, []);
 
   const handleCreateRecipe = (newRecipeData: Omit<Recipe, 'id' | 'lastUpdated'>) => {
     const newRecipe: Recipe = {
@@ -319,16 +330,45 @@ export default function RecipesPage() {
   }
   
   const handleOpenProductionForm = (recipeName: string) => {
-    // This function will now be passed down to open the modal on the production page
-    // For now, we just log it to show it's called
-    // The actual modal opening will be handled on the parent (likely a new page wrapper)
-    // For this example, let's assume we can trigger a modal on another page.
     setPrefilledProduct(recipeName);
     setIsProductionModalOpen(true);
   };
 
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadReportPdf = async () => {
+    const input = reportContentRef.current;
+    if (input) {
+        const { default: jsPDF } = await import('jspdf');
+        const { default: html2canvas } = await import('html2canvas');
+        
+        const canvas = await html2canvas(input, { scale: 2, backgroundColor: '#ffffff' });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'px', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const ratio = canvasWidth / canvasHeight;
+        let pdfImageWidth = pdfWidth - 20;
+        let pdfImageHeight = pdfImageWidth / ratio;
+
+        if (pdfImageHeight > pdfHeight - 20) {
+          pdfImageHeight = pdfHeight - 20;
+          pdfImageWidth = pdfImageHeight * ratio;
+        }
+        
+        const xOffset = (pdfWidth - pdfImageWidth) / 2;
+
+        pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
+        pdf.save(`reporte-recetas-${new Date().toISOString().split('T')[0]}.pdf`);
+        toast({
+            title: "PDF Descargado",
+            description: `El listado de recetas ha sido descargado.`,
+        });
+    }
+  };
+
+  const handleDownloadRecipePdf = async () => {
     const input = detailsModalContentRef.current;
     if (input) {
         const { default: jsPDF } = await import('jspdf');
@@ -361,8 +401,64 @@ export default function RecipesPage() {
     }
   };
 
+   const handleExportExcel = () => {
+        const dataForSheet = recipes.map(r => ({
+            'SKU': r.id,
+            'Nombre Producto': r.name,
+            'Familia': r.family,
+            'Formatos': r.formats.map(f => `${f.name} (${f.sku})`).join(', '),
+            'Ingredientes': r.ingredients.map(i => `${i.name} (${i.quantity} ${i.unit})`).join(', '),
+            'Última Actualización': new Date(r.lastUpdated + 'T00:00:00').toLocaleDateString('es-CL'),
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Recetas");
+        XLSX.writeFile(workbook, `reporte-recetas-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+
+        toast({ title: "Archivo Generado", description: "Se ha exportado el listado de recetas a Excel." });
+    };
+
   return (
     <AppLayout pageTitle="Recetas">
+      <div ref={reportContentRef} className="fixed -left-[9999px] top-0 bg-white text-black p-8 font-body" style={{ width: '8.5in', minHeight: '11in'}}>
+          <header className="flex justify-between items-center mb-8 border-b-2 border-gray-800 pb-4">
+              <div>
+                  <h1 className="text-3xl font-bold font-headline text-gray-800">Listado de Recetas</h1>
+                  <p className="text-sm text-gray-500">Panificadora Vollkorn</p>
+              </div>
+               <div className="text-right text-sm">
+                  {generationDate && <p><span className="font-semibold">Fecha de Generación:</span> {format(generationDate, "P p", { locale: es })}</p>}
+              </div>
+          </header>
+
+          <main>
+              <Table className="w-full text-sm">
+                  <TableHeader className="bg-gray-100">
+                      <TableRow>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">SKU</TableHead>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Nombre</TableHead>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Familia</TableHead>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Actualización</TableHead>
+                      </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                      {recipes.map((recipe) => (
+                          <TableRow key={recipe.id} className="border-b border-gray-200">
+                              <TableCell className="p-3">{recipe.id}</TableCell>
+                              <TableCell className="p-3">{recipe.name}</TableCell>
+                              <TableCell className="p-3">{recipe.family}</TableCell>
+                              <TableCell className="p-3">{new Date(recipe.lastUpdated + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
+                          </TableRow>
+                      ))}
+                  </TableBody>
+              </Table>
+          </main>
+          <footer className="text-center text-xs text-gray-400 border-t pt-4 mt-8">
+              <p>Reporte generado por Vollkorn ERP.</p>
+          </footer>
+      </div>
+
       <Card>
         <CardHeader>
             <div className="flex flex-wrap justify-between items-center gap-4">
@@ -370,10 +466,14 @@ export default function RecipesPage() {
                     <CardTitle className="font-headline">Recetas y Productos</CardTitle>
                     <CardDescription className="font-body">Gestiona los productos, sus recetas base y categorías (familias).</CardDescription>
                 </div>
-                <Button onClick={() => handleOpenForm(null)}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Nueva Receta
-                </Button>
+                <div className="flex items-center gap-2">
+                     <Button variant="outline" onClick={handleExportExcel}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
+                    <Button variant="outline" onClick={handleDownloadReportPdf}><Download className="mr-2 h-4 w-4" /> PDF</Button>
+                    <Button onClick={() => handleOpenForm(null)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Nueva Receta
+                    </Button>
+                </div>
             </div>
         </CardHeader>
         <CardContent>
@@ -531,7 +631,7 @@ export default function RecipesPage() {
           )}
            <DialogFooter className="mt-4">
                 <Button variant="outline" onClick={() => setDetailsModalOpen(false)}>Cerrar</Button>
-                <Button onClick={handleDownloadPdf}>
+                <Button onClick={handleDownloadRecipePdf}>
                     <Download className="mr-2 h-4 w-4" />
                     Descargar PDF
                 </Button>
