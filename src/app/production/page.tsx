@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, FilePlus, Calendar as CalendarIcon } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, FilePlus, Calendar as CalendarIcon, FileSpreadsheet } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -16,13 +16,17 @@ import { initialInventoryItems } from '@/app/inventory/page';
 import Logo from '@/components/logo';
 import { initialOrders as allSalesOrders, OrderItem as SalesOrderItem, Order as SalesOrder } from '@/app/sales/page';
 import { DateRange } from 'react-day-picker';
-import { format, addDays, startOfToday, parseISO } from 'date-fns';
+import { format, addDays, startOfToday, parseISO, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import ProductionPlanner, { ProductionNeed } from '@/components/production-planner';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
 
 export type ProcessControl = {
     hydratedInput: string;
@@ -172,6 +176,8 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [prefilledData, setPrefilledData] = useState<{product?: string, quantity?: number}>({});
     const detailsModalContentRef = useRef<HTMLDivElement>(null);
+    const reportContentRef = useRef<HTMLDivElement>(null);
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -179,6 +185,24 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
             handleOpenFormProp(null, prefilledProduct)
         }
     },[prefilledProduct, handleOpenFormProp]);
+    
+    useEffect(() => {
+        setDateRange({
+            from: subMonths(new Date(), 1),
+            to: new Date()
+        });
+    }, []);
+
+    const filteredOrders = useMemo(() => {
+        if (!dateRange?.from) return orders;
+        const fromDate = dateRange.from;
+        const toDate = dateRange.to || fromDate;
+
+        return orders.filter(order => {
+            const orderDate = new Date(order.date);
+            return orderDate >= fromDate && orderDate <= toDate;
+        });
+    }, [orders, dateRange]);
 
 
     const selectedOrderRecipe = useMemo(() => {
@@ -367,10 +391,66 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
             });
         }
     };
+    
+    const handleExportExcel = () => {
+        const dataForSheet = filteredOrders.map(o => ({
+            'ID Orden': o.id,
+            'Producto': o.product,
+            'Cantidad': o.quantity,
+            'Estado': o.status,
+            'Fecha': format(parseISO(o.date), 'P', { locale: es }),
+            'Turno': o.turn,
+            'Operador': o.operator,
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Produccion");
+        XLSX.writeFile(workbook, `reporte-produccion-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+
+        toast({ title: "Archivo Generado", description: "Se ha exportado el reporte de producción a Excel." });
+    };
 
 
   return (
     <AppLayout pageTitle="Producción">
+        <div ref={reportContentRef} className="fixed -left-[9999px] top-0 bg-white text-black p-8 font-body" style={{ width: '8.5in', minHeight: '11in'}}>
+          <header className="flex justify-between items-center mb-8 border-b-2 border-gray-800 pb-4">
+              <div>
+                  <h1 className="text-3xl font-bold font-headline text-gray-800">Reporte de Producción</h1>
+                  <p className="text-sm text-gray-500">Panificadora Vollkorn</p>
+              </div>
+          </header>
+
+          <main>
+              <Table className="w-full text-sm">
+                  <TableHeader className="bg-gray-100">
+                      <TableRow>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">ID Orden</TableHead>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Producto</TableHead>
+                          <TableHead className="text-right font-bold text-gray-700 uppercase p-3">Cantidad</TableHead>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Estado</TableHead>
+                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Fecha</TableHead>
+                      </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                      {filteredOrders.map((order) => (
+                          <TableRow key={order.id} className="border-b border-gray-200">
+                              <TableCell className="p-3">{order.id}</TableCell>
+                              <TableCell className="p-3">{order.product}</TableCell>
+                              <TableCell className="text-right p-3">{order.quantity}</TableCell>
+                              <TableCell className="p-3">{order.status}</TableCell>
+                              <TableCell className="p-3">{new Date(order.date + 'T00:00:00').toLocaleDateString('es-CL', { timeZone: 'UTC' })}</TableCell>
+                          </TableRow>
+                      ))}
+                  </TableBody>
+              </Table>
+          </main>
+          <footer className="text-center text-xs text-gray-400 border-t pt-4 mt-8">
+              <p>Reporte generado por Vollkorn ERP.</p>
+          </footer>
+      </div>
+
       <Card>
         <CardHeader>
             <div className="flex flex-wrap justify-between items-center gap-4">
@@ -389,6 +469,56 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
                     </Button>
                 </div>
             </div>
+            <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t">
+                 <div className="flex-1 min-w-[280px]">
+                    <Label>Rango de Fechas</Label>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <Button
+                            id="date"
+                            variant={"outline"}
+                            className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !dateRange && "text-muted-foreground"
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateRange?.from ? (
+                            dateRange.to ? (
+                                <>
+                                {format(dateRange.from, "LLL dd, y", { locale: es })} -{" "}
+                                {format(dateRange.to, "LLL dd, y", { locale: es })}
+                                </>
+                            ) : (
+                                format(dateRange.from, "LLL dd, y", { locale: es })
+                            )
+                            ) : (
+                            <span>Selecciona un rango</span>
+                            )}
+                        </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={dateRange?.from}
+                            selected={dateRange}
+                            onSelect={setDateRange}
+                            numberOfMonths={2}
+                            locale={es}
+                        />
+                        </PopoverContent>
+                    </Popover>
+                </div>
+                 <div className="flex items-end gap-2">
+                     <Button variant="outline" onClick={handleExportExcel} disabled={filteredOrders.length === 0}>
+                        <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
+                    </Button>
+                    <Button variant="outline" onClick={handleDownloadPdf} disabled={filteredOrders.length === 0}>
+                        <Download className="mr-2 h-4 w-4" /> PDF
+                    </Button>
+                 </div>
+            </div>
         </CardHeader>
         <CardContent>
           <Table className="responsive-table">
@@ -403,7 +533,7 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.map((order) => (
+              {filteredOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell data-label="ID de Orden" className="font-medium">{order.id}</TableCell>
                   <TableCell data-label="Producto">{order.product}</TableCell>
