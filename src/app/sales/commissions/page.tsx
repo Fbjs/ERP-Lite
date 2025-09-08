@@ -15,20 +15,14 @@ import { es } from 'date-fns/locale';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { initialCommissionRules } from '@/app/admin/commissions/page';
+
 
 type CommissionResult = {
     vendor: string;
     totalSales: number;
     commissionRate: number;
     commissionAmount: number;
-};
-
-const COMMISSION_RATES: { [key: string]: number } = {
-    'RENE': 0.02,
-    'MARCELO': 0.025,
-    'RODRIGO': 0.02,
-    'EXTERNO': 0.01,
-    'default': 0.015,
 };
 
 const formatCurrency = (value: number) => {
@@ -53,6 +47,9 @@ export default function CommissionsPage() {
         const vendorsToCalculate = selectedVendor === 'all' 
             ? uniqueVendors.filter(v => v !== 'all') 
             : [selectedVendor];
+        
+        const defaultRule = initialCommissionRules.find(r => r.type === 'General' && r.name === 'Base');
+        const defaultRate = defaultRule ? defaultRule.rate : 0;
 
         const results: CommissionResult[] = vendorsToCalculate.map(vendor => {
             const vendorSales = initialOrders.filter(order => {
@@ -63,7 +60,11 @@ export default function CommissionsPage() {
             });
             
             const totalSales = vendorSales.reduce((acc, order) => acc + order.amount, 0);
-            const commissionRate = COMMISSION_RATES[vendor] || COMMISSION_RATES['default'];
+
+            // Find specific rule for the vendor, otherwise use default
+            const vendorRule = initialCommissionRules.find(r => r.type === 'Vendedor' && r.name === vendor);
+            const commissionRate = vendorRule ? vendorRule.rate : defaultRate;
+            
             const commissionAmount = totalSales * commissionRate;
 
             return {
