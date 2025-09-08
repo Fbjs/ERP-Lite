@@ -27,6 +27,7 @@ const modules = [
         category: "Contabilidad",
         links: [
             { href: '/accounting/journal', title: 'Asientos Contables', description: 'Registra movimientos manuales.', icon: BookKey },
+            { href: '/accounting/fixed-assets', title: 'Activos Fijos', description: 'Gestiona la depreciación y valor de bienes.', icon: Library },
             { href: '/accounting/reports', title: 'Balances y Reportes', description: 'Genera balances y estados de resultados.', icon: Scale },
         ]
     },
