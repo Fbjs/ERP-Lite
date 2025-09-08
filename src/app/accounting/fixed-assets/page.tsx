@@ -128,7 +128,7 @@ export default function FixedAssetsPage() {
                             {assets.map((asset) => (
                                 <TableRow key={asset.id}>
                                     <TableCell className="font-medium">{asset.name}</TableCell>
-                                    <TableCell>{new Date(asset.acquisitionDate).toLocaleDateString('es-CL')}</TableCell>
+                                    <TableCell>{new Date(asset.acquisitionDate + 'T00:00:00').toLocaleDateString('es-CL', { timeZone: 'UTC' })}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(asset.cost)}</TableCell>
                                     <TableCell className="text-right text-red-600">({formatCurrency(asset.accumulatedDepreciation)})</TableCell>
                                     <TableCell className="text-right font-semibold">{formatCurrency(asset.bookValue)}</TableCell>
@@ -196,4 +196,3 @@ export default function FixedAssetsPage() {
         </AppLayout>
     );
 }
-
