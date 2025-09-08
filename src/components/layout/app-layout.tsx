@@ -4,7 +4,7 @@
 import type { ReactNode } from 'react';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, LayoutDashboard, NotebookText, Factory, ShoppingCart, Users, BookCopy, Truck, Warehouse, Settings, Building2, ShieldCheck, Contact, ShoppingBag, Trash2 } from 'lucide-react';
+import { LogOut, LayoutDashboard, NotebookText, Factory, ShoppingCart, Users, BookCopy, Truck, Warehouse, Settings, Building2, ShieldCheck, Contact, ShoppingBag, Trash2, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from '@/components/logo';
@@ -27,6 +27,7 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
         { href: '/production', label: 'Producción', icon: Factory, roles: ['Admin', 'Producción'] },
         { href: '/recipes', label: 'Recetas', icon: NotebookText, roles: ['Admin', 'Producción'] },
         { href: '/sales', label: 'Ventas', icon: ShoppingCart, roles: ['Admin', 'Ventas', 'Contabilidad'] },
+        { href: '/purchasing', label: 'Compras', icon: ClipboardList, roles: ['Admin', 'Logística', 'Contabilidad'] },
         { href: '/inventory', label: 'Inventario', icon: Warehouse, roles: ['Admin', 'Producción', 'Logística'] },
         { href: '/hr', label: 'Recursos Humanos', icon: Users, roles: ['Admin'] },
         { href: '/accounting', label: 'Contabilidad', icon: BookCopy, roles: ['Admin', 'Contabilidad'] },
