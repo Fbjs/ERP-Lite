@@ -6,19 +6,31 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, FileCheck, Clock, AlertTriangle, Users, DollarSign, ArrowLeft } from 'lucide-react';
-import { useMemo } from 'react';
+import { MoreHorizontal, FileCheck, Clock, AlertTriangle, Users, DollarSign, ArrowLeft, Download, FileSpreadsheet } from 'lucide-react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { initialOrders } from '@/app/sales/page';
-import { differenceInDays, parseISO, addDays } from 'date-fns';
+import { differenceInDays, parseISO, addDays, format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
+import Logo from '@/components/logo';
+import * as XLSX from 'xlsx';
 
 const formatCurrency = (value: number) => {
     return value.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
 };
 
 const AccountsReceivablePage = () => {
+    const reportRef = useRef<HTMLDivElement>(null);
+    const { toast } = useToast();
+    const [generationDate, setGenerationDate] = useState<Date | null>(null);
+
+     useEffect(() => {
+        setGenerationDate(new Date());
+    }, []);
+
     const receivableInvoices = useMemo(() => {
         return initialOrders
             .filter(order => order.status === 'Pendiente' || order.status === 'Enviado')
@@ -62,9 +74,120 @@ const AccountsReceivablePage = () => {
         { name: '31-60 Días', value: summary.due60 },
         { name: '>60 Días', value: summary.dueOver60 },
     ];
+    
+    const handleDownloadPdf = async () => {
+        const input = reportRef.current;
+        if (input) {
+            const { default: jsPDF } = await import('jspdf');
+            const { default: html2canvas } = await import('html2canvas');
+            
+            const canvas = await html2canvas(input, { scale: 2, backgroundColor: '#ffffff' });
+            const imgData = canvas.toDataURL('image/png');
+            
+            const pdf = new jsPDF('l', 'px', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const ratio = canvasWidth / canvasHeight;
+
+            let pdfImageWidth = pdfWidth - 20;
+            let pdfImageHeight = pdfImageWidth / ratio;
+            
+            if (pdfImageHeight > pdfHeight - 20) {
+              pdfImageHeight = pdfHeight - 20;
+              pdfImageWidth = pdfImageHeight * ratio;
+            }
+
+            const xOffset = (pdfWidth - pdfImageWidth) / 2;
+
+            pdf.addImage(imgData, 'PNG', xOffset, 10, pdfImageWidth, pdfImageHeight);
+            pdf.save(`reporte-cuentas-cobrar-${new Date().toISOString().split('T')[0]}.pdf`);
+            
+            toast({
+                title: "PDF Descargado",
+                description: "El reporte de cuentas por cobrar ha sido descargado.",
+            });
+        }
+    };
+    
+    const handleDownloadExcel = () => {
+        const dataToExport = receivableInvoices.map(inv => ({
+            'Cliente': inv.customer,
+            'Factura / OV': inv.id,
+            'Fecha Vencimiento': inv.dueDate.toLocaleDateString('es-CL'),
+            'Monto': inv.amount,
+            'Estado': inv.agingCategory,
+            'Días Vencido': inv.daysOverdue,
+        }));
+        
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Cuentas por Cobrar");
+
+        XLSX.utils.sheet_add_aoa(worksheet, [
+            ["Total por Cobrar", summary.totalReceivable]
+        ], { origin: "A" + (dataToExport.length + 3) });
+        
+        XLSX.writeFile(workbook, `reporte-cuentas-cobrar-${new Date().toISOString().split('T')[0]}.xlsx`);
+
+         toast({
+            title: "Excel Descargado",
+            description: "El reporte de cuentas por cobrar ha sido exportado a Excel.",
+        });
+    };
+
 
     return (
         <AppLayout pageTitle="Cuentas por Cobrar">
+            <div ref={reportRef} className="fixed -left-[9999px] top-0 bg-white text-black p-4 font-body" style={{ width: '11in', minHeight: '8.5in' }}>
+                 <header className="flex justify-between items-start mb-4 border-b-2 border-gray-800 pb-2">
+                    <div className="flex items-center gap-3">
+                        <Logo className="w-24" />
+                        <div>
+                            <h1 className="text-xl font-bold font-headline text-gray-800">Reporte de Cuentas por Cobrar</h1>
+                            <p className="text-xs text-gray-500">Panificadora Vollkorn</p>
+                        </div>
+                    </div>
+                    <div className="text-right text-xs">
+                        <p><span className="font-semibold">Fecha de Emisión:</span> {generationDate ? format(generationDate, "P p", { locale: es }) : ''}</p>
+                    </div>
+                </header>
+                <Table className="w-full text-xs">
+                    <TableHeader className="bg-gray-100">
+                        <TableRow>
+                            <TableHead className="p-1 font-bold text-gray-700">Cliente</TableHead>
+                            <TableHead className="p-1 font-bold text-gray-700">Factura / OV</TableHead>
+                            <TableHead className="p-1 font-bold text-gray-700">Fecha Venc.</TableHead>
+                            <TableHead className="p-1 font-bold text-gray-700 text-right">Monto</TableHead>
+                            <TableHead className="p-1 font-bold text-gray-700">Estado</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {receivableInvoices.map((inv) => (
+                            <TableRow key={inv.id}>
+                                <TableCell className="p-1">{inv.customer}</TableCell>
+                                <TableCell className="p-1">{inv.id}</TableCell>
+                                <TableCell className="p-1">{inv.dueDate.toLocaleDateString('es-CL')}</TableCell>
+                                <TableCell className="p-1 text-right">{formatCurrency(inv.amount)}</TableCell>
+                                <TableCell className="p-1">{inv.agingCategory}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                    <TableFooter>
+                        <TableRow className="bg-gray-100 font-bold">
+                            <TableCell colSpan={3} className="text-right p-1">Total por Cobrar</TableCell>
+                            <TableCell className="text-right p-1">{formatCurrency(summary.totalReceivable)}</TableCell>
+                            <TableCell></TableCell>
+                        </TableRow>
+                    </TableFooter>
+                </Table>
+                 <footer className="text-center text-xs text-gray-400 border-t pt-2 mt-4">
+                    <p>Reporte generado por Vollkorn ERP.</p>
+                </footer>
+            </div>
+            
             <div className="space-y-6">
                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
@@ -113,12 +236,16 @@ const AccountsReceivablePage = () => {
                                     <CardTitle className="font-headline">Detalle de Cuentas por Cobrar</CardTitle>
                                     <CardDescription className="font-body">Listado de facturas pendientes de pago.</CardDescription>
                                 </div>
-                                <Button asChild variant="outline">
-                                    <Link href="/accounting">
-                                        <ArrowLeft className="mr-2 h-4 w-4" />
-                                        Volver
-                                    </Link>
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                     <Button asChild variant="outline">
+                                        <Link href="/accounting">
+                                            <ArrowLeft className="mr-2 h-4 w-4" />
+                                            Volver
+                                        </Link>
+                                    </Button>
+                                    <Button variant="outline" onClick={handleDownloadExcel}><FileSpreadsheet className="mr-2 h-4 w-4"/>Excel</Button>
+                                    <Button variant="outline" onClick={handleDownloadPdf}><Download className="mr-2 h-4 w-4"/>PDF</Button>
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent>
