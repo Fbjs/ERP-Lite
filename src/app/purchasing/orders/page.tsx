@@ -37,7 +37,7 @@ export type PurchaseOrder = {
     status: 'Borrador' | 'Aprobado' | 'Recibido' | 'Cancelado';
 };
 
-const initialPurchaseOrders: PurchaseOrder[] = [
+export const initialPurchaseOrders: PurchaseOrder[] = [
     { id: 'OC-001', supplierId: '1', supplierName: 'Harinas del Sur S.A.', date: '2025-07-01', deliveryDate: '2025-07-05', items: [{ name: 'Harina de Trigo', quantity: 500, price: 1300 }, { name: 'Sal de Mar', quantity: 100, price: 500 }], total: 700000, status: 'Recibido' },
     { id: 'OC-002', supplierId: '2', supplierName: 'Distribuidora Lácteos del Maule', date: '2025-07-10', deliveryDate: '2025-07-12', items: [{ name: 'Levadura Fresca', quantity: 50, price: 8000 }], total: 400000, status: 'Aprobado' },
     { id: 'OC-003', supplierId: '3', supplierName: 'Insumos de Panadería ProPan', date: '2025-07-15', deliveryDate: '2025-07-18', items: [{ name: 'Bolsas de Papel', quantity: 2000, price: 100 }], total: 200000, status: 'Borrador' },
