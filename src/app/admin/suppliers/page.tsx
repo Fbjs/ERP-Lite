@@ -22,7 +22,7 @@ export type Supplier = {
     address: string;
 };
 
-const initialSuppliers: Supplier[] = [
+export const initialSuppliers: Supplier[] = [
     { id: '1', name: 'Harinas del Sur S.A.', rut: '77.890.123-4', contactPerson: 'Carlos Fuentes', phone: '+56 2 2987 6543', email: 'ventas@harinasdelsur.cl', address: 'El Molino 123, Colchagua' },
     { id: '2', name: 'Distribuidora Lácteos del Maule', rut: '76.543.210-9', contactPerson: 'Beatriz Soto', phone: '+56 71 234 5678', email: 'contacto@lacteosmaule.cl', address: 'Ruta 5 Sur Km 250, Talca' },
     { id: '3', name: 'Insumos de Panadería ProPan', rut: '78.111.222-3', contactPerson: 'Jorge Rivera', phone: '+56 2 2111 2233', email: 'jrivera@propan.cl', address: 'Av. Matta 456, Santiago' },
