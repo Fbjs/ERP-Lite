@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Search, Download } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, Download, FileSpreadsheet } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import InventoryItemForm from '@/components/inventory-item-form';
 import StockAdjustmentForm from '@/components/stock-adjustment-form';
 import { useToast } from '@/hooks/use-toast';
+import * as XLSX from 'xlsx';
 
 
 export type InventoryItem = {
@@ -151,7 +152,7 @@ export default function InventoryPage() {
             const { default: jsPDF } = await import('jspdf');
             const { default: html2canvas } = await import('html2canvas');
             
-            const canvas = await html2canvas(input, { scale: 2, backgroundColor: null });
+            const canvas = await html2canvas(input, { scale: 2, backgroundColor: '#ffffff' });
             const imgData = canvas.toDataURL('image/png');
             const pdf = new jsPDF('p', 'px', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
@@ -177,6 +178,25 @@ export default function InventoryPage() {
                 description: "El reporte de inventario ha sido descargado.",
             });
         }
+    };
+    
+    const handleDownloadExcel = () => {
+        const dataForSheet = filteredItems.map(item => ({
+            'SKU': item.sku,
+            'Nombre': item.name,
+            'Categoría': item.category,
+            'Stock': item.stock,
+            'Unidad': item.unit,
+            'Ubicación': item.location,
+        }));
+        const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Inventario");
+        XLSX.writeFile(workbook, `reporte-inventario-${new Date().toISOString().split('T')[0]}.xlsx`);
+        toast({
+            title: "Excel Descargado",
+            description: "El reporte de inventario ha sido descargado.",
+        });
     };
 
 
@@ -241,9 +261,13 @@ export default function InventoryPage() {
                           onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
+                     <Button variant="outline" onClick={handleDownloadExcel}>
+                        <FileSpreadsheet className="mr-2 h-4 w-4" />
+                        Excel
+                    </Button>
                      <Button variant="outline" onClick={handleDownloadPdf}>
                         <Download className="mr-2 h-4 w-4" />
-                        Descargar Reporte
+                        PDF
                     </Button>
                     <Button onClick={() => handleOpenForm(null)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
@@ -337,5 +361,3 @@ export default function InventoryPage() {
     </AppLayout>
   );
 }
-
-    
