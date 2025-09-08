@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck, FileBarChart, NotebookText, Edit } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck, FileBarChart, NotebookText, Edit, BadgePercent } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -327,7 +327,13 @@ export default function SalesPage() {
                                 <CardTitle className="font-headline">Pedidos Generales y Reportes</CardTitle>
                                 <CardDescription className="font-body">Gestiona los pedidos y genera reportes de carga y por vendedor.</CardDescription>
                             </div>
-                             <div className="flex items-center gap-2">
+                             <div className="flex items-center gap-2 flex-wrap">
+                                 <Button asChild variant="outline">
+                                    <Link href="/sales/commissions">
+                                        <BadgePercent className="mr-2 h-4 w-4" />
+                                        Cálculo de Comisiones
+                                    </Link>
+                                </Button>
                                 <Button asChild variant="outline">
                                     <Link href={`/sales/general-report?from=${dateRange?.from?.toISOString()}&to=${dateRange?.to?.toISOString()}`}>
                                         <FileBarChart className="mr-2 h-4 w-4" />
