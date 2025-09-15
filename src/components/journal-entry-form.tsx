@@ -61,12 +61,18 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
 
   const totalDebit = entries.reduce((sum, item) => sum + item.debit, 0);
   const totalCredit = entries.reduce((sum, item) => sum + item.credit, 0);
-  const isBalanced = totalDebit === totalCredit && (totalDebit > 0 || totalCredit > 0 || entries.every(e => e.account));
+  const isBalanced = totalDebit === totalCredit;
+  const isIncomplete = entries.some(e => !e.account);
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isBalanced) {
-        alert('El asiento no está balanceado. El total de débitos debe ser igual al total de créditos y no puede ser cero.');
+        alert('El asiento no está balanceado. El total de débitos debe ser igual al total de créditos.');
+        return;
+    }
+    if (isIncomplete) {
+        alert('Una o más líneas no tienen una cuenta contable asignada.');
         return;
     }
     onSubmit({ date, description, entries });
@@ -130,6 +136,7 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
                                     value={entry.debit || ''}
                                     onChange={(e) => handleEntryChange(index, 'debit', parseFloat(e.target.value))}
                                     className="text-right"
+                                    step="any"
                                 />
                             </TableCell>
                              <TableCell>
@@ -138,6 +145,7 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
                                     value={entry.credit || ''}
                                     onChange={(e) => handleEntryChange(index, 'credit', parseFloat(e.target.value))}
                                     className="text-right"
+                                    step="any"
                                 />
                             </TableCell>
                             <TableCell>
@@ -173,7 +181,7 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
         <Button variant="outline" type="button" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit" disabled={!isBalanced}>Crear Asiento</Button>
+        <Button type="submit" disabled={!isBalanced || isIncomplete}>Crear Asiento</Button>
       </DialogFooter>
     </form>
   );
