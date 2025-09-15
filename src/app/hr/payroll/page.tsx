@@ -24,7 +24,11 @@ import { Label } from '@/components/ui/label';
 
 type AdditionalPayrollVars = {
     employeeId: string;
-    bonus: number;
+    overtimeHours: number;
+    bonusNocturno: number;
+    bonusProduccion: number;
+    bonusMetas: number;
+    otrosBonos: number;
     loan: number;
     advance: number;
     otherDiscounts: number;
@@ -72,7 +76,17 @@ const formatCurrency = (value: number) => {
 export default function PayrollPage() {
   const [payrollData, setPayrollData] = useState<PayrollItem[]>([]);
   const [additionalVars, setAdditionalVars] = useState<AdditionalPayrollVars[]>(
-    initialEmployees.map(emp => ({ employeeId: emp.id, bonus: 0, loan: 0, advance: 0, otherDiscounts: 0 }))
+    initialEmployees.map(emp => ({ 
+        employeeId: emp.id, 
+        overtimeHours: 0,
+        bonusNocturno: 0,
+        bonusProduccion: 0,
+        bonusMetas: 0,
+        otrosBonos: 0, 
+        loan: 0, 
+        advance: 0, 
+        otherDiscounts: 0 
+    }))
   );
   const [selectedMonth, setSelectedMonth] = useState('2024-07');
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,17 +107,16 @@ export default function PayrollPage() {
 
   const handleProcessPayroll = () => {
     const data = initialEmployees.map(emp => {
-      const vars = additionalVars.find(v => v.employeeId === emp.id) || { bonus: 0, loan: 0, advance: 0, otherDiscounts: 0 };
+      const vars = additionalVars.find(v => v.employeeId === emp.id) || { overtimeHours: 0, bonusNocturno: 0, bonusProduccion: 0, bonusMetas: 0, otrosBonos: 0, loan: 0, advance: 0, otherDiscounts: 0 };
       const baseSalary = emp.salary;
-      const overtime = Math.random() > 0.5 ? Math.floor(Math.random() * 8) * 6500 : 0;
-      const bonusNocturno = Math.random() > 0.8 ? 50000 : 0;
-      const bonusProduccion = Math.random() > 0.5 ? Math.floor(Math.random() * 4) * 15000 : 0;
-      const bonusMetas = Math.random() > 0.6 ? 45000 : 0;
+      // Simulamos un valor hora para el cálculo de horas extras
+      const overtimeRate = (baseSalary / 30 / 8) * 1.5; 
+      const overtime = Math.round(vars.overtimeHours * overtimeRate);
       
       const asignacionColacion = 55000;
       const asignacionMovilizacion = 45000;
 
-      const totalImponible = baseSalary + overtime + bonusNocturno + bonusProduccion + bonusMetas + vars.bonus;
+      const totalImponible = baseSalary + overtime + vars.bonusNocturno + vars.bonusProduccion + vars.bonusMetas + vars.otrosBonos;
       const totalNoImponible = asignacionColacion + asignacionMovilizacion;
       const totalHaberes = totalImponible + totalNoImponible;
       
@@ -120,10 +133,10 @@ export default function PayrollPage() {
         employeeName: emp.name,
         baseSalary,
         overtime,
-        bonusNocturno,
-        bonusProduccion,
-        bonusMetas,
-        otrosBonos: vars.bonus,
+        bonusNocturno: vars.bonusNocturno,
+        bonusProduccion: vars.bonusProduccion,
+        bonusMetas: vars.bonusMetas,
+        otrosBonos: vars.otrosBonos,
         asignacionColacion,
         asignacionMovilizacion,
         totalImponible,
@@ -330,7 +343,7 @@ export default function PayrollPage() {
       </Card>
 
       <Dialog open={isVariablesModalOpen} onOpenChange={setIsVariablesModalOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-6xl">
             <DialogHeader>
                 <DialogTitle className="font-headline">Cargar Variables Mensuales</DialogTitle>
                 <DialogDescription>
@@ -341,11 +354,15 @@ export default function PayrollPage() {
                 <Table>
                     <TableHeader className="sticky top-0 bg-secondary">
                         <TableRow>
-                            <TableHead>Trabajador</TableHead>
-                            <TableHead>Otros Bonos / Aguinaldo</TableHead>
+                            <TableHead className="min-w-[150px]">Trabajador</TableHead>
+                            <TableHead>H. Extras</TableHead>
+                            <TableHead>B. Nocturno</TableHead>
+                            <TableHead>B. Prod.</TableHead>
+                            <TableHead>B. Metas</TableHead>
+                            <TableHead>Otros Bonos</TableHead>
                             <TableHead>Préstamos</TableHead>
                             <TableHead>Adelantos</TableHead>
-                            <TableHead>Otros Descuentos</TableHead>
+                            <TableHead>Otros Dctos.</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -354,7 +371,11 @@ export default function PayrollPage() {
                             return (
                                 <TableRow key={emp.id}>
                                     <TableCell className="font-medium">{emp.name}</TableCell>
-                                    <TableCell><Input type="number" placeholder="0" value={currentVars?.bonus || ''} onChange={e => handleAdditionalVarChange(emp.id, 'bonus', Number(e.target.value))} /></TableCell>
+                                    <TableCell><Input type="number" placeholder="0" value={currentVars?.overtimeHours || ''} onChange={e => handleAdditionalVarChange(emp.id, 'overtimeHours', Number(e.target.value))} /></TableCell>
+                                    <TableCell><Input type="number" placeholder="0" value={currentVars?.bonusNocturno || ''} onChange={e => handleAdditionalVarChange(emp.id, 'bonusNocturno', Number(e.target.value))} /></TableCell>
+                                    <TableCell><Input type="number" placeholder="0" value={currentVars?.bonusProduccion || ''} onChange={e => handleAdditionalVarChange(emp.id, 'bonusProduccion', Number(e.target.value))} /></TableCell>
+                                    <TableCell><Input type="number" placeholder="0" value={currentVars?.bonusMetas || ''} onChange={e => handleAdditionalVarChange(emp.id, 'bonusMetas', Number(e.target.value))} /></TableCell>
+                                    <TableCell><Input type="number" placeholder="0" value={currentVars?.otrosBonos || ''} onChange={e => handleAdditionalVarChange(emp.id, 'otrosBonos', Number(e.target.value))} /></TableCell>
                                     <TableCell><Input type="number" placeholder="0" value={currentVars?.loan || ''} onChange={e => handleAdditionalVarChange(emp.id, 'loan', Number(e.target.value))} /></TableCell>
                                     <TableCell><Input type="number" placeholder="0" value={currentVars?.advance || ''} onChange={e => handleAdditionalVarChange(emp.id, 'advance', Number(e.target.value))} /></TableCell>
                                     <TableCell><Input type="number" placeholder="0" value={currentVars?.otherDiscounts || ''} onChange={e => handleAdditionalVarChange(emp.id, 'otherDiscounts', Number(e.target.value))} /></TableCell>
@@ -495,5 +516,7 @@ export default function PayrollPage() {
     </AppLayout>
   );
 }
+
+    
 
     
