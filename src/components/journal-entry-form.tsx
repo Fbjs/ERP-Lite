@@ -37,13 +37,15 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
 
   const handleEntryChange = (index: number, field: keyof JournalEntryLine, value: string | number) => {
     const newEntries = [...entries];
-    const parsedValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
-    
-    (newEntries[index] as any)[field] = parsedValue;
+    if (field === 'account') {
+        newEntries[index].account = value as string;
+    } else {
+        const parsedValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
+        (newEntries[index] as any)[field] = parsedValue;
 
-    if (field === 'debit' && parsedValue > 0) newEntries[index].credit = 0;
-    if (field === 'credit' && parsedValue > 0) newEntries[index].debit = 0;
-
+        if (field === 'debit' && parsedValue > 0) newEntries[index].credit = 0;
+        if (field === 'credit' && parsedValue > 0) newEntries[index].debit = 0;
+    }
     setEntries(newEntries);
   };
 
@@ -61,7 +63,7 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
   const totalDebit = entries.reduce((sum, item) => sum + (item.debit || 0), 0);
   const totalCredit = entries.reduce((sum, item) => sum + (item.credit || 0), 0);
   const isBalanced = totalDebit === totalCredit;
-  const isIncomplete = entries.some(e => !e.account.trim());
+  const isIncomplete = entries.some(e => !e.account || !e.account.trim());
 
 
   const handleSubmit = (e: React.FormEvent) => {
