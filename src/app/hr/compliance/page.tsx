@@ -72,6 +72,7 @@ export default function CompliancePage() {
     const [records, setRecords] = useState<ComplianceRecord[]>([]);
     const reportRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -120,17 +121,30 @@ export default function CompliancePage() {
         toast({ title: 'PDF Descargado', description: 'El reporte de cumplimiento ha sido descargado.' });
     };
 
+    const handleAccreditPayment = (employeeId: string) => {
+        setSelectedEmployeeId(employeeId);
+        fileInputRef.current?.click();
+    };
+
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (file) {
+        if (file && selectedEmployeeId) {
+            setRecords(prevRecords =>
+                prevRecords.map(rec =>
+                    rec.employeeId === selectedEmployeeId
+                        ? { ...rec, afpStatus: 'Pagado', healthStatus: 'Pagado' }
+                        : rec
+                )
+            );
             toast({
-                title: "Comprobante Cargado",
-                description: `${file.name} ha sido cargado exitosamente.`,
+                title: "Pago Acreditado",
+                description: `Se ha actualizado el estado de pago para el trabajador.`,
             });
-            // Reset file input
-            if(fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
+            setSelectedEmployeeId(null);
+        }
+        // Reset file input
+        if(fileInputRef.current) {
+            fileInputRef.current.value = '';
         }
     };
 
@@ -236,10 +250,7 @@ export default function CompliancePage() {
                             />
                         </div>
                         <div className="flex items-end gap-2">
-                             <Input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".pdf,.xml,.zip" />
-                            <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-                                <Upload className="mr-2 h-4 w-4" /> Cargar Comprobante
-                            </Button>
+                            <Input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".pdf,.xml,.zip" />
                             <Button variant="outline" onClick={handleDownloadExcel}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
                             <Button variant="outline" onClick={handleDownloadPdf}><Download className="mr-2 h-4 w-4" /> PDF</Button>
                         </div>
@@ -252,6 +263,7 @@ export default function CompliancePage() {
                                 <TableHead className="text-center">Estado AFP</TableHead>
                                 <TableHead className="text-center">Estado Salud</TableHead>
                                 <TableHead className="text-center">Estado Impuestos</TableHead>
+                                <TableHead className="text-center">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -267,12 +279,19 @@ export default function CompliancePage() {
                                     <TableCell className="text-center">
                                         <Badge variant={rec.taxStatus === 'Pagado' ? 'default' : rec.taxStatus === 'Pendiente' ? 'secondary' : 'destructive'}>{rec.taxStatus}</Badge>
                                     </TableCell>
+                                     <TableCell className="text-center">
+                                        {(rec.afpStatus !== 'Pagado' || rec.healthStatus !== 'Pagado') && (
+                                            <Button variant="outline" size="sm" onClick={() => handleAccreditPayment(rec.employeeId)}>
+                                                <Upload className="mr-2 h-4 w-4" /> Acreditar Pago
+                                            </Button>
+                                        )}
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                          <TableFooter>
                             <TableRow>
-                                <TableCell colSpan={3} className="text-right font-semibold">Total Pagado en el Período:</TableCell>
+                                <TableCell colSpan={4} className="text-right font-semibold">Total Pagado en el Período:</TableCell>
                                 <TableCell className="text-right font-bold">{formatCurrency(records.reduce((sum, r) => sum + r.totalPaid, 0))}</TableCell>
                             </TableRow>
                         </TableFooter>
