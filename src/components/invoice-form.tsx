@@ -1,20 +1,29 @@
+
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
-import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Customer, DeliveryLocation } from '@/app/admin/customers/page';
+import { Textarea } from './ui/textarea';
+import { Recipe, initialRecipes } from '@/app/recipes/page';
+import { PlusCircle, Trash2 } from 'lucide-react';
+
+export type InvoiceItem = {
+  recipeId: string;
+  formatSku: string;
+  quantity: number;
+  unitPrice: number;
+};
 
 export type InvoiceFormData = {
     customerId: string;
     locationId: string;
     salesperson: string;
-    amount: number;
-    items: string;
+    items: InvoiceItem[];
     purchaseOrderNumber?: string;
 };
 
@@ -22,14 +31,14 @@ type InvoiceFormProps = {
   onSubmit: (data: InvoiceFormData) => void;
   onCancel: () => void;
   customers: Customer[];
+  recipes: Recipe[];
 };
 
-export default function InvoiceForm({ onSubmit, onCancel, customers }: InvoiceFormProps) {
+export default function InvoiceForm({ onSubmit, onCancel, customers, recipes }: InvoiceFormProps) {
   const [customerId, setCustomerId] = useState('');
   const [locationId, setLocationId] = useState('');
   const [salesperson, setSalesperson] = useState('');
-  const [amount, setAmount] = useState(0);
-  const [items, setItems] = useState('');
+  const [items, setItems] = useState<InvoiceItem[]>([{ recipeId: '', formatSku: '', quantity: 1, unitPrice: 0 }]);
   const [purchaseOrderNumber, setPurchaseOrderNumber] = useState('');
 
   const [availableLocations, setAvailableLocations] = useState<DeliveryLocation[]>([]);
@@ -51,111 +60,112 @@ export default function InvoiceForm({ onSubmit, onCancel, customers }: InvoiceFo
       setSalesperson(selectedLocation?.salesperson || '');
     }
   }, [locationId, availableLocations]);
+  
+  const handleItemChange = (index: number, field: keyof InvoiceItem, value: string | number) => {
+    const newItems = [...items];
+    const oldItem = newItems[index];
+
+    let newItem = { ...oldItem, [field]: value };
+
+    if (field === 'recipeId') {
+        newItem.formatSku = '';
+        newItem.unitPrice = 0;
+    }
+
+    if (field === 'formatSku') {
+        const recipe = recipes.find(r => r.id === newItem.recipeId);
+        const format = recipe?.formats.find(f => f.sku === value);
+        newItem.unitPrice = format?.cost || 0;
+    }
+    
+    newItems[index] = newItem;
+    setItems(newItems);
+  };
+  
+  const addItem = () => {
+    setItems([...items, { recipeId: '', formatSku: '', quantity: 1, unitPrice: 0 }]);
+  };
+
+  const removeItem = (index: number) => {
+    if (items.length <= 1) return;
+    const newItems = items.filter((_, i) => i !== index);
+    setItems(newItems);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!customerId || !locationId) {
-        // Optionally, add a toast notification for the user
         alert('Por favor, selecciona un cliente y un local de entrega.');
         return;
     }
-    onSubmit({ customerId, locationId, salesperson, amount, items, purchaseOrderNumber });
+    onSubmit({ customerId, locationId, salesperson, items, purchaseOrderNumber });
   };
+  
+  const availableFormats = (recipeId: string) => {
+    const recipe = recipes.find(r => r.id === recipeId);
+    return recipe?.formats || [];
+  };
+  
+  const totalAmount = useMemo(() => {
+    return items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+  }, [items]);
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 py-4 font-body">
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="customerId" className="text-right">
-          Cliente
-        </Label>
-        <Select onValueChange={setCustomerId} value={customerId} required>
-            <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Selecciona un cliente..." />
-            </SelectTrigger>
-            <SelectContent>
-                {customers.map(customer => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name} ({customer.rut})
-                    </SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
-      </div>
-
-      {customerId && (
-         <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="locationId" className="text-right">
-                Local Entrega
-            </Label>
-            <Select onValueChange={setLocationId} value={locationId} required>
-                <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Selecciona un local..." />
-                </SelectTrigger>
-                <SelectContent>
-                    {availableLocations.map(location => (
-                        <SelectItem key={location.id} value={location.id}>
-                            {location.name} ({location.code})
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-        </div>
-      )}
-
-       <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="salesperson" className="text-right">
-                Vendedor
-            </Label>
-            <Input
-                id="salesperson"
-                value={salesperson}
-                onChange={(e) => setSalesperson(e.target.value)}
-                className="col-span-3"
-                required
-                disabled={!locationId}
-            />
-        </div>
-        
-       <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="purchaseOrderNumber" className="text-right">
-                Nº Orden Compra
-            </Label>
-            <Input
-                id="purchaseOrderNumber"
-                value={purchaseOrderNumber}
-                onChange={(e) => setPurchaseOrderNumber(e.target.value)}
-                className="col-span-3"
-                placeholder="(Opcional)"
-            />
+    <form onSubmit={handleSubmit} className="grid gap-4 py-4 font-body max-h-[70vh] overflow-y-auto pr-4">
+        <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                    <Label>Cliente</Label>
+                     <Select onValueChange={setCustomerId} value={customerId} required>
+                        <SelectTrigger><SelectValue placeholder="Selecciona un cliente..." /></SelectTrigger>
+                        <SelectContent>{customers.map(c => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}</SelectContent>
+                    </Select>
+                </div>
+                 <div className="space-y-1">
+                    <Label>Local Entrega</Label>
+                    <Select onValueChange={setLocationId} value={locationId} required disabled={!customerId}>
+                        <SelectTrigger><SelectValue placeholder="Selecciona un local..." /></SelectTrigger>
+                        <SelectContent>{availableLocations.map(l => (<SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>))}</SelectContent>
+                    </Select>
+                </div>
+            </div>
+             <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                    <Label>Vendedor</Label>
+                    <Input value={salesperson} onChange={(e) => setSalesperson(e.target.value)} required disabled={!locationId} />
+                </div>
+                 <div className="space-y-1">
+                    <Label>Nº Orden Compra (Opcional)</Label>
+                    <Input value={purchaseOrderNumber} onChange={(e) => setPurchaseOrderNumber(e.target.value)} />
+                </div>
+            </div>
         </div>
 
-      <div className="grid grid-cols-4 items-center gap-4">
-        <Label htmlFor="amount" className="text-right">
-          Monto
-        </Label>
-        <Input
-          id="amount"
-          type="number"
-          value={amount || ''}
-          onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-          className="col-span-3"
-          required
-        />
-      </div>
-      <div className="grid grid-cols-4 items-start gap-4">
-        <Label htmlFor="items" className="text-right pt-2">
-          Detalles
-        </Label>
-        <Textarea
-          id="items"
-          value={items}
-          onChange={(e) => setItems(e.target.value)}
-          className="col-span-3"
-          placeholder="Ej: 100 x Pan de Masa Madre..."
-          required
-        />
-      </div>
-      <DialogFooter>
+        <div className="space-y-4 pt-4 border-t">
+            <Label className="font-semibold">Ítems de la Factura</Label>
+            {items.map((item, index) => (
+                 <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                    <Select onValueChange={(value) => handleItemChange(index, 'recipeId', value)} value={item.recipeId}>
+                        <SelectTrigger className="col-span-4"><SelectValue placeholder="Producto"/></SelectTrigger>
+                        <SelectContent>{recipes.map(r => (<SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>))}</SelectContent>
+                    </Select>
+                    <Select onValueChange={(value) => handleItemChange(index, 'formatSku', value)} value={item.formatSku} disabled={!item.recipeId}>
+                        <SelectTrigger className="col-span-3"><SelectValue placeholder="Formato"/></SelectTrigger>
+                        <SelectContent>{availableFormats(item.recipeId).map(f => (<SelectItem key={f.sku} value={f.sku}>{f.name}</SelectItem>))}</SelectContent>
+                    </Select>
+                    <Input type="number" placeholder="Cant." value={item.quantity || ''} onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))} className="col-span-2 text-center" required />
+                    <Input type="number" placeholder="P. Unit" value={item.unitPrice || ''} onChange={(e) => handleItemChange(index, 'unitPrice', Number(e.target.value))} className="col-span-2 text-right" required />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} className="col-span-1" disabled={items.length <= 1}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
+            ))}
+             <Button type="button" variant="outline" onClick={addItem} className="w-full">
+                <PlusCircle className="mr-2 h-4 w-4" /> Añadir Producto
+            </Button>
+        </div>
+        <div className="text-right font-bold text-xl mt-4">
+            Total: ${totalAmount.toLocaleString('es-CL')}
+        </div>
+      <DialogFooter className="mt-4">
         <Button variant="outline" type="button" onClick={onCancel}>
           Cancelar
         </Button>
