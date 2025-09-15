@@ -386,7 +386,7 @@ const EditPayableDocumentForm = ({ document, onSubmit, onCancel }: { document: P
         if (id === 'dueDate' || id === 'issueDate') {
             newDate = parseISO(value);
              if (isValid(newDate)) {
-                setFormData(prev => ({ ...prev, [id]: newDate }));
+                setFormData(prev => ({ ...prev, [id]: newDate! }));
              }
         } else {
             setFormData(prev => ({ ...prev, [id]: id === 'amount' ? Number(value) : value }));

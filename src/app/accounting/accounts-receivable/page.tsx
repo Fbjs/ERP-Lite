@@ -410,7 +410,7 @@ const EditInvoiceForm = ({ invoice, onSubmit, onCancel }: { invoice: ReceivableD
         if (id === 'dueDate') {
             newDate = parseISO(value);
             if(isValid(newDate)) {
-                setFormData(prev => ({ ...prev, dueDate: newDate }));
+                setFormData(prev => ({ ...prev, dueDate: newDate! }));
             }
         } else {
              setFormData(prev => ({ ...prev, [id]: id === 'amount' ? Number(value) : value }));
