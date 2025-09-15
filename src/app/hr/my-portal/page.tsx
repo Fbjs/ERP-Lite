@@ -10,7 +10,7 @@ import { FileText, Download, Calendar, Briefcase, Clock, Sun, Moon, AlertTriangl
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO, differenceInBusinessDays, startOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,9 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
 import { DateRange } from 'react-day-picker';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import Logo from '@/components/logo';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 
 // Simulación de un trabajador logueado. En una app real, esto vendría de una sesión.
@@ -39,13 +42,34 @@ const mockAttendance = [
     { date: '2025-07-22', status: 'A Tiempo' },
 ];
 
+const formatCurrency = (value: number) => {
+    if (value === 0) return '$0';
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(Math.round(value));
+};
+
+type PayslipData = {
+    period: string;
+    baseSalary: number;
+    totalHaberes: number;
+    totalDescuentos: number;
+    liquidoAPagar: number;
+};
+
+const mockPayslips: PayslipData[] = [
+    { period: 'Julio 2025', baseSalary: 850000, totalHaberes: 950000, totalDescuentos: 164877, liquidoAPagar: 785123 },
+    { period: 'Junio 2025', baseSalary: 850000, totalHaberes: 940000, totalDescuentos: 159544, liquidoAPagar: 780456 },
+];
+
+
 export default function MyPortalPage() {
 
-    const lastPayslipDate = new Date(2025, 6, 31);
     const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(initialLeaveRequests.filter(req => req.employeeId === loggedInEmployee.id));
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
     const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
     const [isRequestsHistoryModalOpen, setIsRequestsHistoryModalOpen] = useState(false);
+    const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
+    const [selectedPayslip, setSelectedPayslip] = useState<PayslipData | null>(null);
+    const payslipRef = useRef<HTMLDivElement>(null);
     const [newRequest, setNewRequest] = useState<{leaveType: LeaveType, dateRange: DateRange | undefined, justification: string}>({leaveType: 'Vacaciones', dateRange: undefined, justification: ''});
     const { toast } = useToast();
 
@@ -86,6 +110,24 @@ export default function MyPortalPage() {
         late: mockAttendance.filter(a => a.status === 'Atraso').map(a => parseISO(a.date)),
         absent: mockAttendance.filter(a => a.status === 'Ausente').map(a => parseISO(a.date)),
     };
+    
+    const handleViewPayslip = (payslip: PayslipData) => {
+        setSelectedPayslip(payslip);
+        setIsPayslipModalOpen(true);
+    };
+
+    const handleDownloadPayslip = async () => {
+        const input = payslipRef.current;
+        if (!input) return;
+
+        const canvas = await html2canvas(input, { scale: 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'px', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, 0);
+        pdf.save(`liquidacion-${loggedInEmployee.name.replace(' ', '_')}-${selectedPayslip?.period.replace(' ', '_')}.pdf`);
+        toast({ title: 'PDF Descargado', description: 'Tu liquidación de sueldo ha sido descargada.' });
+    };
 
 
     return (
@@ -120,20 +162,15 @@ export default function MyPortalPage() {
                                     </div>
                                     <Button variant="outline" size="sm"><Download className="mr-2 h-4 w-4"/>Descargar</Button>
                                 </li>
-                                <li className="py-3 flex justify-between items-center">
+                                {mockPayslips.map(p => (
+                                <li key={p.period} className="py-3 flex justify-between items-center">
                                     <div>
-                                        <p className="font-semibold">Liquidación de Sueldo - {format(lastPayslipDate, 'MMMM yyyy', {locale: es})}</p>
-                                        <p className="text-sm text-muted-foreground">Sueldo líquido: $785,123</p>
+                                        <p className="font-semibold">Liquidación de Sueldo - {p.period}</p>
+                                        <p className="text-sm text-muted-foreground">Sueldo líquido: {formatCurrency(p.liquidoAPagar)}</p>
                                     </div>
-                                    <Button variant="outline" size="sm"><Download className="mr-2 h-4 w-4"/>Descargar</Button>
+                                    <Button variant="outline" size="sm" onClick={() => handleViewPayslip(p)}><Download className="mr-2 h-4 w-4"/>Descargar</Button>
                                 </li>
-                                 <li className="py-3 flex justify-between items-center">
-                                    <div>
-                                        <p className="font-semibold">Liquidación de Sueldo - {format(new Date(2025, 5, 30), 'MMMM yyyy', {locale: es})}</p>
-                                        <p className="text-sm text-muted-foreground">Sueldo líquido: $780,456</p>
-                                    </div>
-                                    <Button variant="outline" size="sm"><Download className="mr-2 h-4 w-4"/>Descargar</Button>
-                                </li>
+                                ))}
                             </ul>
                         </CardContent>
                     </Card>
@@ -321,6 +358,76 @@ export default function MyPortalPage() {
                             </TableBody>
                         </Table>
                     </div>
+                </DialogContent>
+            </Dialog>
+            
+             {/* Modal para ver liquidación */}
+            <Dialog open={isPayslipModalOpen} onOpenChange={setIsPayslipModalOpen}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="font-headline">Liquidación de Sueldo</DialogTitle>
+                        <DialogDescription>{loggedInEmployee.name} - {selectedPayslip?.period}</DialogDescription>
+                    </DialogHeader>
+                    {selectedPayslip && (
+                        <>
+                        <div className="max-h-[60vh] overflow-y-auto my-4">
+                            <div ref={payslipRef} className="p-6 bg-white text-black font-body text-sm">
+                                <header className="flex justify-between items-start mb-6 border-b-2 border-gray-800 pb-2">
+                                    <div className="flex items-center gap-3">
+                                        <Logo className="w-24 text-orange-600" />
+                                        <div>
+                                            <h1 className="text-lg font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
+                                            <p className="text-xs text-gray-500">RUT: 76.123.456-7</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <h2 className="text-xl font-headline font-bold uppercase text-gray-700">Liquidación de Sueldo</h2>
+                                        <p className="text-xs text-gray-500">Período: {selectedPayslip.period}</p>
+                                    </div>
+                                </header>
+                                <section className="mb-4">
+                                    <p><span className="font-semibold w-24 inline-block">Trabajador:</span> {loggedInEmployee.name}</p>
+                                    <p><span className="font-semibold w-24 inline-block">RUT:</span> {loggedInEmployee.rut}</p>
+                                </section>
+                                <section className="grid grid-cols-2 gap-x-8">
+                                    <div>
+                                        <h3 className="font-bold font-headline text-base text-center bg-gray-100 border-b-2 border-gray-800 py-1">HABERES</h3>
+                                        <div className="flex justify-between py-1 border-b"><p>Sueldo Base</p><p>{formatCurrency(selectedPayslip.baseSalary)}</p></div>
+                                        <div className="flex justify-between py-1 border-b"><p>Otros Haberes</p><p>{formatCurrency(selectedPayslip.totalHaberes - selectedPayslip.baseSalary)}</p></div>
+                                        <div className="flex justify-between py-2 mt-2 bg-gray-100 font-bold"><p>TOTAL HABERES</p><p>{formatCurrency(selectedPayslip.totalHaberes)}</p></div>
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold font-headline text-base text-center bg-gray-100 border-b-2 border-gray-800 py-1">DESCUENTOS</h3>
+                                        <div className="flex justify-between py-1 border-b"><p>Cotizaciones Previsionales</p><p>{formatCurrency(selectedPayslip.totalDescuentos)}</p></div>
+                                        <div className="flex justify-between py-2 mt-2 bg-gray-100 font-bold"><p>TOTAL DESCUENTOS</p><p>{formatCurrency(selectedPayslip.totalDescuentos)}</p></div>
+                                    </div>
+                                </section>
+                                <section className="mt-6 flex justify-end">
+                                    <div className="w-1/2 bg-gray-200 p-2 text-base font-bold flex justify-between">
+                                        <p>ALCANCE LÍQUIDO</p>
+                                        <p>{formatCurrency(selectedPayslip.liquidoAPagar)}</p>
+                                    </div>
+                                </section>
+                                <footer className="grid grid-cols-2 gap-8 mt-12 text-center text-xs">
+                                    <div>
+                                        <div className="border-t-2 border-gray-400 pt-2 w-48 mx-auto">
+                                            <p className="font-semibold text-gray-700">Firma Empleador</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="border-t-2 border-gray-400 pt-2 w-48 mx-auto">
+                                            <p className="font-semibold text-gray-700">Firma Trabajador</p>
+                                        </div>
+                                    </div>
+                                </footer>
+                            </div>
+                        </div>
+                         <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsPayslipModalOpen(false)}>Cerrar</Button>
+                            <Button onClick={handleDownloadPayslip}>Descargar PDF</Button>
+                        </DialogFooter>
+                        </>
+                    )}
                 </DialogContent>
             </Dialog>
 
