@@ -5,17 +5,23 @@ import AppLayout from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Download, ArrowLeft, FileSpreadsheet } from 'lucide-react';
-import { useRef, useMemo, Suspense } from 'react';
+import { Download, ArrowLeft, FileSpreadsheet, Calendar as CalendarIcon } from 'lucide-react';
+import { useRef, useMemo, Suspense, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { initialOrders } from '@/app/sales/page';
 import { initialRecipes } from '@/app/recipes/page';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, subMonths } from 'date-fns';
+import { es } from 'date-fns/locale';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
+import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 
 type ReportRow = {
@@ -34,16 +40,20 @@ type ReportRow = {
 function IndustrialReportPageContent() {
     const reportRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
-    const searchParams = useSearchParams();
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
-    const fromDate = searchParams.get('from');
-    const toDate = searchParams.get('to');
+    useEffect(() => {
+        setDateRange({
+            from: subMonths(new Date(), 1),
+            to: new Date()
+        });
+    }, []);
 
     const reportData: ReportRow[] = useMemo(() => {
         const filteredOrders = initialOrders.filter(order => {
-            if (!fromDate || !toDate) return true; // Show all if no dates
+            if (!dateRange?.from) return false;
             const orderDate = parseISO(order.date);
-            return orderDate >= parseISO(fromDate) && orderDate <= parseISO(toDate);
+            return orderDate >= dateRange.from && orderDate <= (dateRange.to || dateRange.from);
         });
 
         const data: ReportRow[] = [];
@@ -74,7 +84,7 @@ function IndustrialReportPageContent() {
         });
 
         return data;
-    }, [fromDate, toDate]);
+    }, [dateRange]);
 
     const handleDownloadPdf = async () => {
         const input = reportRef.current;
@@ -185,7 +195,7 @@ function IndustrialReportPageContent() {
 
             <Card>
                 <CardHeader>
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <CardTitle className="font-headline">Reporte de Producto Industrial</CardTitle>
                             <CardDescription className="font-body">Vista detallada de los pedidos industriales para el período seleccionado.</CardDescription>
@@ -205,6 +215,30 @@ function IndustrialReportPageContent() {
                                 <Download className="mr-2 h-4 w-4" />
                                 Descargar PDF
                             </Button>
+                        </div>
+                    </div>
+                     <div className="flex flex-wrap items-end gap-4 border-t pt-4 mt-4">
+                        <div className="space-y-2">
+                            <Label>Filtrar por Fecha de Orden</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="date"
+                                        variant={"outline"}
+                                        className={cn("w-[300px] justify-start text-left font-normal", !dateRange && "text-muted-foreground")}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dateRange?.from ? (
+                                            dateRange.to ? (
+                                                <>{format(dateRange.from, "LLL dd, y", { locale: es })} - {format(dateRange.to, "LLL dd, y", { locale: es })}</>
+                                            ) : (format(dateRange.from, "LLL dd, y", { locale: es }))
+                                        ) : (<span>Selecciona un rango</span>)}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} locale={es} />
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </div>
                 </CardHeader>
