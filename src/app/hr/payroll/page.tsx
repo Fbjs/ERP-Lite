@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { MoreHorizontal, Download, FileText, Upload, CalendarIcon, Eye, ArrowLeft, Search } from 'lucide-react';
+import { MoreHorizontal, Download, FileText, Upload, CalendarIcon, Eye, ArrowLeft, Search, SlidersHorizontal } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState, useRef, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
+import { defaultPayrollSettings } from '../payroll-settings/page';
 
 
 type AdditionalPayrollVars = {
@@ -106,6 +107,10 @@ export default function PayrollPage() {
 
 
   const handleProcessPayroll = () => {
+    // En un caso real, estos valores se obtendrían de la configuración.
+    const { afpRate, healthRate, unemploymentInsuranceRate, ufValue, monthlyTaxableTop } = defaultPayrollSettings;
+    const topeImponiblePesos = monthlyTaxableTop * ufValue;
+
     const data = initialEmployees.map(emp => {
       const vars = additionalVars.find(v => v.employeeId === emp.id) || { overtimeHours: 0, bonusNocturno: 0, bonusProduccion: 0, bonusMetas: 0, otrosBonos: 0, loan: 0, advance: 0, otherDiscounts: 0 };
       const baseSalary = emp.salary;
@@ -116,13 +121,14 @@ export default function PayrollPage() {
       const asignacionColacion = 55000;
       const asignacionMovilizacion = 45000;
 
-      const totalImponible = baseSalary + overtime + vars.bonusNocturno + vars.bonusProduccion + vars.bonusMetas + vars.otrosBonos;
+      const totalImponibleRaw = baseSalary + overtime + vars.bonusNocturno + vars.bonusProduccion + vars.bonusMetas + vars.otrosBonos;
+      const totalImponible = Math.min(totalImponibleRaw, topeImponiblePesos);
       const totalNoImponible = asignacionColacion + asignacionMovilizacion;
-      const totalHaberes = totalImponible + totalNoImponible;
+      const totalHaberes = totalImponibleRaw + totalNoImponible; // Total Haberes se calcula sobre el imponible sin tope
       
-      const healthDiscount = totalImponible * emp.healthRate;
-      const afpDiscount = totalImponible * emp.afpRate;
-      const cesantiaDiscount = totalImponible * 0.006; // Empleador paga el resto 2.4%
+      const healthDiscount = totalImponible * healthRate;
+      const afpDiscount = totalImponible * afpRate;
+      const cesantiaDiscount = totalImponible * unemploymentInsuranceRate;
       const taxDiscount = totalImponible > 900000 ? (totalImponible - 900000) * 0.04 : 0;
 
       const totalDescuentos = healthDiscount + afpDiscount + cesantiaDiscount + taxDiscount + vars.loan + vars.advance + vars.otherDiscounts;
@@ -282,6 +288,11 @@ export default function PayrollPage() {
                     <Button variant="outline" onClick={() => setIsVariablesModalOpen(true)}><Upload className="mr-2 h-4 w-4" /> Cargar Variables</Button>
                     <Button variant="secondary" disabled={payrollData.length === 0} onClick={handleExportPrevired}>
                         <FileText className="mr-2 h-4 w-4" /> Exportar a Previred
+                    </Button>
+                     <Button asChild variant="outline" size="icon">
+                        <Link href="/hr/payroll-settings">
+                            <SlidersHorizontal />
+                        </Link>
                     </Button>
                 </div>
             </div>

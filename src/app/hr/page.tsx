@@ -2,13 +2,14 @@
 "use client";
 import AppLayout from '@/components/layout/app-layout';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FileText, CalendarDays, Wallet, Clock, Users, BarChart3, ShieldCheck, UserMinus } from 'lucide-react';
+import { FileText, CalendarDays, Wallet, Clock, Users, BarChart3, ShieldCheck, UserMinus, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 
 const hrSections = [
     { href: '/hr/staff', title: 'Ficha de Personal', description: 'Gestiona la información y documentos de los trabajadores.', icon: Users },
     { href: '/hr/contracts', title: 'Gestión de Contratos', description: 'Administra plantillas y contratos laborales.', icon: FileText },
     { href: '/hr/payroll', title: 'Nómina y Liquidaciones', description: 'Procesa sueldos, bonos y descuentos.', icon: Wallet },
+    { href: '/hr/payroll-settings', title: 'Parámetros de Nómina', description: 'Configura tasas y topes para el cálculo.', icon: SlidersHorizontal },
     { href: '/hr/leave', title: 'Vacaciones y Ausencias', description: 'Controla las solicitudes de vacaciones y permisos.', icon: CalendarDays },
     { href: '/hr/attendance', title: 'Control de Asistencia', description: 'Visualiza los registros de entrada y salida.', icon: Clock },
     { href: '/hr/compliance', title: 'Cumplimiento Normativo', description: 'Controla el pago de cotizaciones e impuestos.', icon: ShieldCheck },
