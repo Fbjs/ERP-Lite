@@ -35,7 +35,8 @@ type SaleDocument = {
 
 // Data Transformation
 export const initialSales: SaleDocument[] = initialOrders.map((order, index) => {
-    const isCreditNote = Math.random() < 0.1; // Simulate some credit notes
+    // Make credit note generation deterministic based on index to avoid hydration errors
+    const isCreditNote = (index + 1) % 10 === 0;
     const total = isCreditNote ? -Math.abs(order.amount) : order.amount;
     const net = total / 1.19;
     const tax = total - net;
@@ -81,9 +82,9 @@ export default function SalesLedgerPage() {
     const filteredSales = useMemo(() => {
         let sales = initialSales;
 
-        if (dateRange?.from) {
+        if (dateRange?.from && dateRange.to) {
             const fromDate = dateRange.from;
-            const toDate = dateRange.to || fromDate;
+            const toDate = dateRange.to;
             sales = sales.filter(doc => {
                 const docDate = parseISO(doc.date);
                 return docDate >= fromDate && docDate <= toDate;
@@ -366,4 +367,5 @@ export default function SalesLedgerPage() {
     );
 }
 
+    
     

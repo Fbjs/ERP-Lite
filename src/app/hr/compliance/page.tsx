@@ -33,9 +33,9 @@ type ComplianceRecord = {
 };
 
 const generateComplianceData = (period: string): ComplianceRecord[] => {
-    return initialEmployees.map(emp => {
-        // Simulamos algunos estados para el ejemplo
-        const rand = Math.random();
+    return initialEmployees.map((emp, index) => {
+        // Simulamos algunos estados para el ejemplo de forma determinista
+        const rand = (index % 10) / 10;
         let afpStatus: ComplianceStatus, healthStatus: ComplianceStatus;
         if (rand < 0.8) {
             afpStatus = 'Pagado';
@@ -301,3 +301,5 @@ export default function CompliancePage() {
         </AppLayout>
     );
 }
+
+    

@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Calendar as CalendarIcon, Upload, Download, AlertTriangle, Users, Clock, UserX, RefreshCcw, ArrowLeft } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { format, subDays, differenceInMinutes, parse } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -43,13 +43,16 @@ const generateMockRecords = (): AttendanceRecord[] => {
     
     for (let i = 0; i < 30; i++) {
         const currentDate = subDays(today, i);
-        initialEmployees.forEach(emp => {
-            if(Math.random() > 0.05) { // Simulate some absences
+        initialEmployees.forEach((emp, empIndex) => {
+            // Make absence deterministic to avoid hydration errors
+            if ((i + empIndex) % 20 !== 0) { 
                 const clockInTime = new Date();
-                clockInTime.setHours(7, 50 + Math.floor(Math.random() * 20)); // Between 07:50 and 08:10
+                // Make clock-in time deterministic
+                clockInTime.setHours(7, 50 + ((i * empIndex) % 21)); // Between 07:50 and 08:10
                 
                 const clockOutTime = new Date();
-                clockOutTime.setHours(17, 50 + Math.floor(Math.random() * 20));
+                 // Make clock-out time deterministic
+                clockOutTime.setHours(17, 50 + ((i * empIndex * 2) % 21));
 
                 const clockIn = format(clockInTime, 'HH:mm');
                 const clockOut = format(clockOutTime, 'HH:mm');
@@ -95,11 +98,15 @@ const generateMockRecords = (): AttendanceRecord[] => {
 const allRecords = generateMockRecords();
 
 export default function AttendancePage() {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({ from: new Date(), to: new Date()});
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [department, setDepartment] = useState('all');
   const [employee, setEmployee] = useState('all');
   const reportContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+   useEffect(() => {
+    setDateRange({ from: new Date(), to: new Date()});
+  }, []);
 
   const filteredRecords = useMemo(() => {
     return allRecords.filter(record => {
@@ -368,3 +375,5 @@ export default function AttendancePage() {
     </AppLayout>
   );
 }
+
+    
