@@ -20,6 +20,7 @@ import { generateHrDocument, GenerateHrDocumentOutput } from '@/ai/flows/generat
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import Logo from '@/components/logo';
 
 type ContractType = 'Indefinido' | 'Plazo Fijo' | 'Part-time' | 'Reemplazo' | 'Borrador';
 
@@ -432,7 +433,7 @@ export default function ContractsPage() {
                 </DialogHeader>
                 {selectedContract && (
                     <>
-                        <div className="max-h-[75vh] overflow-y-auto p-1" >
+                         <div className="max-h-[75vh] overflow-y-auto p-1" >
                             <div className="space-y-4">
                                 <div className="space-y-4 p-4 rounded-lg border">
                                     <h3 className="text-xl font-bold font-headline text-primary">Resumen de Contrato</h3>
@@ -448,25 +449,41 @@ export default function ContractsPage() {
                                         )}
                                     </div>
                                 </div>
-                                 <div 
-                                    ref={pdfContentRef}
-                                    className="h-[400px] border rounded-md p-4 bg-secondary/50 overflow-y-auto"
-                                >
+                                
+                                <div className="border rounded-md bg-secondary/50 overflow-y-auto">
                                     {isGenerating ? (
-                                        <div className="flex items-center justify-center h-full">
+                                        <div className="flex items-center justify-center h-96">
                                             <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                         </div>
                                     ) : detailsDocContent ? (
-                                         <div 
-                                          dangerouslySetInnerHTML={{ __html: detailsDocContent.documentHtmlContent }} 
-                                          className="prose prose-sm max-w-none bg-white p-4 rounded min-h-full"
-                                        />
+                                         <div ref={pdfContentRef} className="p-8 bg-white text-black font-body text-sm" style={{ width: '210mm', minHeight: '297mm'}}>
+                                            <header className="flex justify-between items-start mb-10 border-b-2 border-gray-800 pb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <Logo className="w-28 text-orange-600" />
+                                                    <div>
+                                                        <h1 className="text-2xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
+                                                        <p className="text-sm text-gray-500">Avenida Principal 123, Santiago, Chile</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <h2 className="text-4xl font-headline font-bold uppercase text-gray-700">Contrato</h2>
+                                                </div>
+                                            </header>
+                                            <div 
+                                                dangerouslySetInnerHTML={{ __html: detailsDocContent.documentHtmlContent.replace(/<h1.*>.*<\/h1>|<div.*>.*<\/div>/, '') }} 
+                                                className="prose prose-sm max-w-none"
+                                            />
+                                             <footer className="text-center text-xs text-gray-400 border-t pt-4 mt-12">
+                                                <p>Documento generado por Vollkorn ERP.</p>
+                                            </footer>
+                                        </div>
                                     ) : (
-                                        <div className="flex items-center justify-center h-full text-center text-muted-foreground">
+                                        <div className="flex items-center justify-center h-96 text-center text-muted-foreground">
                                             <p>No se pudo cargar el contenido del contrato.</p>
                                         </div>
                                     )}
                                 </div>
+
                             </div>
                         </div>
                         <DialogFooter>
