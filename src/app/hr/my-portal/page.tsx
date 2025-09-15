@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initialEmployees, Employee, initialLeaveRequests, LeaveRequest, LeaveType } from '../data';
-import { FileText, Download, Calendar, Briefcase, Clock, Sun, Moon, AlertTriangle, UserCheck } from 'lucide-react';
+import { FileText, Download, Calendar, Briefcase, Clock, Sun, Moon, AlertTriangle, UserCheck, Plane, History } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format, parseISO, differenceInBusinessDays, startOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -21,6 +21,8 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
 import { DateRange } from 'react-day-picker';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
 
 // Simulación de un trabajador logueado. En una app real, esto vendría de una sesión.
 const loggedInEmployee: Employee = initialEmployees[0]; 
@@ -42,6 +44,8 @@ export default function MyPortalPage() {
     const lastPayslipDate = new Date(2025, 6, 31);
     const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(initialLeaveRequests.filter(req => req.employeeId === loggedInEmployee.id));
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+    const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+    const [isRequestsHistoryModalOpen, setIsRequestsHistoryModalOpen] = useState(false);
     const [newRequest, setNewRequest] = useState<{leaveType: LeaveType, dateRange: DateRange | undefined, justification: string}>({leaveType: 'Vacaciones', dateRange: undefined, justification: ''});
     const { toast } = useToast();
 
@@ -136,7 +140,7 @@ export default function MyPortalPage() {
                      <Card>
                         <CardHeader>
                             <CardTitle className="font-headline flex items-center gap-2">
-                                <Calendar className="w-5 h-5"/> Mis Vacaciones
+                                <Plane className="w-5 h-5"/> Mis Vacaciones
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
@@ -145,54 +149,41 @@ export default function MyPortalPage() {
                                 <p className="text-5xl font-bold">{loggedInEmployee.diasVacacionesDisponibles}</p>
                                 {loggedInEmployee.diasProgresivos > 0 && <p className="text-xs text-muted-foreground">(+{loggedInEmployee.diasProgresivos} días progresivos)</p>}
                            </div>
-                           <div>
-                                <h4 className="font-semibold mb-2">Últimas Solicitudes</h4>
-                               <ul className="text-sm space-y-2">
-                                   {leaveRequests.map(req => (
-                                       <li key={req.id} className="flex justify-between items-center">
-                                           <span>{req.leaveType} ({req.days} días)</span>
-                                           <Badge variant={req.status === 'Aprobado' ? 'default' : req.status === 'Pendiente' ? 'secondary' : 'destructive'}>{req.status}</Badge>
-                                       </li>
-                                   ))}
-                               </ul>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                               <Button className="w-full" onClick={() => setIsRequestModalOpen(true)}>Solicitar Ausencia</Button>
+                               <Button variant="secondary" className="w-full" onClick={() => setIsRequestsHistoryModalOpen(true)}>
+                                   <History className="mr-2 h-4 w-4" /> Ver Historial
+                                </Button>
                            </div>
-                           <Button className="w-full" onClick={() => setIsRequestModalOpen(true)}>Solicitar Ausencia</Button>
                         </CardContent>
                     </Card>
                     <Card className="lg:col-span-3">
                          <CardHeader>
                             <CardTitle className="font-headline flex items-center gap-2">
-                                <Clock className="w-5 h-5"/> Mi Asistencia - {format(new Date(2025, 6, 1), 'MMMM yyyy', {locale: es})}
+                                <Clock className="w-5 h-5"/> Mi Asistencia
                             </CardTitle>
+                            <CardDescription>Resumen de tus últimos registros de asistencia.</CardDescription>
                         </CardHeader>
-                        <CardContent className="flex flex-col items-center">
-                             <CalendarComponent
-                                mode="single"
-                                month={startOfMonth(new Date(2025, 6, 1))}
-                                selected={new Date()} // Highlight today, for example
-                                className="rounded-md border p-0"
-                                locale={es}
-                                modifiers={{
-                                    onTime: attendanceModifiers.onTime,
-                                    late: attendanceModifiers.late,
-                                    absent: attendanceModifiers.absent
-                                }}
-                                modifiersStyles={{
-                                    onTime: { backgroundColor: 'hsl(var(--primary) / 0.2)', color: 'hsl(var(--primary))' },
-                                    late: { backgroundColor: 'hsl(48 96.5% 53.1% / 0.2)', color: 'hsl(48 96.5% 53.1%)' },
-                                    absent: { backgroundColor: 'hsl(var(--destructive) / 0.2)', color: 'hsl(var(--destructive))' }
-                                }}
-                            />
-                            <div className="flex flex-wrap gap-4 mt-4 text-sm">
-                                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: 'hsl(var(--primary) / 0.2)'}}></div><span>A Tiempo</span></div>
-                                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: 'hsl(48 96.5% 53.1% / 0.2)'}}></div><span>Atraso</span></div>
-                                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: 'hsl(var(--destructive) / 0.2)'}}></div><span>Ausente</span></div>
-                            </div>
+                        <CardContent>
+                             <ul className="space-y-2">
+                                {mockAttendance.slice(0, 5).map(record => (
+                                    <li key={record.date} className="flex justify-between items-center p-2 rounded-md bg-secondary/50">
+                                        <p className="font-medium">{format(parseISO(record.date), 'PPPP', {locale: es})}</p>
+                                        <Badge variant={record.status === 'A Tiempo' ? 'default' : record.status === 'Atraso' ? 'secondary' : 'destructive'}>
+                                            {record.status}
+                                        </Badge>
+                                    </li>
+                                ))}
+                            </ul>
+                            <Button variant="outline" className="w-full mt-4" onClick={() => setIsCalendarModalOpen(true)}>
+                                <Calendar className="mr-2 h-4 w-4"/> Ver Calendario Completo
+                            </Button>
                         </CardContent>
                     </Card>
                 </div>
             </div>
 
+            {/* Modal para solicitar ausencia */}
             <Dialog open={isRequestModalOpen} onOpenChange={setIsRequestModalOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -265,6 +256,75 @@ export default function MyPortalPage() {
                 </DialogContent>
             </Dialog>
 
+             {/* Modal para calendario de asistencia */}
+            <Dialog open={isCalendarModalOpen} onOpenChange={setIsCalendarModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="font-headline">Calendario de Asistencia</DialogTitle>
+                         <DialogDescription>
+                            Resumen visual de tu asistencia para el mes de {format(new Date(2025, 6, 1), 'MMMM yyyy', {locale: es})}.
+                        </DialogDescription>
+                    </DialogHeader>
+                     <div className="flex flex-col items-center py-4">
+                         <CalendarComponent
+                            mode="single"
+                            month={startOfMonth(new Date(2025, 6, 1))}
+                            className="rounded-md border p-0"
+                            locale={es}
+                            modifiers={{
+                                onTime: attendanceModifiers.onTime,
+                                late: attendanceModifiers.late,
+                                absent: attendanceModifiers.absent
+                            }}
+                            modifiersStyles={{
+                                onTime: { backgroundColor: 'hsl(var(--primary) / 0.2)', color: 'hsl(var(--primary))' },
+                                late: { backgroundColor: 'hsl(48 96.5% 53.1% / 0.2)', color: 'hsl(48 96.5% 53.1%)' },
+                                absent: { backgroundColor: 'hsl(var(--destructive) / 0.2)', color: 'hsl(var(--destructive))' }
+                            }}
+                        />
+                        <div className="flex flex-wrap gap-4 mt-4 text-sm">
+                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: 'hsl(var(--primary) / 0.2)'}}></div><span>A Tiempo</span></div>
+                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: 'hsl(48 96.5% 53.1% / 0.2)'}}></div><span>Atraso</span></div>
+                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: 'hsl(var(--destructive) / 0.2)'}}></div><span>Ausente</span></div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+             {/* Modal para historial de solicitudes */}
+            <Dialog open={isRequestsHistoryModalOpen} onOpenChange={setIsRequestsHistoryModalOpen}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle className="font-headline">Historial de Solicitudes</DialogTitle>
+                    </DialogHeader>
+                    <div className="max-h-[60vh] overflow-y-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Tipo</TableHead>
+                                    <TableHead>Período</TableHead>
+                                    <TableHead>Días</TableHead>
+                                    <TableHead>Estado</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {leaveRequests.map(req => (
+                                    <TableRow key={req.id}>
+                                        <TableCell>{req.leaveType}</TableCell>
+                                        <TableCell>{`${format(req.startDate, 'P', { locale: es })} - ${format(req.endDate, 'P', { locale: es })}`}</TableCell>
+                                        <TableCell>{req.days}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={req.status === 'Aprobado' ? 'default' : req.status === 'Pendiente' ? 'secondary' : 'destructive'}>{req.status}</Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
         </AppLayout>
     );
 }
+
