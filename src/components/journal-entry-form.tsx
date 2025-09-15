@@ -37,17 +37,17 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
 
   const handleEntryChange = (index: number, field: keyof JournalEntryLine, value: string | number) => {
     const newEntries = [...entries];
-    if (typeof value === 'string') {
-        (newEntries[index] as any)[field] = value;
-    } else {
-        (newEntries[index] as any)[field] = value || 0;
-    }
-    // Ensure only one of debit or credit has a value
-    if (field === 'debit' && value > 0) newEntries[index].credit = 0;
-    if (field === 'credit' && value > 0) newEntries[index].debit = 0;
+    const parsedValue = typeof value === 'string' && (field === 'debit' || field === 'credit') ? parseFloat(value) || 0 : value;
+    
+    (newEntries[index] as any)[field] = parsedValue;
+
+    // Ensure only one of debit or credit has a value for that line
+    if (field === 'debit' && parsedValue > 0) newEntries[index].credit = 0;
+    if (field === 'credit' && parsedValue > 0) newEntries[index].debit = 0;
 
     setEntries(newEntries);
   };
+
 
   const addEntryLine = () => {
     setEntries([...entries, { account: '', debit: 0, credit: 0 }]);
@@ -59,10 +59,10 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
     }
   };
 
-  const totalDebit = entries.reduce((sum, item) => sum + item.debit, 0);
-  const totalCredit = entries.reduce((sum, item) => sum + item.credit, 0);
+  const totalDebit = entries.reduce((sum, item) => sum + (item.debit || 0), 0);
+  const totalCredit = entries.reduce((sum, item) => sum + (item.credit || 0), 0);
   const isBalanced = totalDebit === totalCredit;
-  const isIncomplete = entries.some(e => !e.account);
+  const isIncomplete = entries.some(e => !e.account.trim());
 
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -134,18 +134,20 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
                                 <Input
                                     type="number"
                                     value={entry.debit || ''}
-                                    onChange={(e) => handleEntryChange(index, 'debit', parseFloat(e.target.value))}
+                                    onChange={(e) => handleEntryChange(index, 'debit', e.target.value)}
                                     className="text-right"
                                     step="any"
+                                    min="0"
                                 />
                             </TableCell>
                              <TableCell>
                                 <Input
                                     type="number"
                                     value={entry.credit || ''}
-                                    onChange={(e) => handleEntryChange(index, 'credit', parseFloat(e.target.value))}
+                                    onChange={(e) => handleEntryChange(index, 'credit', e.target.value)}
                                     className="text-right"
                                     step="any"
+                                    min="0"
                                 />
                             </TableCell>
                             <TableCell>
