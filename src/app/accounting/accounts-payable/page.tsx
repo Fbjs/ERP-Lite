@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, FileCheck, Clock, AlertTriangle, ArrowLeft, Download, FileSpreadsheet } from 'lucide-react';
+import { DollarSign, FileCheck, Clock, AlertTriangle, ArrowLeft, Download, FileSpreadsheet, MoreHorizontal } from 'lucide-react';
 import { useMemo, useRef, useState, useEffect } from 'react';
-import { differenceInDays, parseISO, addDays, format } from 'date-fns';
+import { differenceInDays, parseISO, addDays, format, isValid } from 'date-fns';
 import { initialPurchases } from '../purchase-ledger/page';
 import { initialFees } from '../fees-ledger/page';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -17,6 +17,11 @@ import { useToast } from '@/hooks/use-toast';
 import Logo from '@/components/logo';
 import * as XLSX from 'xlsx';
 import { es } from 'date-fns/locale';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 
 const formatCurrency = (value: number) => {
@@ -39,55 +44,39 @@ const AccountsPayablePage = () => {
     const { toast } = useToast();
     const [generationDate, setGenerationDate] = useState<Date | null>(null);
 
-     useEffect(() => {
-        setGenerationDate(new Date());
-    }, []);
-
-
-    const payableDocuments: PayableDocument[] = useMemo(() => {
+    const initialPayableDocuments: PayableDocument[] = useMemo(() => {
         const purchasePayables = initialPurchases.map(p => {
             const issueDate = parseISO(p.date);
-            const dueDate = addDays(issueDate, 30); // Assume 30 day term for purchases
-             const daysOverdue = differenceInDays(new Date(), dueDate);
-             let agingCategory: 'Corriente' | '0-30 Días' | '31-60 Días' | '>60 Días' = 'Corriente';
+            const dueDate = addDays(issueDate, 30);
+            const daysOverdue = differenceInDays(new Date(), dueDate);
+            let agingCategory: 'Corriente' | '0-30 Días' | '31-60 Días' | '>60 Días' = 'Corriente';
             if (daysOverdue > 60) agingCategory = '>60 Días';
             else if (daysOverdue > 30) agingCategory = '31-60 Días';
             else if (daysOverdue > 0) agingCategory = '0-30 Días';
 
-            return {
-                id: `P-${p.id}`,
-                type: 'Compra',
-                supplier: p.supplier,
-                issueDate,
-                dueDate,
-                amount: p.total,
-                daysOverdue: daysOverdue > 0 ? daysOverdue : 0,
-                agingCategory,
-            } as PayableDocument;
+            return { id: `P-${p.id}`, type: 'Compra', supplier: p.supplier, issueDate, dueDate, amount: p.total, daysOverdue: daysOverdue > 0 ? daysOverdue : 0, agingCategory } as PayableDocument;
         });
-
         const feePayables = initialFees.map(f => {
             const issueDate = parseISO(f.date);
-            const dueDate = addDays(issueDate, 30); // Assume 30 day term for fees
+            const dueDate = addDays(issueDate, 30);
             const daysOverdue = differenceInDays(new Date(), dueDate);
-             let agingCategory: 'Corriente' | '0-30 Días' | '31-60 Días' | '>60 Días' = 'Corriente';
+            let agingCategory: 'Corriente' | '0-30 Días' | '31-60 Días' | '>60 Días' = 'Corriente';
             if (daysOverdue > 60) agingCategory = '>60 Días';
             else if (daysOverdue > 30) agingCategory = '31-60 Días';
             else if (daysOverdue > 0) agingCategory = '0-30 Días';
 
-            return {
-                id: `H-${f.id}`,
-                type: 'Honorario',
-                supplier: f.issuer,
-                issueDate,
-                dueDate,
-                amount: f.net, // We pay the net amount
-                daysOverdue: daysOverdue > 0 ? daysOverdue : 0,
-                agingCategory,
-            } as PayableDocument;
+            return { id: `H-${f.id}`, type: 'Honorario', supplier: f.issuer, issueDate, dueDate, amount: f.net, daysOverdue: daysOverdue > 0 ? daysOverdue : 0, agingCategory } as PayableDocument;
         });
-
         return [...purchasePayables, ...feePayables].sort((a,b) => a.dueDate.getTime() - b.dueDate.getTime());
+    }, []);
+
+    const [payableDocuments, setPayableDocuments] = useState<PayableDocument[]>(initialPayableDocuments);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingDocument, setEditingDocument] = useState<PayableDocument | null>(null);
+
+
+    useEffect(() => {
+        setGenerationDate(new Date());
     }, []);
 
     const summary = useMemo(() => {
@@ -105,6 +94,22 @@ const AccountsPayablePage = () => {
             dueOver60: byAging['>60 Días'] || 0,
         };
     }, [payableDocuments]);
+    
+    const handleOpenEditModal = (doc: PayableDocument) => {
+        setEditingDocument(doc);
+        setIsEditModalOpen(true);
+    };
+
+    const handleSaveChanges = (updatedDoc: PayableDocument) => {
+        setPayableDocuments(payableDocuments.map(doc => doc.id === updatedDoc.id ? updatedDoc : doc));
+        setIsEditModalOpen(false);
+        toast({ title: "Registro Actualizado", description: "El documento por pagar ha sido actualizado." });
+    };
+
+    const handleDeleteDocument = (docId: string) => {
+        setPayableDocuments(payableDocuments.filter(doc => doc.id !== docId));
+        toast({ title: "Registro Eliminado", variant: "destructive", description: "El documento por pagar ha sido eliminado." });
+    };
     
     const handleDownloadPdf = async () => {
         const input = reportRef.current;
@@ -288,6 +293,7 @@ const AccountsPayablePage = () => {
                                         <TableHead>Fecha Vencimiento</TableHead>
                                         <TableHead className="text-right">Monto</TableHead>
                                         <TableHead>Estado</TableHead>
+                                        <TableHead><span className="sr-only">Acciones</span></TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -302,6 +308,33 @@ const AccountsPayablePage = () => {
                                                     {doc.agingCategory}
                                                 </Badge>
                                             </TableCell>
+                                             <TableCell>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent>
+                                                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                        <DropdownMenuItem onClick={() => handleOpenEditModal(doc)}>Editar</DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">Eliminar</DropdownMenuItem>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader>
+                                                                    <AlertDialogTitle>¿Confirmar eliminación?</AlertDialogTitle>
+                                                                    <AlertDialogDescription>Esta acción es permanente y no se puede deshacer.</AlertDialogDescription>
+                                                                </AlertDialogHeader>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleDeleteDocument(doc.id)}>Sí, eliminar</AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -309,7 +342,7 @@ const AccountsPayablePage = () => {
                                     <TableRow>
                                         <TableCell colSpan={3} className="text-right font-bold">Total por Pagar</TableCell>
                                         <TableCell className="text-right font-bold">{formatCurrency(summary.totalPayable)}</TableCell>
-                                        <TableCell></TableCell>
+                                        <TableCell colSpan={2}></TableCell>
                                     </TableRow>
                                 </TableFooter>
                             </Table>
@@ -317,10 +350,74 @@ const AccountsPayablePage = () => {
                     </CardContent>
                 </Card>
             </div>
+
+            {editingDocument && (
+                <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Editar Documento por Pagar</DialogTitle>
+                             <DialogDescription>
+                                Modifica los detalles del documento #{editingDocument.id}.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <EditPayableDocumentForm
+                            document={editingDocument}
+                            onSubmit={handleSaveChanges}
+                            onCancel={() => setIsEditModalOpen(false)}
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
         </AppLayout>
     );
 };
 
-export default AccountsPayablePage;
 
+const EditPayableDocumentForm = ({ document, onSubmit, onCancel }: { document: PayableDocument, onSubmit: (data: PayableDocument) => void, onCancel: () => void }) => {
+    const [formData, setFormData] = useState(document);
     
+    useEffect(() => {
+        setFormData(document);
+    }, [document]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        let newDate;
+        if (id === 'dueDate' || id === 'issueDate') {
+            newDate = parseISO(value);
+             if (isValid(newDate)) {
+                setFormData(prev => ({ ...prev, [id]: newDate }));
+             }
+        } else {
+            setFormData(prev => ({ ...prev, [id]: id === 'amount' ? Number(value) : value }));
+        }
+    };
+    
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSubmit(formData);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+            <div className="space-y-2">
+                <Label htmlFor="supplier">Proveedor</Label>
+                <Input id="supplier" value={formData.supplier} onChange={handleChange} required />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="amount">Monto</Label>
+                <Input id="amount" type="number" value={formData.amount} onChange={handleChange} required />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="dueDate">Fecha de Vencimiento</Label>
+                <Input id="dueDate" type="date" value={format(formData.dueDate, 'yyyy-MM-dd')} onChange={handleChange} required />
+            </div>
+             <DialogFooter>
+                <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
+                <Button type="submit">Guardar Cambios</Button>
+            </DialogFooter>
+        </form>
+    );
+};
+
+export default AccountsPayablePage;

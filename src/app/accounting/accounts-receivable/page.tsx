@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, FileCheck, Clock, AlertTriangle, Users, DollarSign, ArrowLeft, Download, FileSpreadsheet } from 'lucide-react';
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { initialOrders } from '@/app/sales/page';
-import { differenceInDays, parseISO, addDays, format } from 'date-fns';
+import { differenceInDays, parseISO, addDays, format, isValid } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -17,9 +17,25 @@ import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import Logo from '@/components/logo';
 import * as XLSX from 'xlsx';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+
 
 const formatCurrency = (value: number) => {
     return value.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
+};
+
+type ReceivableDocument = {
+    id: string;
+    customer: string;
+    amount: number;
+    issueDate: Date;
+    dueDate: Date;
+    daysOverdue: number;
+    agingCategory: 'Corriente' | '0-30 Días' | '31-60 Días' | '>60 Días';
 };
 
 const AccountsReceivablePage = () => {
@@ -27,15 +43,12 @@ const AccountsReceivablePage = () => {
     const { toast } = useToast();
     const [generationDate, setGenerationDate] = useState<Date | null>(null);
 
-     useEffect(() => {
-        setGenerationDate(new Date());
-    }, []);
-
-    const receivableInvoices = useMemo(() => {
-        return initialOrders
+    const initialReceivableDocuments: ReceivableDocument[] = useMemo(() => {
+         return initialOrders
             .filter(order => order.status === 'Pendiente' || order.status === 'Enviado')
             .map(order => {
-                const dueDate = addDays(parseISO(order.deliveryDate), 30); // Assume 30-day payment term
+                const issueDate = parseISO(order.date);
+                const dueDate = addDays(issueDate, 30);
                 const daysOverdue = differenceInDays(new Date(), dueDate);
                 
                 let agingCategory: 'Corriente' | '0-30 Días' | '31-60 Días' | '>60 Días' = 'Corriente';
@@ -44,12 +57,24 @@ const AccountsReceivablePage = () => {
                 else if (daysOverdue > 0) agingCategory = '0-30 Días';
 
                 return {
-                    ...order,
-                    dueDate: dueDate,
+                    id: order.id,
+                    customer: order.customer,
+                    amount: order.amount,
+                    issueDate,
+                    dueDate,
                     daysOverdue: daysOverdue > 0 ? daysOverdue : 0,
-                    agingCategory: agingCategory,
+                    agingCategory,
                 };
             });
+    }, []);
+
+    const [receivableInvoices, setReceivableInvoices] = useState<ReceivableDocument[]>(initialReceivableDocuments);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingInvoice, setEditingInvoice] = useState<ReceivableDocument | null>(null);
+
+
+     useEffect(() => {
+        setGenerationDate(new Date());
     }, []);
     
     const summary = useMemo(() => {
@@ -67,6 +92,22 @@ const AccountsReceivablePage = () => {
             dueOver60: byAging['>60 Días'] || 0,
         };
     }, [receivableInvoices]);
+
+    const handleOpenEditModal = (invoice: ReceivableDocument) => {
+        setEditingInvoice(invoice);
+        setIsEditModalOpen(true);
+    };
+
+    const handleSaveChanges = (updatedInvoice: ReceivableDocument) => {
+        setReceivableInvoices(receivableInvoices.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv));
+        setIsEditModalOpen(false);
+        toast({ title: "Registro Actualizado", description: "La factura por cobrar ha sido actualizada." });
+    };
+
+    const handleDeleteInvoice = (invoiceId: string) => {
+        setReceivableInvoices(receivableInvoices.filter(inv => inv.id !== invoiceId));
+        toast({ title: "Registro Eliminado", variant: "destructive", description: "La factura por cobrar ha sido eliminada." });
+    };
     
     const agingChartData = [
         { name: 'Corriente', value: summary.current },
@@ -258,6 +299,7 @@ const AccountsReceivablePage = () => {
                                             <TableHead>Fecha Vencimiento</TableHead>
                                             <TableHead className="text-right">Monto</TableHead>
                                             <TableHead>Estado</TableHead>
+                                            <TableHead><span className="sr-only">Acciones</span></TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -272,6 +314,33 @@ const AccountsReceivablePage = () => {
                                                         {inv.agingCategory}
                                                     </Badge>
                                                 </TableCell>
+                                                <TableCell>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent>
+                                                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => handleOpenEditModal(inv)}>Editar</DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">Eliminar</DropdownMenuItem>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>¿Confirmar eliminación?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>Esta acción es permanente y no se puede deshacer.</AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => handleDeleteInvoice(inv.id)}>Sí, eliminar</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -279,7 +348,7 @@ const AccountsReceivablePage = () => {
                                         <TableRow>
                                             <TableCell colSpan={3} className="text-right font-bold">Total</TableCell>
                                             <TableCell className="text-right font-bold">{formatCurrency(summary.totalReceivable)}</TableCell>
-                                            <TableCell></TableCell>
+                                            <TableCell colSpan={2}></TableCell>
                                         </TableRow>
                                     </TableFooter>
                                 </Table>
@@ -305,10 +374,75 @@ const AccountsReceivablePage = () => {
                     </Card>
                 </div>
             </div>
+
+             {editingInvoice && (
+                <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Editar Factura por Cobrar</DialogTitle>
+                             <DialogDescription>
+                                Modifica los detalles de la factura #{editingInvoice.id}.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <EditInvoiceForm
+                            invoice={editingInvoice}
+                            onSubmit={handleSaveChanges}
+                            onCancel={() => setIsEditModalOpen(false)}
+                        />
+                    </DialogContent>
+                </Dialog>
+            )}
+
         </AppLayout>
     );
 };
 
-export default AccountsReceivablePage;
-
+const EditInvoiceForm = ({ invoice, onSubmit, onCancel }: { invoice: ReceivableDocument, onSubmit: (data: ReceivableDocument) => void, onCancel: () => void }) => {
+    const [formData, setFormData] = useState(invoice);
     
+    useEffect(() => {
+        setFormData(invoice);
+    }, [invoice]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        let newDate;
+        if (id === 'dueDate') {
+            newDate = parseISO(value);
+            if(isValid(newDate)) {
+                setFormData(prev => ({ ...prev, dueDate: newDate }));
+            }
+        } else {
+             setFormData(prev => ({ ...prev, [id]: id === 'amount' ? Number(value) : value }));
+        }
+    };
+    
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSubmit(formData);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+            <div className="space-y-2">
+                <Label htmlFor="customer">Cliente</Label>
+                <Input id="customer" value={formData.customer} onChange={handleChange} required />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="amount">Monto</Label>
+                <Input id="amount" type="number" value={formData.amount} onChange={handleChange} required />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="dueDate">Fecha de Vencimiento</Label>
+                <Input id="dueDate" type="date" value={format(formData.dueDate, 'yyyy-MM-dd')} onChange={handleChange} required />
+            </div>
+             <DialogFooter>
+                <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
+                <Button type="submit">Guardar Cambios</Button>
+            </DialogFooter>
+        </form>
+    );
+};
+
+
+export default AccountsReceivablePage;
