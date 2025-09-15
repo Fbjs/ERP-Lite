@@ -19,7 +19,16 @@ import { es } from 'date-fns/locale';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
 
+
+type AdditionalPayrollVars = {
+    employeeId: string;
+    bonus: number;
+    loan: number;
+    advance: number;
+    otherDiscounts: number;
+}
 
 type PayrollItem = {
   id: string;
@@ -29,6 +38,7 @@ type PayrollItem = {
   bonusNocturno: number;
   bonusProduccion: number;
   bonusMetas: number;
+  otrosBonos: number;
   asignacionColacion: number;
   asignacionMovilizacion: number;
   totalImponible: number;
@@ -39,6 +49,9 @@ type PayrollItem = {
   healthDiscount: number; 
   cesantiaDiscount: number;
   taxDiscount: number;
+  prestamos: number;
+  adelantos: number;
+  otrosDescuentos: number;
   totalDescuentos: number;
 
   liquidoAPagar: number;
@@ -58,10 +71,14 @@ const formatCurrency = (value: number) => {
 
 export default function PayrollPage() {
   const [payrollData, setPayrollData] = useState<PayrollItem[]>([]);
+  const [additionalVars, setAdditionalVars] = useState<AdditionalPayrollVars[]>(
+    initialEmployees.map(emp => ({ employeeId: emp.id, bonus: 0, loan: 0, advance: 0, otherDiscounts: 0 }))
+  );
   const [selectedMonth, setSelectedMonth] = useState('2024-07');
   const [searchQuery, setSearchQuery] = useState('');
   const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isVariablesModalOpen, setIsVariablesModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<PayrollItem | null>(null);
   const payslipRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -76,6 +93,7 @@ export default function PayrollPage() {
 
   const handleProcessPayroll = () => {
     const data = initialEmployees.map(emp => {
+      const vars = additionalVars.find(v => v.employeeId === emp.id) || { bonus: 0, loan: 0, advance: 0, otherDiscounts: 0 };
       const baseSalary = emp.salary;
       const overtime = Math.random() > 0.5 ? Math.floor(Math.random() * 8) * 6500 : 0;
       const bonusNocturno = Math.random() > 0.8 ? 50000 : 0;
@@ -85,7 +103,7 @@ export default function PayrollPage() {
       const asignacionColacion = 55000;
       const asignacionMovilizacion = 45000;
 
-      const totalImponible = baseSalary + overtime + bonusNocturno + bonusProduccion + bonusMetas;
+      const totalImponible = baseSalary + overtime + bonusNocturno + bonusProduccion + bonusMetas + vars.bonus;
       const totalNoImponible = asignacionColacion + asignacionMovilizacion;
       const totalHaberes = totalImponible + totalNoImponible;
       
@@ -94,7 +112,7 @@ export default function PayrollPage() {
       const cesantiaDiscount = totalImponible * 0.006; // Empleador paga el resto 2.4%
       const taxDiscount = totalImponible > 900000 ? (totalImponible - 900000) * 0.04 : 0;
 
-      const totalDescuentos = healthDiscount + afpDiscount + cesantiaDiscount + taxDiscount;
+      const totalDescuentos = healthDiscount + afpDiscount + cesantiaDiscount + taxDiscount + vars.loan + vars.advance + vars.otherDiscounts;
       const liquidoAPagar = totalHaberes - totalDescuentos;
 
       return {
@@ -105,6 +123,7 @@ export default function PayrollPage() {
         bonusNocturno,
         bonusProduccion,
         bonusMetas,
+        otrosBonos: vars.bonus,
         asignacionColacion,
         asignacionMovilizacion,
         totalImponible,
@@ -114,6 +133,9 @@ export default function PayrollPage() {
         healthDiscount,
         cesantiaDiscount,
         taxDiscount,
+        prestamos: vars.loan,
+        adelantos: vars.advance,
+        otrosDescuentos: vars.otherDiscounts,
         totalDescuentos,
         liquidoAPagar,
       };
@@ -129,6 +151,12 @@ export default function PayrollPage() {
   const handleShowDetails = (item: PayrollItem) => {
     setSelectedItem(item);
     setDetailsModalOpen(true);
+  };
+
+  const handleAdditionalVarChange = (employeeId: string, field: keyof Omit<AdditionalPayrollVars, 'employeeId'>, value: number) => {
+    setAdditionalVars(prev => 
+      prev.map(v => v.employeeId === employeeId ? { ...v, [field]: value } : v)
+    );
   };
   
   const handleDownloadPayslip = async () => {
@@ -238,7 +266,7 @@ export default function PayrollPage() {
                             </SelectContent>
                         </Select>
                     </div>
-                    <Button variant="outline"><Upload className="mr-2 h-4 w-4" /> Cargar Variables</Button>
+                    <Button variant="outline" onClick={() => setIsVariablesModalOpen(true)}><Upload className="mr-2 h-4 w-4" /> Cargar Variables</Button>
                     <Button variant="secondary" disabled={payrollData.length === 0} onClick={handleExportPrevired}>
                         <FileText className="mr-2 h-4 w-4" /> Exportar a Previred
                     </Button>
@@ -300,6 +328,48 @@ export default function PayrollPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={isVariablesModalOpen} onOpenChange={setIsVariablesModalOpen}>
+        <DialogContent className="max-w-4xl">
+            <DialogHeader>
+                <DialogTitle className="font-headline">Cargar Variables Mensuales</DialogTitle>
+                <DialogDescription>
+                    Ingresa los montos para bonos, préstamos, adelantos y otros descuentos para cada trabajador en el período de {selectedMonth}.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[60vh] overflow-y-auto my-4">
+                <Table>
+                    <TableHeader className="sticky top-0 bg-secondary">
+                        <TableRow>
+                            <TableHead>Trabajador</TableHead>
+                            <TableHead>Otros Bonos / Aguinaldo</TableHead>
+                            <TableHead>Préstamos</TableHead>
+                            <TableHead>Adelantos</TableHead>
+                            <TableHead>Otros Descuentos</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {initialEmployees.map(emp => {
+                            const currentVars = additionalVars.find(v => v.employeeId === emp.id);
+                            return (
+                                <TableRow key={emp.id}>
+                                    <TableCell className="font-medium">{emp.name}</TableCell>
+                                    <TableCell><Input type="number" placeholder="0" value={currentVars?.bonus || ''} onChange={e => handleAdditionalVarChange(emp.id, 'bonus', Number(e.target.value))} /></TableCell>
+                                    <TableCell><Input type="number" placeholder="0" value={currentVars?.loan || ''} onChange={e => handleAdditionalVarChange(emp.id, 'loan', Number(e.target.value))} /></TableCell>
+                                    <TableCell><Input type="number" placeholder="0" value={currentVars?.advance || ''} onChange={e => handleAdditionalVarChange(emp.id, 'advance', Number(e.target.value))} /></TableCell>
+                                    <TableCell><Input type="number" placeholder="0" value={currentVars?.otherDiscounts || ''} onChange={e => handleAdditionalVarChange(emp.id, 'otherDiscounts', Number(e.target.value))} /></TableCell>
+                                </TableRow>
+                            )
+                        })}
+                    </TableBody>
+                </Table>
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsVariablesModalOpen(false)}>Cancelar</Button>
+                <Button onClick={() => { setIsVariablesModalOpen(false); toast({ title: 'Variables Guardadas', description: 'Las variables han sido guardadas y se usarán en el próximo procesamiento.' })}}>Guardar Variables</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
         <DialogContent className="sm:max-w-xl">
@@ -375,6 +445,7 @@ export default function PayrollPage() {
                                         <div className="flex justify-between py-1 border-b"><p>Bono Turno Noche</p><p>{formatCurrency(selectedItem.bonusNocturno)}</p></div>
                                         <div className="flex justify-between py-1 border-b"><p>Bono Producción</p><p>{formatCurrency(selectedItem.bonusProduccion)}</p></div>
                                         <div className="flex justify-between py-1 border-b"><p>Bono Metas</p><p>{formatCurrency(selectedItem.bonusMetas)}</p></div>
+                                        <div className="flex justify-between py-1 border-b"><p>Otros Bonos / Aguinaldo</p><p>{formatCurrency(selectedItem.otrosBonos)}</p></div>
                                         <div className="flex justify-between py-1 border-b font-semibold"><p>Total Imponible</p><p>{formatCurrency(selectedItem.totalImponible)}</p></div>
                                         <div className="flex justify-between py-1 border-b"><p>Asignación Colación</p><p>{formatCurrency(selectedItem.asignacionColacion)}</p></div>
                                         <div className="flex justify-between py-1 border-b"><p>Asignación Movilización</p><p>{formatCurrency(selectedItem.asignacionMovilizacion)}</p></div>
@@ -388,6 +459,9 @@ export default function PayrollPage() {
                                         <div className="flex justify-between py-1 border-b"><p>Cotización Salud (7%)</p><p>{formatCurrency(selectedItem.healthDiscount)}</p></div>
                                         <div className="flex justify-between py-1 border-b"><p>Seguro de Cesantía</p><p>{formatCurrency(selectedItem.cesantiaDiscount)}</p></div>
                                         <div className="flex justify-between py-1 border-b"><p>Impuesto Único</p><p>{formatCurrency(selectedItem.taxDiscount)}</p></div>
+                                        <div className="flex justify-between py-1 border-b"><p>Préstamos</p><p>{formatCurrency(selectedItem.prestamos)}</p></div>
+                                        <div className="flex justify-between py-1 border-b"><p>Adelantos</p><p>{formatCurrency(selectedItem.adelantos)}</p></div>
+                                        <div className="flex justify-between py-1 border-b"><p>Otros Descuentos</p><p>{formatCurrency(selectedItem.otrosDescuentos)}</p></div>
                                         <div className="flex justify-between py-2 mt-2 bg-gray-100 font-bold"><p>TOTAL DESCUENTOS</p><p>{formatCurrency(selectedItem.totalDescuentos)}</p></div>
                                     </div>
                                 </section>
