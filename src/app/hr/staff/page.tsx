@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera, Building, UserCheck, Edit, ArrowLeft, Search, FileSpreadsheet } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Paperclip, Trash2, Loader2, Wand2, Clipboard, Download, Camera, Building, UserCheck, Edit, ArrowLeft, Search, FileSpreadsheet, Group, Banknote, Mail, Cake, Flag } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -15,7 +15,6 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateHrDocument } from '@/ai/flows/generate-hr-document';
 import { GenerateHrDocumentOutput } from '@/ai/schemas/hr-document-schemas';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format, parseISO } from 'date-fns';
@@ -390,7 +389,7 @@ export default function StaffPage() {
       </Card>
       
       <Dialog open={isFormModalOpen} onOpenChange={setFormModalOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle className="font-headline">{editingEmployee ? 'Editar Trabajador' : 'Añadir Nuevo Trabajador'}</DialogTitle>
             <DialogDescription className="font-body">
@@ -448,8 +447,11 @@ export default function StaffPage() {
                             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4 font-body text-sm">
                                 <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Nombre</p><p>{selectedEmployee.name}</p></div>
                                 <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">RUT</p><p>{selectedEmployee.rut}</p></div>
+                                <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Fecha Nacimiento</p><p>{format(parseISO(selectedEmployee.birthDate), 'P', { locale: es })}</p></div>
+                                <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Nacionalidad</p><p>{selectedEmployee.nationality}</p></div>
+                                <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Correo</p><p>{selectedEmployee.email}</p></div>
                                 <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Teléfono</p><p>{selectedEmployee.phone}</p></div>
-                                <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Dirección</p><p>{selectedEmployee.address}</p></div>
+                                <div className="space-y-1 col-span-2"><p className="font-semibold text-muted-foreground text-xs">Dirección</p><p>{selectedEmployee.address}</p></div>
                                 <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Contacto Emergencia</p><p>{selectedEmployee.emergencyContact.name}</p></div>
                                 <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Tel. Emergencia</p><p>{selectedEmployee.emergencyContact.phone}</p></div>
                             </CardContent>
@@ -459,7 +461,7 @@ export default function StaffPage() {
                  <Card>
                     <CardHeader className="flex-row items-center gap-4 space-y-0 pb-2">
                         <Building className="w-6 h-6 text-primary"/>
-                        <CardTitle className="font-headline text-lg">Datos Laborales</CardTitle>
+                        <CardTitle className="font-headline text-lg">Datos Laborales y Previsionales</CardTitle>
                     </CardHeader>
                     <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-y-3 gap-x-4 font-body text-sm pt-4">
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Cargo</p><p>{selectedEmployee.position}</p></div>
@@ -467,10 +469,13 @@ export default function StaffPage() {
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Tipo Contrato</p><p>{selectedEmployee.contractType}</p></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Estado</p><Badge variant={selectedEmployee.status === 'Activo' ? 'default' : 'secondary'}>{selectedEmployee.status}</Badge></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Supervisor</p><p>{selectedEmployee.supervisor}</p></div>
-                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Fecha Ingreso</p><p>{new Date(selectedEmployee.startDate + 'T00:00:00').toLocaleDateString('es-ES', { timeZone: 'UTC' })}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Fecha Ingreso</p><p>{format(parseISO(selectedEmployee.startDate), 'P', { locale: es })}</p></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Previsión Salud</p><p>{selectedEmployee.healthInsurance}</p></div>
                         <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">AFP</p><p>{selectedEmployee.pensionFund}</p></div>
-                         <div className="space-y-1 col-span-full"><p className="font-semibold text-muted-foreground text-xs">Sueldo Bruto</p><p className="text-lg font-bold">${selectedEmployee.salary.toLocaleString('es-CL')}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Sueldo Bruto</p><p className="text-lg font-bold">${selectedEmployee.salary.toLocaleString('es-CL')}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Cargas Familiares</p><p>{selectedEmployee.dependents}</p></div>
+                        <div className="space-y-1"><p className="font-semibold text-muted-foreground text-xs">Sindicato</p><p>{selectedEmployee.unionMember ? 'Sí' : 'No'}</p></div>
+                        <div className="space-y-1 col-span-full"><p className="font-semibold text-muted-foreground text-xs">Datos Bancarios</p><p>{selectedEmployee.bankDetails.bank} - {selectedEmployee.bankDetails.accountType} - {selectedEmployee.bankDetails.accountNumber}</p></div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -580,5 +585,3 @@ export default function StaffPage() {
     </AppLayout>
   );
 }
-
-    
