@@ -45,15 +45,16 @@ const formatCurrency = (value: number) => {
 export default function FeesLedgerPage() {
     const { toast } = useToast();
     const reportContentRef = useRef<HTMLDivElement>(null);
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: subMonths(new Date(2025, 6, 1), 1),
-        to: new Date(2025, 7, 0)
-    });
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
     const [selectedIssuer, setSelectedIssuer] = useState('all');
     const [generationDate, setGenerationDate] = useState<Date | null>(null);
 
     useEffect(() => {
         setGenerationDate(new Date());
+        setDateRange({
+            from: subMonths(new Date(2025, 6, 1), 1),
+            to: new Date(2025, 7, 0)
+        });
     }, []);
 
     const uniqueIssuers = useMemo(() => ['all', ...Array.from(new Set(initialFees.map(doc => doc.issuer)))], []);
@@ -325,4 +326,5 @@ export default function FeesLedgerPage() {
     )
 }
 
+    
     

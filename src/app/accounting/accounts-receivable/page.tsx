@@ -310,3 +310,5 @@ const AccountsReceivablePage = () => {
 };
 
 export default AccountsReceivablePage;
+
+    

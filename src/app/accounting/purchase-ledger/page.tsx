@@ -47,16 +47,17 @@ const formatCurrency = (value: number) => {
 export default function PurchaseLedgerPage() {
     const { toast } = useToast();
     const reportContentRef = useRef<HTMLDivElement>(null);
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: subMonths(new Date(2025, 6, 1), 1),
-        to: new Date(2025, 7, 0)
-    });
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
     const [selectedDocType, setSelectedDocType] = useState('all');
     const [selectedSupplier, setSelectedSupplier] = useState('all');
     const [generationDate, setGenerationDate] = useState<Date | null>(null);
 
     useEffect(() => {
         setGenerationDate(new Date());
+        setDateRange({
+            from: subMonths(new Date(2025, 6, 1), 1),
+            to: new Date(2025, 7, 0)
+        });
     }, []);
 
     const uniqueDocTypes = useMemo(() => ['all', ...Array.from(new Set(initialPurchases.map(doc => doc.docType)))], []);
@@ -349,3 +350,5 @@ export default function PurchaseLedgerPage() {
         </AppLayout>
     );
 }
+
+    
