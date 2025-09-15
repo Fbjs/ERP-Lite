@@ -35,19 +35,22 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
     { account: '', debit: 0, credit: 0 },
   ]);
 
-  const handleEntryChange = (index: number, field: keyof JournalEntryLine, value: string | number) => {
+  const handleEntryChange = (index: number, field: keyof JournalEntryLine, value: string) => {
     const newEntries = [...entries];
     if (field === 'account') {
-        newEntries[index].account = value as string;
+        newEntries[index].account = value;
     } else {
-        const parsedValue = typeof value === 'string' ? parseFloat(value) || 0 : value;
-        (newEntries[index] as any)[field] = parsedValue;
-
-        if (field === 'debit' && parsedValue > 0) newEntries[index].credit = 0;
-        if (field === 'credit' && parsedValue > 0) newEntries[index].debit = 0;
+        const parsedValue = parseFloat(value) || 0;
+        if (field === 'debit') {
+            newEntries[index].debit = parsedValue;
+            if (parsedValue > 0) newEntries[index].credit = 0;
+        } else if (field === 'credit') {
+            newEntries[index].credit = parsedValue;
+            if (parsedValue > 0) newEntries[index].debit = 0;
+        }
     }
     setEntries(newEntries);
-  };
+};
 
 
   const addEntryLine = () => {
@@ -63,7 +66,7 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
   const totalDebit = entries.reduce((sum, item) => sum + (item.debit || 0), 0);
   const totalCredit = entries.reduce((sum, item) => sum + (item.credit || 0), 0);
   const isBalanced = totalDebit === totalCredit;
-  const isIncomplete = entries.some(e => !e.account || !e.account.trim());
+  const isIncomplete = entries.some(e => !e.account);
 
 
   const handleSubmit = (e: React.FormEvent) => {

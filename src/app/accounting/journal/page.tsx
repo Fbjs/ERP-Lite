@@ -33,7 +33,7 @@ export type JournalEntry = {
 export const initialJournalEntries: JournalEntry[] = [
     {
         id: 'JE-001',
-        date: new Date('2025-07-31'),
+        date: new Date('2025-07-31T00:00:00'),
         description: 'Pago de arriendo oficina Julio 2025',
         entries: [
             { account: 'Gasto por Arriendo', debit: 700000, credit: 0 },
@@ -44,7 +44,7 @@ export const initialJournalEntries: JournalEntry[] = [
     },
     {
         id: 'JE-002',
-        date: new Date('2025-07-31'),
+        date: new Date('2025-07-31T00:00:00'),
         description: 'Pago de servicios básicos',
         entries: [
             { account: 'Gasto Agua', debit: 50000, credit: 0 },
