@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, UserMinus, Search, Wand2, Loader2, Clipboard, MoreHorizontal, FileText } from 'lucide-react';
+import { ArrowLeft, UserMinus, Search, Wand2, Loader2, Clipboard, MoreHorizontal, FileText, Download } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { generateHrDocument, GenerateHrDocumentOutput } from '@/ai/flows/generate-hr-document';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import Logo from '@/components/logo';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 type TerminationRecord = {
     employeeId: string;
@@ -38,6 +43,7 @@ export default function TerminationsPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     
     const [terminationHistory, setTerminationHistory] = useState<TerminationRecord[]>([]);
+    const pdfContentRef = useRef<HTMLDivElement>(null);
     
     const { toast } = useToast();
 
@@ -137,6 +143,45 @@ export default function TerminationsPage() {
             description: "El contenido del finiquito se ha copiado al portapapeles.",
         });
     };
+
+    const handleDownloadPdf = async () => {
+        const input = pdfContentRef.current;
+        if (input) {
+            const { default: jsPDF } = await import('jspdf');
+            const { default: html2canvas } = await import('html2canvas');
+            
+            const canvas = await html2canvas(input, { scale: 2, backgroundColor: '#ffffff' });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            const imgProps= pdf.getImageProperties(imgData);
+            const imgWidth = imgProps.width;
+            const imgHeight = imgProps.height;
+            
+            const ratio = imgWidth / imgHeight;
+            let newWidth = pdfWidth - 20; // with margin
+            let newHeight = newWidth / ratio;
+            
+             if (newHeight > pdfHeight - 20) {
+                newHeight = pdfHeight - 20;
+                newWidth = newHeight * ratio;
+            }
+
+            const x = (pdfWidth - newWidth) / 2;
+            const y = 10;
+            
+            pdf.addImage(imgData, 'PNG', x, y, newWidth, newHeight);
+            pdf.save(`finiquito-${selectedEmployee?.employeeName?.replace(' ', '_')}.pdf`);
+            
+            toast({
+                title: "PDF Descargado",
+                description: `El finiquito de ${selectedEmployee?.name} ha sido descargado.`,
+            });
+        }
+    };
+
 
     return (
         <AppLayout pageTitle="Desvinculaciones y Finiquitos">
@@ -282,7 +327,7 @@ export default function TerminationsPage() {
                                 {isGenerating ? (
                                     <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                                 ) : generatedDoc ? (
-                                    <div dangerouslySetInnerHTML={{ __html: generatedDoc.documentHtmlContent }} className="prose prose-sm max-w-none" />
+                                    <div contentEditable dangerouslySetInnerHTML={{ __html: generatedDoc.documentHtmlContent }} className="prose prose-sm max-w-none bg-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-primary h-full" />
                                 ) : (
                                     <div className="flex items-center justify-center h-full text-center text-muted-foreground"><p>El borrador del finiquito aparecerá aquí.</p></div>
                                 )}
@@ -298,19 +343,37 @@ export default function TerminationsPage() {
             </Dialog>
             
             <Dialog open={isViewSettlementModalOpen} onOpenChange={setIsViewSettlementModalOpen}>
-                <DialogContent className="sm:max-w-xl">
+                <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle className="font-headline">Detalle de Finiquito: {selectedEmployee?.name}</DialogTitle>
                     </DialogHeader>
-                     <div className="max-h-[60vh] overflow-y-auto my-4 p-2 border rounded-md">
+                     <div className="max-h-[60vh] overflow-y-auto my-4 p-1">
                         {generatedDoc ? (
-                            <div dangerouslySetInnerHTML={{ __html: generatedDoc.documentHtmlContent }} className="prose prose-sm max-w-none" />
+                            <div ref={pdfContentRef} className="p-8 bg-white text-black font-body text-sm">
+                                <header className="flex justify-between items-start mb-10 border-b-2 border-gray-800 pb-4">
+                                    <div className="flex items-center gap-3">
+                                        <Logo className="w-28 text-orange-600" />
+                                        <div>
+                                            <h1 className="text-2xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
+                                            <p className="text-sm text-gray-500">Avenida Principal 123, Santiago, Chile</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <h2 className="text-4xl font-headline font-bold uppercase text-gray-700">Finiquito</h2>
+                                    </div>
+                                </header>
+                                <div dangerouslySetInnerHTML={{ __html: generatedDoc.documentHtmlContent }} className="prose prose-sm max-w-none" />
+                                <footer className="text-center text-xs text-gray-400 border-t pt-4 mt-12">
+                                    <p>Documento generado por Vollkorn ERP el {format(new Date(), "Pp", { locale: es })}</p>
+                                </footer>
+                            </div>
                         ) : (
                             <p>No se pudo cargar el documento.</p>
                         )}
                     </div>
                     <DialogFooter>
                          <Button variant="outline" onClick={() => setIsViewSettlementModalOpen(false)}>Cerrar</Button>
+                         <Button onClick={handleDownloadPdf} disabled={!generatedDoc}><Download className="mr-2 h-4 w-4" />Descargar PDF</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
