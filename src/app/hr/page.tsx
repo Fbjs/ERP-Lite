@@ -2,7 +2,7 @@
 "use client";
 import AppLayout from '@/components/layout/app-layout';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { FileText, CalendarDays, Wallet, Clock, Users, BarChart3, ShieldCheck } from 'lucide-react';
+import { FileText, CalendarDays, Wallet, Clock, Users, BarChart3, ShieldCheck, UserMinus } from 'lucide-react';
 import Link from 'next/link';
 
 const hrSections = [
@@ -12,6 +12,7 @@ const hrSections = [
     { href: '/hr/leave', title: 'Vacaciones y Ausencias', description: 'Controla las solicitudes de vacaciones y permisos.', icon: CalendarDays },
     { href: '/hr/attendance', title: 'Control de Asistencia', description: 'Visualiza los registros de entrada y salida.', icon: Clock },
     { href: '/hr/compliance', title: 'Cumplimiento Normativo', description: 'Controla el pago de cotizaciones e impuestos.', icon: ShieldCheck },
+    { href: '/hr/terminations', title: 'Desvinculaciones y Finiquitos', description: 'Gestiona el término de la relación laboral.', icon: UserMinus },
     { href: '/hr/reports', title: 'Indicadores y Reportes', description: 'Visualiza métricas y dashboards de RRHH.', icon: BarChart3 },
 ];
 
