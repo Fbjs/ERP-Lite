@@ -24,6 +24,7 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
 
     const allMenuItems = [
         { href: '/dashboard', label: 'Panel de Control', icon: LayoutDashboard, roles: ['Admin', 'Producción', 'Ventas', 'Logística', 'Contabilidad'] },
+        { href: '/hr/my-portal', label: 'Mi Portal', icon: Contact, roles: ['Admin', 'Producción', 'Ventas', 'Logística', 'Contabilidad'] },
         { href: '/production', label: 'Producción', icon: Factory, roles: ['Admin', 'Producción'] },
         { href: '/recipes', label: 'Recetas', icon: NotebookText, roles: ['Admin', 'Producción'] },
         { href: '/sales', label: 'Ventas', icon: ShoppingCart, roles: ['Admin', 'Ventas', 'Contabilidad'] },
