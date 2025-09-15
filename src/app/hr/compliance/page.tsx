@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { ArrowLeft, CheckCircle, FileSpreadsheet, Download, XCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, FileSpreadsheet, Download, XCircle, AlertCircle, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { initialEmployees } from '../data';
@@ -71,6 +71,7 @@ export default function CompliancePage() {
     const [period, setPeriod] = useState(format(new Date(), 'yyyy-MM'));
     const [records, setRecords] = useState<ComplianceRecord[]>([]);
     const reportRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -117,6 +118,20 @@ export default function CompliancePage() {
         pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, 0);
         pdf.save(`reporte-cumplimiento-${period}.pdf`);
         toast({ title: 'PDF Descargado', description: 'El reporte de cumplimiento ha sido descargado.' });
+    };
+
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            toast({
+                title: "Comprobante Cargado",
+                description: `${file.name} ha sido cargado exitosamente.`,
+            });
+            // Reset file input
+            if(fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+        }
     };
 
 
@@ -221,6 +236,10 @@ export default function CompliancePage() {
                             />
                         </div>
                         <div className="flex items-end gap-2">
+                             <Input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept=".pdf,.xml,.zip" />
+                            <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                <Upload className="mr-2 h-4 w-4" /> Cargar Comprobante
+                            </Button>
                             <Button variant="outline" onClick={handleDownloadExcel}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
                             <Button variant="outline" onClick={handleDownloadPdf}><Download className="mr-2 h-4 w-4" /> PDF</Button>
                         </div>
@@ -253,7 +272,7 @@ export default function CompliancePage() {
                         </TableBody>
                          <TableFooter>
                             <TableRow>
-                                <TableCell colSpan={4} className="text-right font-semibold">Total Pagado en el Período:</TableCell>
+                                <TableCell colSpan={3} className="text-right font-semibold">Total Pagado en el Período:</TableCell>
                                 <TableCell className="text-right font-bold">{formatCurrency(records.reduce((sum, r) => sum + r.totalPaid, 0))}</TableCell>
                             </TableRow>
                         </TableFooter>
