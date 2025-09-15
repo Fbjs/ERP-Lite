@@ -4,11 +4,11 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, FileText, Bell, ShieldAlert, FileWarning, ArrowLeft, Search, Wand2, Loader2, Clipboard, Edit } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, FileText, Bell, ShieldAlert, FileWarning, ArrowLeft, Search, Wand2, Loader2, Clipboard, Edit, RefreshCw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { addDays, differenceInDays, parseISO, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import Logo from '@/components/logo';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 type ContractType = 'Indefinido' | 'Plazo Fijo' | 'Part-time' | 'Reemplazo' | 'Borrador';
 
@@ -33,15 +35,16 @@ type Contract = {
   endDate?: string;
   trialPeriodEndDate?: string;
   status: 'Activo' | 'Terminado' | 'Borrador';
+  renewalCount: number; // Nuevo campo para registrar renovaciones
 };
 
 const initialContracts: Contract[] = [
-  { id: 'CON-001', employeeName: 'Juan Pérez', employeeRut: '12.345.678-9', contractType: 'Indefinido', startDate: '2022-01-15', status: 'Activo', trialPeriodEndDate: '2022-04-15' },
-  { id: 'CON-002', employeeName: 'Ana Gómez', employeeRut: '23.456.789-0', contractType: 'Plazo Fijo', startDate: '2024-06-01', endDate: '2024-08-31', status: 'Activo' },
-  { id: 'CON-003', employeeName: 'Luis Martínez', employeeRut: '11.222.333-4', contractType: 'Indefinido', startDate: '2021-08-20', status: 'Activo' },
-  { id: 'CON-004', employeeName: 'Sofía Castro', employeeRut: '18.765.432-1', contractType: 'Borrador', startDate: '2024-09-01', status: 'Borrador' },
-  { id: 'CON-005', employeeName: 'Carlos Diaz', employeeRut: '19.876.543-2', contractType: 'Reemplazo', startDate: '2024-07-01', endDate: '2024-09-30', status: 'Activo', trialPeriodEndDate: '2024-07-15' },
-  { id: 'CON-006', employeeName: 'Laura Fernandez', employeeRut: '20.123.456-7', contractType: 'Part-time', startDate: '2023-02-01', status: 'Activo' },
+  { id: 'CON-001', employeeName: 'Juan Pérez', employeeRut: '12.345.678-9', contractType: 'Indefinido', startDate: '2022-01-15', status: 'Activo', trialPeriodEndDate: '2022-04-15', renewalCount: 0 },
+  { id: 'CON-002', employeeName: 'Ana Gómez', employeeRut: '23.456.789-0', contractType: 'Plazo Fijo', startDate: '2024-06-01', endDate: '2024-08-31', status: 'Activo', renewalCount: 1 },
+  { id: 'CON-003', employeeName: 'Luis Martínez', employeeRut: '11.222.333-4', contractType: 'Indefinido', startDate: '2021-08-20', status: 'Activo', renewalCount: 0 },
+  { id: 'CON-004', employeeName: 'Sofía Castro', employeeRut: '18.765.432-1', contractType: 'Borrador', startDate: '2024-09-01', status: 'Borrador', renewalCount: 0 },
+  { id: 'CON-005', employeeName: 'Carlos Diaz', employeeRut: '19.876.543-2', contractType: 'Reemplazo', startDate: '2024-07-01', endDate: '2024-09-30', status: 'Activo', trialPeriodEndDate: '2024-07-15', renewalCount: 0 },
+  { id: 'CON-006', employeeName: 'Laura Fernandez', employeeRut: '20.123.456-7', contractType: 'Part-time', startDate: '2023-02-01', status: 'Activo', renewalCount: 0 },
 ];
 
 export default function ContractsPage() {
@@ -75,7 +78,7 @@ export default function ContractsPage() {
 
   const today = new Date();
   const expiringContracts = contracts.filter(c => 
-    c.endDate && c.status === 'Activo' && differenceInDays(parseISO(c.endDate), today) <= 30 && differenceInDays(parseISO(c.endDate), today) >= 0
+    c.contractType === 'Plazo Fijo' && c.endDate && c.status === 'Activo' && differenceInDays(parseISO(c.endDate), today) <= 30 && differenceInDays(parseISO(c.endDate), today) >= 0
   );
   
   const expiringTrials = contracts.filter(c => 
@@ -155,6 +158,7 @@ export default function ContractsPage() {
             startDate: format(data.startDate, 'yyyy-MM-dd'),
             endDate: data.endDate ? format(data.endDate, 'yyyy-MM-dd') : undefined,
             status: 'Borrador',
+            renewalCount: 0,
         };
         setContracts(prev => [newContractRecord, ...prev]);
 
@@ -262,6 +266,33 @@ export default function ContractsPage() {
             });
         }
     };
+    
+    const handleRenewContract = (contract: Contract) => {
+        if (contract.contractType !== 'Plazo Fijo' || !contract.endDate) return;
+        
+        const newRenewalCount = contract.renewalCount + 1;
+        const newEndDate = addDays(parseISO(contract.endDate), 30);
+
+        if (newRenewalCount >= 2) {
+            // Pasa a indefinido
+            setContracts(contracts.map(c => 
+                c.id === contract.id ? { ...c, contractType: 'Indefinido', endDate: undefined, renewalCount: newRenewalCount } : c
+            ));
+            toast({
+                title: 'Contrato ahora es Indefinido',
+                description: `El contrato de ${contract.employeeName} ha pasado a ser indefinido tras su segunda renovación.`
+            });
+        } else {
+            // Se renueva por 30 días más
+            setContracts(contracts.map(c => 
+                c.id === contract.id ? { ...c, endDate: format(newEndDate, 'yyyy-MM-dd'), renewalCount: newRenewalCount } : c
+            ));
+             toast({
+                title: 'Contrato Renovado',
+                description: `El contrato de ${contract.employeeName} ha sido renovado por 30 días.`
+            });
+        }
+    };
 
   return (
     <AppLayout pageTitle="Gestión de Contratos">
@@ -283,7 +314,7 @@ export default function ContractsPage() {
                             <div>
                                 <p className="text-sm font-semibold">{c.employeeName}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    Contrato vence en {differenceInDays(parseISO(c.endDate!), today)} días ({new Date(c.endDate!).toLocaleDateString('es-CL')})
+                                    Contrato a plazo fijo vence en {differenceInDays(parseISO(c.endDate!), today)} días ({format(parseISO(c.endDate!), 'P', {locale: es})})
                                 </p>
                             </div>
                         </div>
@@ -294,7 +325,7 @@ export default function ContractsPage() {
                             <div>
                                 <p className="text-sm font-semibold">{c.employeeName}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    Período de prueba vence en {differenceInDays(parseISO(c.trialPeriodEndDate!), today)} días ({new Date(c.trialPeriodEndDate!).toLocaleDateString('es-CL')})
+                                    Período de prueba vence en {differenceInDays(parseISO(c.trialPeriodEndDate!), today)} días ({format(parseISO(c.trialPeriodEndDate!), 'P', {locale: es})})
                                 </p>
                             </div>
                         </div>
@@ -353,7 +384,7 @@ export default function ContractsPage() {
                       <div className="font-medium">{contract.employeeName}</div>
                       <div className="text-sm text-muted-foreground">{contract.employeeRut}</div>
                     </TableCell>
-                    <TableCell>{contract.contractType}</TableCell>
+                    <TableCell>{contract.contractType} {contract.contractType === 'Plazo Fijo' && `(Renov. ${contract.renewalCount})`}</TableCell>
                     <TableCell>{new Date(contract.startDate + 'T00:00:00').toLocaleDateString('es-CL')}</TableCell>
                      <TableCell>{contract.endDate ? new Date(contract.endDate + 'T00:00:00').toLocaleDateString('es-CL') : 'N/A'}</TableCell>
                     <TableCell>
@@ -372,6 +403,33 @@ export default function ContractsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => handleOpenDetails(contract)}>Ver Detalles</DropdownMenuItem>
+                          
+                           <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                 <DropdownMenuItem
+                                    onSelect={(e) => e.preventDefault()}
+                                    disabled={contract.contractType !== 'Plazo Fijo' || contract.status !== 'Activo'}
+                                >
+                                    <RefreshCw className="mr-2 h-4 w-4"/>Renovar Contrato
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Confirmar Renovación?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        {contract.renewalCount < 1 
+                                        ? `Se extenderá el contrato de ${contract.employeeName} por 30 días más.`
+                                        : `Esta es la segunda renovación. El contrato de ${contract.employeeName} pasará a ser indefinido.`
+                                        }
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleRenewContract(contract)}>Sí, renovar</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                          
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleOpenGenerateDoc(contract)}>Generar Documento con IA</DropdownMenuItem>
                         </DropdownMenuContent>
