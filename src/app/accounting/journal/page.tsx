@@ -163,7 +163,7 @@ export default function JournalPage() {
                                         {entries.map((entry) => (
                                             <TableRow key={entry.id}>
                                                 <TableCell className="font-medium">{entry.id}</TableCell>
-                                                <TableCell>{format(entry.date, "P", { locale: es })}</TableCell>
+                                                <TableCell>{format(entry.date, "P", { locale: es, timeZone: 'UTC' })}</TableCell>
                                                 <TableCell>{entry.description}</TableCell>
                                                 <TableCell className="text-right">${entry.total.toLocaleString('es-CL')}</TableCell>
                                                 <TableCell>{entry.createdBy}</TableCell>
@@ -229,7 +229,7 @@ export default function JournalPage() {
                     {selectedEntry && (
                         <div className="max-h-[60vh] overflow-y-auto">
                             <div className="text-sm space-y-2">
-                                <p><span className="font-semibold">Fecha:</span> {format(selectedEntry.date, "P", { locale: es })}</p>
+                                <p><span className="font-semibold">Fecha:</span> {format(selectedEntry.date, "P", { locale: es, timeZone: 'UTC' })}</p>
                                 <p><span className="font-semibold">Glosa:</span> {selectedEntry.description}</p>
                             </div>
                             <Table className="mt-4">
