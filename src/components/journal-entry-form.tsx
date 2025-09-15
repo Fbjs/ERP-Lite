@@ -61,12 +61,12 @@ export default function JournalEntryForm({ onSubmit, onCancel }: JournalEntryFor
 
   const totalDebit = entries.reduce((sum, item) => sum + item.debit, 0);
   const totalCredit = entries.reduce((sum, item) => sum + item.credit, 0);
-  const isBalanced = totalDebit === totalCredit && totalDebit > 0;
+  const isBalanced = totalDebit === totalCredit && (totalDebit > 0 || totalCredit > 0 || entries.every(e => e.account));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!isBalanced) {
-        alert('El asiento no está balanceado. El total de débitos debe ser igual al total de créditos.');
+        alert('El asiento no está balanceado. El total de débitos debe ser igual al total de créditos y no puede ser cero.');
         return;
     }
     onSubmit({ date, description, entries });

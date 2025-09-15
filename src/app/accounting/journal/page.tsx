@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { PlusCircle, FileText, ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import JournalEntryForm, { JournalEntryData } from '@/components/journal-entry-form';
@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 export type JournalEntry = {
@@ -67,6 +68,27 @@ export default function JournalPage() {
     const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
     const { toast } = useToast();
 
+    const ledgerData = useMemo(() => {
+        const accounts: { [key: string]: { debit: number, credit: number, balance: number } } = {};
+        entries.forEach(entry => {
+            entry.entries.forEach(line => {
+                if (!accounts[line.account]) {
+                    accounts[line.account] = { debit: 0, credit: 0, balance: 0 };
+                }
+                accounts[line.account].debit += line.debit;
+                accounts[line.account].credit += line.credit;
+            });
+        });
+
+        Object.keys(accounts).forEach(accountName => {
+            const account = accounts[accountName];
+            account.balance = account.debit - account.credit;
+        });
+        
+        return Object.entries(accounts).map(([name, data]) => ({name, ...data}));
+
+    }, [entries]);
+
     const handleOpenForm = () => {
         setFormModalOpen(true);
     };
@@ -94,14 +116,14 @@ export default function JournalPage() {
 
 
     return (
-        <AppLayout pageTitle="Libro Diario">
+        <AppLayout pageTitle="Libros Contables">
             <Card>
                 <CardHeader>
                     <div className="flex flex-wrap justify-between items-center gap-4">
                         <div>
-                            <CardTitle className="font-headline">Libro Diario</CardTitle>
+                            <CardTitle className="font-headline">Libro Diario y Mayor</CardTitle>
                             <CardDescription className="font-body">
-                                Registra asientos contables manuales para ingresos, egresos, traspasos y otros ajustes.
+                                Registra asientos manuales y revisa los saldos de las cuentas contables.
                             </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
@@ -119,36 +141,68 @@ export default function JournalPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <ScrollArea className="h-[500px]">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Nº Asiento</TableHead>
-                                    <TableHead>Fecha</TableHead>
-                                    <TableHead>Glosa</TableHead>
-                                    <TableHead className="text-right">Monto Total</TableHead>
-                                    <TableHead>Creado Por</TableHead>
-                                    <TableHead><span className="sr-only">Acciones</span></TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {entries.map((entry) => (
-                                    <TableRow key={entry.id}>
-                                        <TableCell className="font-medium">{entry.id}</TableCell>
-                                        <TableCell>{format(entry.date, "P", { locale: es })}</TableCell>
-                                        <TableCell>{entry.description}</TableCell>
-                                        <TableCell className="text-right">${entry.total.toLocaleString('es-CL')}</TableCell>
-                                        <TableCell>{entry.createdBy}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Button variant="ghost" size="icon" onClick={() => handleOpenDetails(entry)}>
-                                                <FileText className="h-4 w-4" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </ScrollArea>
+                    <Tabs defaultValue="journal">
+                        <TabsList>
+                            <TabsTrigger value="journal">Libro Diario</TabsTrigger>
+                            <TabsTrigger value="ledger">Libro Mayor</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="journal" className="pt-4">
+                            <ScrollArea className="h-[500px]">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Nº Asiento</TableHead>
+                                            <TableHead>Fecha</TableHead>
+                                            <TableHead>Glosa</TableHead>
+                                            <TableHead className="text-right">Monto Total</TableHead>
+                                            <TableHead>Creado Por</TableHead>
+                                            <TableHead><span className="sr-only">Acciones</span></TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {entries.map((entry) => (
+                                            <TableRow key={entry.id}>
+                                                <TableCell className="font-medium">{entry.id}</TableCell>
+                                                <TableCell>{format(entry.date, "P", { locale: es })}</TableCell>
+                                                <TableCell>{entry.description}</TableCell>
+                                                <TableCell className="text-right">${entry.total.toLocaleString('es-CL')}</TableCell>
+                                                <TableCell>{entry.createdBy}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button variant="ghost" size="icon" onClick={() => handleOpenDetails(entry)}>
+                                                        <FileText className="h-4 w-4" />
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </ScrollArea>
+                        </TabsContent>
+                        <TabsContent value="ledger" className="pt-4">
+                             <ScrollArea className="h-[500px]">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Cuenta</TableHead>
+                                            <TableHead className="text-right">Total Debe</TableHead>
+                                            <TableHead className="text-right">Total Haber</TableHead>
+                                            <TableHead className="text-right">Saldo</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {ledgerData.map((account) => (
+                                            <TableRow key={account.name}>
+                                                <TableCell className="font-medium">{account.name}</TableCell>
+                                                <TableCell className="text-right">${account.debit.toLocaleString('es-CL')}</TableCell>
+                                                <TableCell className="text-right">${account.credit.toLocaleString('es-CL')}</TableCell>
+                                                <TableCell className="text-right font-semibold">${account.balance.toLocaleString('es-CL')}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </ScrollArea>
+                        </TabsContent>
+                    </Tabs>
                 </CardContent>
             </Card>
 
