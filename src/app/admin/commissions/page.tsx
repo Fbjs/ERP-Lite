@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle, ArrowLeft } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import CommissionRuleForm from '@/components/commission-rule-form';
@@ -18,18 +18,20 @@ import { initialOrders } from '@/app/sales/page';
 
 export type CommissionRule = {
     id: string;
-    type: 'Vendedor' | 'Producto' | 'Local' | 'General';
-    name: string; // This will hold the ID of the product, vendor, or location
-    targetName: string; // This will hold the display name
+    name: string; // Descriptive name for the rule
     rate: number;
+    // Optional fields for matching. If a field is null, it matches all.
+    vendor: string | null; // e.g., 'RENE', null for all vendors
+    productId: string | null; // e.g., 'GUABCO16', null for all products
+    locationId: string | null; // e.g., 'loc2', null for all locations
 };
 
 export const initialCommissionRules: CommissionRule[] = [
-    { id: '1', type: 'General', name: 'Base', targetName: 'Tasa Base General', rate: 0.01 },
-    { id: '2', type: 'Vendedor', name: 'RENE', targetName: 'RENE', rate: 0.02 },
-    { id: '3', type: 'Vendedor', name: 'MARCELO', targetName: 'MARCELO', rate: 0.025 },
-    { id: '4', type: 'Producto', name: 'GUABCO16', targetName: 'PAN GUAGUA BLANCA 16X16', rate: 0.05 },
-    { id: '5', type: 'Local', name: 'loc2', targetName: 'Cafe Central - Providencia', rate: 0.03 },
+    { id: '1', name: 'Tasa General', rate: 0.01, vendor: null, productId: null, locationId: null },
+    { id: '2', name: 'Comisión Especial RENE', rate: 0.02, vendor: 'RENE', productId: null, locationId: null },
+    { id: '3', name: 'Bono Producto Estrella', rate: 0.05, vendor: null, productId: 'GUABCO16', locationId: null },
+    { id: '4', name: 'Bono Sucursal Providencia', rate: 0.03, vendor: null, productId: null, locationId: 'loc2' },
+    { id: '5', name: 'Campaña RENE en Providencia', rate: 0.04, vendor: 'RENE', productId: null, locationId: 'loc2' },
 ];
 
 export default function CommissionsPage() {
@@ -58,12 +60,12 @@ export default function CommissionsPage() {
             // Editing
             const updatedRule = { ...selectedRule, ...data };
             setRules(rules.map(r => r.id === selectedRule.id ? updatedRule : r));
-            toast({ title: 'Regla Actualizada', description: `Se guardaron los cambios para la regla.` });
+            toast({ title: 'Regla Actualizada', description: `Se guardaron los cambios para la regla "${data.name}".` });
         } else {
             // Creating
             const newRule = { ...data, id: (rules.length + 1).toString() };
             setRules([...rules, newRule]);
-            toast({ title: 'Regla Creada', description: `Se ha añadido la nueva regla de comisión.` });
+            toast({ title: 'Regla Creada', description: `Se ha añadido la nueva regla de comisión "${data.name}".` });
         }
         handleCloseModal();
     };
@@ -81,7 +83,7 @@ export default function CommissionsPage() {
                         <div>
                             <CardTitle className="font-headline">Gestión de Reglas de Comisión</CardTitle>
                             <CardDescription className="font-body">
-                                Define las tasas de comisión por vendedor, producto o local de entrega.
+                                Define las tasas de comisión combinando vendedor, producto o local.
                             </CardDescription>
                         </div>
                          <div className="flex items-center gap-2">
@@ -102,8 +104,8 @@ export default function CommissionsPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Tipo de Regla</TableHead>
-                                <TableHead>Aplica a</TableHead>
+                                <TableHead>Nombre de la Regla</TableHead>
+                                <TableHead>Condiciones</TableHead>
                                 <TableHead className="text-right">Tasa de Comisión</TableHead>
                                 <TableHead><span className="sr-only">Acciones</span></TableHead>
                             </TableRow>
@@ -111,8 +113,15 @@ export default function CommissionsPage() {
                         <TableBody>
                             {rules.map((rule) => (
                                 <TableRow key={rule.id}>
-                                    <TableCell><Badge variant="secondary">{rule.type}</Badge></TableCell>
-                                    <TableCell className="font-medium">{rule.targetName}</TableCell>
+                                    <TableCell className="font-medium">{rule.name}</TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-wrap gap-1">
+                                            {rule.vendor && <Badge variant="secondary">Vendedor: {rule.vendor}</Badge>}
+                                            {rule.productId && <Badge variant="secondary">Producto: {initialRecipes.find(r=>r.id === rule.productId)?.name || rule.productId}</Badge>}
+                                            {rule.locationId && <Badge variant="secondary">Local: {rule.locationId}</Badge>}
+                                            {!rule.vendor && !rule.productId && !rule.locationId && <Badge>General</Badge>}
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="text-right font-mono">{(rule.rate * 100).toFixed(2)}%</TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>

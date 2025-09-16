@@ -22,10 +22,11 @@ type CommissionRuleFormProps = {
 };
 
 const defaultFormData: CommissionRuleFormData = {
-    type: 'Vendedor',
     name: '',
-    targetName: '',
     rate: 0,
+    vendor: null,
+    productId: null,
+    locationId: null,
 };
 
 export default function CommissionRuleForm({ rule, onSubmit, onCancel, recipes, vendors }: CommissionRuleFormProps) {
@@ -33,51 +34,19 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel, recipes, 
 
     useEffect(() => {
         if (rule) {
-            setFormData({ type: rule.type, name: rule.name, targetName: rule.targetName, rate: rule.rate });
+            setFormData({ name: rule.name, rate: rule.rate, vendor: rule.vendor, productId: rule.productId, locationId: rule.locationId });
         } else {
             setFormData(defaultFormData);
         }
     }, [rule]);
 
     const allLocations = useMemo(() => {
-        return initialCustomers.flatMap(c => c.deliveryLocations.map(l => ({ ...l, customerName: c.name })));
+        return initialCustomers.flatMap(c => c.deliveryLocations.map(l => ({ value: l.id, label: `${c.name} - ${l.name}` })));
     }, []);
 
-    const nameOptions = useMemo(() => {
-        switch (formData.type) {
-            case 'Vendedor':
-                return vendors.map(v => ({ value: v, label: v }));
-            case 'Local':
-                 return allLocations.map(l => ({ value: l.id, label: `${l.customerName} - ${l.name}` }));
-            case 'Producto':
-                return recipes.map(r => ({ value: r.id, label: r.name}));
-            case 'General':
-                return [{ value: 'Base', label: 'Tasa Base General' }]; // Predefined for the general base rate
-            default:
-                return [];
-        }
-    }, [formData.type, vendors, allLocations, recipes]);
-    
-    useEffect(() => {
-        const currentOptionExists = nameOptions.some(opt => opt.value === formData.name);
-        if (!currentOptionExists) {
-            setFormData(prev => ({...prev, name: '', targetName: ''}));
-        }
-    }, [nameOptions, formData.name]);
-
-
-    const handleTargetChange = (value: string) => {
-        const selectedOption = nameOptions.find(opt => opt.value === value);
-        setFormData(prev => ({
-            ...prev,
-            name: value,
-            targetName: selectedOption ? selectedOption.label : ''
-        }));
+    const handleSelectChange = (field: keyof CommissionRuleFormData, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value === 'all' ? null : value }));
     };
-    
-    const handleTypeChange = (value: CommissionRule['type']) => {
-        setFormData({ type: value, name: '', targetName: '', rate: 0 });
-    }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -87,30 +56,46 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel, recipes, 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
             <div className="space-y-1">
-                <Label htmlFor="type">Tipo de Regla</Label>
-                <Select value={formData.type} onValueChange={handleTypeChange} required>
-                    <SelectTrigger>
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="General">General (Base)</SelectItem>
-                        <SelectItem value="Vendedor">Por Vendedor</SelectItem>
-                        <SelectItem value="Local">Por Local de Entrega</SelectItem>
-                        <SelectItem value="Producto">Por Producto</SelectItem>
-                    </SelectContent>
-                </Select>
+                <Label htmlFor="name">Nombre de la Regla</Label>
+                <Input 
+                    id="name" 
+                    value={formData.name} 
+                    onChange={e => setFormData(p => ({...p, name: e.target.value}))} 
+                    required 
+                    placeholder="Ej: Bono producto estrella en Zona Norte"
+                />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                    <Label htmlFor="vendor">Vendedor (Opcional)</Label>
+                    <Select value={formData.vendor || 'all'} onValueChange={value => handleSelectChange('vendor', value)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos los Vendedores</SelectItem>
+                            {vendors.map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <div className="space-y-1">
+                    <Label htmlFor="productId">Producto (Opcional)</Label>
+                    <Select value={formData.productId || 'all'} onValueChange={value => handleSelectChange('productId', value)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos los Productos</SelectItem>
+                            {recipes.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
 
             <div className="space-y-1">
-                <Label htmlFor="name">Aplica a</Label>
-                <Select value={formData.name} onValueChange={handleTargetChange} required>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Selecciona..." />
-                    </SelectTrigger>
+                <Label htmlFor="locationId">Local de Entrega (Opcional)</Label>
+                <Select value={formData.locationId || 'all'} onValueChange={value => handleSelectChange('locationId', value)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                       {nameOptions.map(opt => (
-                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                       ))}
+                        <SelectItem value="all">Todos los Locales</SelectItem>
+                        {allLocations.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
                     </SelectContent>
                 </Select>
             </div>

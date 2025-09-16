@@ -9,13 +9,13 @@ import { Download, ArrowLeft, Calculator, User, Calendar as CalendarIcon, Info }
 import { useMemo, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { initialOrders, Order } from '@/app/sales/page';
-import { format, parse, startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { initialOrders } from '@/app/sales/page';
+import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { initialCommissionRules, CommissionRule } from '@/app/admin/commissions/page';
+import { initialCommissionRules } from '@/app/admin/commissions/page';
 import { initialRecipes } from '@/app/recipes/page';
 import {
   Tooltip,
@@ -31,7 +31,7 @@ type CommissionDetail = {
     saleAmount: number;
     appliedRate: number;
     commissionAmount: number;
-    ruleType: string;
+    ruleApplied: string;
 };
 
 type CommissionResult = {
@@ -64,15 +64,7 @@ export default function CommissionsPage() {
             ? uniqueVendors.filter(v => v !== 'all') 
             : [selectedVendor];
         
-        const defaultRule = initialCommissionRules.find(r => r.type === 'General');
-        const defaultRate = defaultRule ? defaultRule.rate : 0;
-        
-        const productRules = initialCommissionRules.filter(r => r.type === 'Producto');
-        const vendorRules = initialCommissionRules.filter(r => r.type === 'Vendedor');
-        const locationRules = initialCommissionRules.filter(r => r.type === 'Local');
-
         const resultsMap = new Map<string, { totalSales: number, totalCommission: number, details: CommissionDetail[] }>();
-
         vendorsToCalculate.forEach(vendor => {
             resultsMap.set(vendor, { totalSales: 0, totalCommission: 0, details: [] });
         });
@@ -91,24 +83,33 @@ export default function CommissionsPage() {
                     const formatInfo = recipe?.formats.find(f => f.sku === item.formatSku);
                     const itemSaleAmount = (formatInfo?.cost || 0) * item.quantity;
                     
-                    // Determine rate with hierarchy: Producto > Local > Vendedor > General
-                    const productRule = productRules.find(r => r.name === item.recipeId);
-                    const locationRule = locationRules.find(r => r.name === order.locationId);
-                    const vendorRule = vendorRules.find(r => r.name === order.dispatcher);
+                    // Rule matching logic with priority
+                    const rules = initialCommissionRules;
+                    const vendor = order.dispatcher;
+                    const productId = item.recipeId;
+                    const locationId = order.locationId;
+                    
+                    // Prioritize rules with more matches
+                    const matchingRules = rules
+                        .map(rule => {
+                            let score = 0;
+                            if (rule.vendor === vendor) score += 4;
+                            if (rule.productId === productId) score += 2;
+                            if (rule.locationId === locationId) score += 1;
+                             // General rule has score 0
+                            if(rule.vendor === null && rule.productId === null && rule.locationId === null) score = 0;
+                            else if(rule.vendor !== vendor && rule.vendor !== null) score = -1; // Mismatched specific rule
+                            else if(rule.productId !== productId && rule.productId !== null) score = -1;
+                            else if(rule.locationId !== locationId && rule.locationId !== null) score = -1;
 
-                    let appliedRate = defaultRate;
-                    let ruleType = 'General';
+                            return { rule, score };
+                        })
+                        .filter(m => m.score >= 0)
+                        .sort((a, b) => b.score - a.score);
 
-                    if(productRule) {
-                        appliedRate = productRule.rate;
-                        ruleType = `Producto: ${productRule.targetName}`;
-                    } else if (locationRule) {
-                        appliedRate = locationRule.rate;
-                        ruleType = `Local: ${locationRule.targetName}`;
-                    } else if (vendorRule) {
-                        appliedRate = vendorRule.rate;
-                        ruleType = `Vendedor: ${vendorRule.targetName}`;
-                    }
+                    const bestMatch = matchingRules[0];
+                    const appliedRate = bestMatch ? bestMatch.rule.rate : 0;
+                    const ruleApplied = bestMatch ? bestMatch.rule.name : 'Sin Regla';
                     
                     const itemCommission = itemSaleAmount * appliedRate;
 
@@ -120,7 +121,7 @@ export default function CommissionsPage() {
                         saleAmount: itemSaleAmount,
                         appliedRate,
                         commissionAmount: itemCommission,
-                        ruleType,
+                        ruleApplied: ruleApplied,
                     });
                 });
             }
