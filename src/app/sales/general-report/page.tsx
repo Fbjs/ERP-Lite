@@ -5,17 +5,22 @@ import AppLayout from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Download, ArrowLeft } from 'lucide-react';
-import { useRef, useMemo, Suspense } from 'react';
+import { Download, ArrowLeft, Calendar as CalendarIcon } from 'lucide-react';
+import { useRef, useMemo, Suspense, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { initialOrders } from '@/app/sales/page';
+import { initialOrders, Order } from '@/app/sales/page';
 import { initialRecipes } from '@/app/recipes/page';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DateRange } from 'react-day-picker';
+import { cn } from '@/lib/utils';
 
 type ReportRow = {
     orderDate: string;
@@ -32,16 +37,31 @@ type ReportRow = {
 function GeneralReportPageContent() {
     const reportRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
-    const searchParams = useSearchParams();
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+    const [selectedVendor, setSelectedVendor] = useState<string>('all');
 
-    const fromDate = searchParams.get('from');
-    const toDate = searchParams.get('to');
+    useEffect(() => {
+        setDateRange({
+            from: subMonths(new Date(), 1),
+            to: new Date()
+        });
+    }, []);
+
+    const uniqueVendors = useMemo(() => {
+        return ['all', ...Array.from(new Set(initialOrders.map(order => order.dispatcher)))];
+    }, []);
 
     const reportData: ReportRow[] = useMemo(() => {
         const filteredOrders = initialOrders.filter(order => {
-            if (!fromDate || !toDate) return true;
-            const orderDate = parseISO(order.date);
-            return orderDate >= parseISO(fromDate) && orderDate <= parseISO(toDate);
+            let dateMatch = false;
+            if(dateRange?.from) {
+                const orderDate = parseISO(order.date);
+                dateMatch = orderDate >= dateRange.from && orderDate <= (dateRange.to || dateRange.from);
+            }
+
+            const vendorMatch = selectedVendor === 'all' || order.dispatcher === selectedVendor;
+
+            return dateMatch && vendorMatch;
         });
 
         const flattenedData = filteredOrders.flatMap(order => 
@@ -61,7 +81,7 @@ function GeneralReportPageContent() {
         );
 
         return flattenedData;
-    }, [fromDate, toDate]);
+    }, [dateRange, selectedVendor]);
 
     const handleDownloadPdf = async () => {
         const input = reportRef.current;
@@ -149,6 +169,42 @@ function GeneralReportPageContent() {
                                 <Download className="mr-2 h-4 w-4" />
                                 Descargar PDF
                             </Button>
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap items-end gap-4 border-t pt-4 mt-4">
+                        <div className="space-y-2">
+                            <Label>Filtrar por Fecha de Orden</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="date"
+                                        variant={"outline"}
+                                        className={cn("w-[300px] justify-start text-left font-normal", !dateRange && "text-muted-foreground")}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dateRange?.from ? (
+                                            dateRange.to ? (
+                                                <>{format(dateRange.from, "LLL dd, y", { locale: es })} - {format(dateRange.to, "LLL dd, y", { locale: es })}</>
+                                            ) : (format(dateRange.from, "LLL dd, y", { locale: es }))
+                                        ) : (<span>Selecciona un rango</span>)}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} locale={es} />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="vendor">Vendedor</Label>
+                             <Select value={selectedVendor} onValueChange={setSelectedVendor}>
+                                <SelectTrigger id="vendor" className="w-[200px]">
+                                    <SelectValue placeholder="Seleccionar vendedor" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Todos los Vendedores</SelectItem>
+                                    {uniqueVendors.filter(v => v !== 'all').map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </CardHeader>
