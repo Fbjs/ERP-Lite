@@ -22,6 +22,7 @@ type CommissionRuleFormProps = {
 const defaultFormData: CommissionRuleFormData = {
     type: 'Vendedor',
     name: '',
+    targetName: '',
     rate: 0,
 };
 
@@ -30,7 +31,7 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel }: Commiss
 
     useEffect(() => {
         if (rule) {
-            setFormData({ type: rule.type, name: rule.name, rate: rule.rate });
+            setFormData({ type: rule.type, name: rule.name, targetName: rule.targetName, rate: rule.rate });
         } else {
             setFormData(defaultFormData);
         }
@@ -40,40 +41,47 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel }: Commiss
         return [...new Set(initialOrders.map(order => order.dispatcher))];
     }, []);
 
+    const allLocations = useMemo(() => {
+        return initialCustomers.flatMap(c => c.deliveryLocations.map(l => ({ ...l, customerName: c.name })));
+    }, []);
+
     const nameOptions = useMemo(() => {
         switch (formData.type) {
             case 'Vendedor':
-                return uniqueVendors;
+                return uniqueVendors.map(v => ({ value: v, label: v }));
             case 'Cliente':
-                return initialCustomers.map(c => c.name);
+                return initialCustomers.map(c => ({ value: c.id, label: c.name }));
+            case 'Local':
+                 return allLocations.map(l => ({ value: l.id, label: `${l.customerName} - ${l.name}` }));
             case 'Producto':
                 // This would be populated from recipes in a real scenario
-                return ['PAN GUAGUA BLANCA 16X16', 'PAN LINAZA 500 GRS'];
+                return [{ value: 'GUABCO16', label: 'PAN GUAGUA BLANCA 16X16'}, { value: 'CERE0003', label: 'PAN LINAZA 500 GRS'}];
             case 'General':
-                return ['Base']; // Predefined for the general base rate
+                return [{ value: 'Base', label: 'Tasa Base General' }]; // Predefined for the general base rate
             default:
                 return [];
         }
-    }, [formData.type, uniqueVendors]);
+    }, [formData.type, uniqueVendors, allLocations]);
     
     useEffect(() => {
-        // Reset name when type changes if it's not in the new options list
-        if (!nameOptions.includes(formData.name)) {
-            setFormData(prev => ({...prev, name: ''}));
+        const currentOptionExists = nameOptions.some(opt => opt.value === formData.name);
+        if (!currentOptionExists) {
+            setFormData(prev => ({...prev, name: '', targetName: ''}));
         }
     }, [nameOptions, formData.name]);
 
 
-    const handleChange = (field: keyof CommissionRuleFormData, value: string | number) => {
-        if (field === 'rate') {
-             setFormData(prev => ({ ...prev, rate: Number(value) / 100 }));
-        } else {
-            setFormData(prev => ({ ...prev, [field]: value as any }));
-        }
+    const handleTargetChange = (value: string) => {
+        const selectedOption = nameOptions.find(opt => opt.value === value);
+        setFormData(prev => ({
+            ...prev,
+            name: value,
+            targetName: selectedOption ? selectedOption.label : ''
+        }));
     };
     
     const handleTypeChange = (value: CommissionRule['type']) => {
-        setFormData({ type: value, name: '', rate: 0 });
+        setFormData({ type: value, name: '', targetName: '', rate: 0 });
     }
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -93,6 +101,7 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel }: Commiss
                         <SelectItem value="General">General (Base)</SelectItem>
                         <SelectItem value="Vendedor">Por Vendedor</SelectItem>
                         <SelectItem value="Cliente">Por Cliente</SelectItem>
+                        <SelectItem value="Local">Por Local de Entrega</SelectItem>
                         <SelectItem value="Producto" disabled>Por Producto (Próximamente)</SelectItem>
                     </SelectContent>
                 </Select>
@@ -100,13 +109,13 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel }: Commiss
 
             <div className="space-y-1">
                 <Label htmlFor="name">Aplica a</Label>
-                <Select value={formData.name} onValueChange={(value) => handleChange('name', value)} required>
+                <Select value={formData.name} onValueChange={handleTargetChange} required>
                     <SelectTrigger>
                         <SelectValue placeholder="Selecciona..." />
                     </SelectTrigger>
                     <SelectContent>
                        {nameOptions.map(opt => (
-                           <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                           <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                        ))}
                     </SelectContent>
                 </Select>
@@ -118,7 +127,7 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel }: Commiss
                     id="rate" 
                     type="number"
                     value={formData.rate ? (formData.rate * 100).toFixed(2) : ''}
-                    onChange={(e) => handleChange('rate', e.target.value)}
+                    onChange={(e) => setFormData(p => ({...p, rate: Number(e.target.value) / 100}))}
                     required 
                     placeholder="Ej: 2.5"
                     step="0.01"

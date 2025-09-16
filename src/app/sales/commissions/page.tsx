@@ -15,13 +15,12 @@ import { es } from 'date-fns/locale';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { initialCommissionRules } from '@/app/admin/commissions/page';
+import { initialCommissionRules, CommissionRule } from '@/app/admin/commissions/page';
 
 
 type CommissionResult = {
     vendor: string;
     totalSales: number;
-    commissionRate: number;
     commissionAmount: number;
 };
 
@@ -48,32 +47,46 @@ export default function CommissionsPage() {
             ? uniqueVendors.filter(v => v !== 'all') 
             : [selectedVendor];
         
-        const defaultRule = initialCommissionRules.find(r => r.type === 'General' && r.name === 'Base');
+        const defaultRule = initialCommissionRules.find(r => r.type === 'General');
         const defaultRate = defaultRule ? defaultRule.rate : 0;
+        
+        const vendorRules = initialCommissionRules.filter(r => r.type === 'Vendedor');
+        const clientRules = initialCommissionRules.filter(r => r.type === 'Cliente');
+        const locationRules = initialCommissionRules.filter(r => r.type === 'Local');
 
-        const results: CommissionResult[] = vendorsToCalculate.map(vendor => {
-            const vendorSales = initialOrders.filter(order => {
-                const orderDate = parse(order.date, 'yyyy-MM-dd', new Date());
-                return order.dispatcher === vendor 
-                    && order.status === 'Completado' 
-                    && orderDate >= startDate && orderDate <= endDate;
-            });
-            
-            const totalSales = vendorSales.reduce((acc, order) => acc + order.amount, 0);
+        const resultsMap = new Map<string, { totalSales: number, commissionAmount: number }>();
 
-            // Find specific rule for the vendor, otherwise use default
-            const vendorRule = initialCommissionRules.find(r => r.type === 'Vendedor' && r.name === vendor);
-            const commissionRate = vendorRule ? vendorRule.rate : defaultRate;
-            
-            const commissionAmount = totalSales * commissionRate;
-
-            return {
-                vendor,
-                totalSales,
-                commissionRate,
-                commissionAmount,
-            };
+        vendorsToCalculate.forEach(vendor => {
+            resultsMap.set(vendor, { totalSales: 0, commissionAmount: 0 });
         });
+
+        const ordersInPeriod = initialOrders.filter(order => {
+            const orderDate = parse(order.date, 'yyyy-MM-dd', new Date());
+            return order.status === 'Completado' && orderDate >= startDate && orderDate <= endDate;
+        });
+
+        ordersInPeriod.forEach(order => {
+            if (resultsMap.has(order.dispatcher)) {
+                
+                // Determine rate with hierarchy: Local > Cliente > Vendedor > General
+                const locationRule = locationRules.find(r => r.name === order.locationId);
+                const clientRule = clientRules.find(r => r.name === order.customerId);
+                const vendorRule = vendorRules.find(r => r.name === order.dispatcher);
+
+                const applicableRate = locationRule?.rate ?? clientRule?.rate ?? vendorRule?.rate ?? defaultRate;
+                
+                const orderCommission = order.amount * applicableRate;
+
+                const vendorData = resultsMap.get(order.dispatcher)!;
+                vendorData.totalSales += order.amount;
+                vendorData.commissionAmount += orderCommission;
+            }
+        });
+
+        const results: CommissionResult[] = Array.from(resultsMap.entries()).map(([vendor, data]) => ({
+            vendor,
+            ...data
+        }));
 
         setCommissionData(results);
         toast({
@@ -81,6 +94,22 @@ export default function CommissionsPage() {
             description: `Se han calculado las comisiones para el período ${format(startDate, 'MMMM yyyy', {locale: es})}.`
         });
     };
+
+    const getAppliedRateForSale = (order: Order) => {
+        const defaultRule = initialCommissionRules.find(r => r.type === 'General');
+        const defaultRate = defaultRule ? defaultRule.rate : 0;
+        
+        const vendorRules = initialCommissionRules.filter(r => r.type === 'Vendedor');
+        const clientRules = initialCommissionRules.filter(r => r.type === 'Cliente');
+        const locationRules = initialCommissionRules.filter(r => r.type === 'Local');
+
+        const locationRule = locationRules.find(r => r.name === order.locationId);
+        const clientRule = clientRules.find(r => r.name === order.customerId);
+        const vendorRule = vendorRules.find(r => r.name === order.dispatcher);
+
+        return locationRule?.rate ?? clientRule?.rate ?? vendorRule?.rate ?? defaultRate;
+    };
+
 
     return (
         <AppLayout pageTitle="Cálculo de Comisiones">
@@ -90,7 +119,7 @@ export default function CommissionsPage() {
                         <div>
                             <CardTitle className="font-headline">Cálculo de Comisiones por Venta</CardTitle>
                             <CardDescription className="font-body">
-                                Selecciona un período y un vendedor para calcular las comisiones.
+                                Selecciona un período y un vendedor para calcular las comisiones basadas en las reglas definidas.
                             </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
@@ -139,7 +168,6 @@ export default function CommissionsPage() {
                             <TableRow>
                                 <TableHead>Vendedor</TableHead>
                                 <TableHead className="text-right">Total Ventas (Completadas)</TableHead>
-                                <TableHead className="text-center">Tasa Comisión</TableHead>
                                 <TableHead className="text-right">Monto Comisión</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -148,7 +176,6 @@ export default function CommissionsPage() {
                                 <TableRow key={data.vendor}>
                                     <TableCell className="font-medium">{data.vendor}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(data.totalSales)}</TableCell>
-                                    <TableCell className="text-center">{(data.commissionRate * 100).toFixed(1)}%</TableCell>
                                     <TableCell className="text-right font-bold">{formatCurrency(data.commissionAmount)}</TableCell>
                                 </TableRow>
                             )) : (
@@ -164,7 +191,6 @@ export default function CommissionsPage() {
                                 <TableRow className="font-bold">
                                     <TableCell>Total</TableCell>
                                     <TableCell className="text-right">{formatCurrency(commissionData.reduce((acc, curr) => acc + curr.totalSales, 0))}</TableCell>
-                                    <TableCell></TableCell>
                                     <TableCell className="text-right">{formatCurrency(commissionData.reduce((acc, curr) => acc + curr.commissionAmount, 0))}</TableCell>
                                 </TableRow>
                             </TableFooter>

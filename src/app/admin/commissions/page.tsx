@@ -16,16 +16,18 @@ import Link from 'next/link';
 
 export type CommissionRule = {
     id: string;
-    type: 'Vendedor' | 'Cliente' | 'Producto' | 'General';
-    name: string;
+    type: 'Vendedor' | 'Cliente' | 'Producto' | 'Local' | 'General';
+    name: string; // This will hold the ID of the customer, vendor, product, or location
+    targetName: string; // This will hold the display name
     rate: number;
 };
 
 export const initialCommissionRules: CommissionRule[] = [
-    { id: '1', type: 'General', name: 'Base', rate: 0.015 },
-    { id: '2', type: 'Vendedor', name: 'RENE', rate: 0.02 },
-    { id: '3', type: 'Vendedor', name: 'MARCELO', rate: 0.025 },
-    { id: '4', type: 'Cliente', name: 'Supermercado del Sur', rate: 0.01 },
+    { id: '1', type: 'General', name: 'Base', targetName: 'Tasa Base General', rate: 0.015 },
+    { id: '2', type: 'Vendedor', name: 'RENE', targetName: 'RENE', rate: 0.02 },
+    { id: '3', type: 'Vendedor', name: 'MARCELO', targetName: 'MARCELO', rate: 0.025 },
+    { id: '4', type: 'Cliente', name: '3', targetName: 'Supermercado del Sur', rate: 0.01 },
+    { id: '5', type: 'Local', name: 'loc2', targetName: 'Cafe Central - Providencia', rate: 0.03 },
 ];
 
 export default function CommissionsPage() {
@@ -72,7 +74,7 @@ export default function CommissionsPage() {
                         <div>
                             <CardTitle className="font-headline">Gestión de Reglas de Comisión</CardTitle>
                             <CardDescription className="font-body">
-                                Define las tasas de comisión por vendedor, cliente o producto.
+                                Define las tasas de comisión por vendedor, cliente, producto o local de entrega.
                             </CardDescription>
                         </div>
                          <div className="flex items-center gap-2">
@@ -103,7 +105,7 @@ export default function CommissionsPage() {
                             {rules.map((rule) => (
                                 <TableRow key={rule.id}>
                                     <TableCell><Badge variant="secondary">{rule.type}</Badge></TableCell>
-                                    <TableCell className="font-medium">{rule.name}</TableCell>
+                                    <TableCell className="font-medium">{rule.targetName}</TableCell>
                                     <TableCell className="text-right font-mono">{(rule.rate * 100).toFixed(2)}%</TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
