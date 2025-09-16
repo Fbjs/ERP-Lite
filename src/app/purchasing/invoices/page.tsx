@@ -4,7 +4,7 @@
 import AppLayout from '@/components/layout/app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PlusCircle, MoreHorizontal, Download, FileSpreadsheet, Calendar as CalendarIcon } from 'lucide-react';
+import { ArrowLeft, PlusCircle, MoreHorizontal, Download, FileSpreadsheet, Calendar as CalendarIcon, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
@@ -26,20 +26,29 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Logo from '@/components/logo';
 
+export type SupplierInvoiceItem = {
+    productCode: string;
+    productDetail: string;
+    quantity: number;
+    unitPrice: number; // Net price
+};
 
-type SupplierInvoice = {
+export type SupplierInvoice = {
     id: string;
     purchaseOrderId: string;
     supplierName: string;
     invoiceNumber: string;
     date: string;
-    amount: number;
+    items: SupplierInvoiceItem[];
+    net: number;
+    tax: number;
+    total: number;
     status: 'Pendiente de Pago' | 'Pagada' | 'Vencida';
 };
 
 const initialInvoices: SupplierInvoice[] = [
-    { id: 'INV-001', purchaseOrderId: 'OC-001', supplierName: 'Harinas del Sur S.A.', invoiceNumber: 'F-78901', date: '2025-07-05', amount: 833000, status: 'Pendiente de Pago' },
-    { id: 'INV-002', purchaseOrderId: 'OC-004', supplierName: 'Harinas del Sur S.A.', invoiceNumber: 'F-79100', date: '2025-06-25', amount: 357000, status: 'Pagada' },
+    { id: 'INV-001', purchaseOrderId: 'OC-001', supplierName: 'Harinas del Sur S.A.', invoiceNumber: 'F-78901', date: '2025-07-05', items: [{productCode: 'HAR-001', productDetail: 'Harina de Trigo', quantity: 500, unitPrice: 1300 }, { productCode: 'SAL-003', productDetail: 'Sal de Mar', quantity: 100, unitPrice: 500 }], net: 700000, tax: 133000, total: 833000, status: 'Pendiente de Pago' },
+    { id: 'INV-002', purchaseOrderId: 'OC-004', supplierName: 'Harinas del Sur S.A.', invoiceNumber: 'F-79100', date: '2025-06-25', items: [{ productCode: 'HAR-CEN-001', productDetail: 'Harina de Centeno', quantity: 200, unitPrice: 1500 }], net: 300000, tax: 57000, total: 357000, status: 'Pagada' },
 ];
 
 const formatCurrency = (value: number) => {
@@ -55,68 +64,123 @@ const InvoiceForm = ({
   onSubmit: (data: Omit<SupplierInvoice, 'id' | 'status'>) => void;
   onCancel: () => void;
 }) => {
-  const [purchaseOrderId, setPurchaseOrderId] = useState('');
-  const [invoiceNumber, setInvoiceNumber] = useState('');
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+    const [purchaseOrderId, setPurchaseOrderId] = useState('');
+    const [supplierName, setSupplierName] = useState('');
+    const [invoiceNumber, setInvoiceNumber] = useState('');
+    const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+    const [items, setItems] = useState<SupplierInvoiceItem[]>([]);
 
-  const selectedOrder = useMemo(() => {
-    return orders.find(o => o.id === purchaseOrderId);
-  }, [purchaseOrderId, orders]);
+    const handleSelectOrder = (orderId: string) => {
+        const order = orders.find(o => o.id === orderId);
+        if (order) {
+            setPurchaseOrderId(order.id);
+            setSupplierName(order.supplierName);
+            setItems(order.items.map(item => ({
+                productCode: `CODE-${item.name.slice(0,3)}`, // Placeholder
+                productDetail: item.name,
+                quantity: item.quantity,
+                unitPrice: item.price
+            })));
+        }
+    };
+    
+    const handleItemChange = (index: number, field: keyof SupplierInvoiceItem, value: string | number) => {
+        const newItems = [...items];
+        (newItems[index] as any)[field] = value;
+        setItems(newItems);
+    };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedOrder) return;
-    onSubmit({
-      purchaseOrderId,
-      supplierName: selectedOrder.supplierName,
-      invoiceNumber,
-      date,
-      amount: selectedOrder.total,
-    });
-  };
+    const addItem = () => {
+        setItems([...items, { productCode: '', productDetail: '', quantity: 1, unitPrice: 0 }]);
+    };
+
+    const removeItem = (index: number) => {
+        if (items.length > 1) {
+            setItems(items.filter((_, i) => i !== index));
+        }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const net = items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+        const tax = net * 0.19;
+        const total = net + tax;
+        onSubmit({ purchaseOrderId, supplierName, invoiceNumber, date, items, net, tax, total });
+    };
+
+    const totals = useMemo(() => {
+        const net = items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+        const tax = net * 0.19;
+        const total = net + tax;
+        return { net, tax, total };
+    }, [items]);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 py-4">
-      <div className="space-y-2">
-        <Label htmlFor="purchaseOrderId">Orden de Compra Asociada</Label>
-        <Select value={purchaseOrderId} onValueChange={setPurchaseOrderId} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Selecciona una orden de compra recibida..." />
-          </SelectTrigger>
-          <SelectContent>
-            {orders.map(order => (
-              <SelectItem key={order.id} value={order.id}>
-                {order.id} - {order.supplierName} ({formatCurrency(order.total)})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      {selectedOrder && (
-        <>
-          <div className="space-y-2">
-            <Label htmlFor="invoiceNumber">Folio de la Factura</Label>
-            <Input
-              id="invoiceNumber"
-              value={invoiceNumber}
-              onChange={e => setInvoiceNumber(e.target.value)}
-              required
-              placeholder="Número del documento del proveedor"
-            />
-          </div>
-          <div className="space-y-2">
+    <form onSubmit={handleSubmit} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
+        <div className="space-y-2">
+            <Label>Orden de Compra Asociada (Opcional)</Label>
+            <Select onValueChange={handleSelectOrder}>
+                <SelectTrigger>
+                    <SelectValue placeholder="Selecciona una OC para rellenar datos..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {orders.map(order => (
+                    <SelectItem key={order.id} value={order.id}>
+                        {order.id} - {order.supplierName} ({formatCurrency(order.total)})
+                    </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="supplierName">Proveedor</Label>
+                <Input id="supplierName" value={supplierName} onChange={e => setSupplierName(e.target.value)} required placeholder="Nombre del proveedor" />
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="invoiceNumber">Folio de la Factura</Label>
+                <Input id="invoiceNumber" value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} required placeholder="Número del documento"/>
+            </div>
+        </div>
+        <div className="space-y-2">
             <Label htmlFor="date">Fecha de la Factura</Label>
             <Input id="date" type="date" value={date} onChange={e => setDate(e.target.value)} required />
-          </div>
-           <div className="space-y-2">
-            <Label htmlFor="amount">Monto</Label>
-            <Input id="amount" type="text" value={formatCurrency(selectedOrder.total)} disabled />
-          </div>
-        </>
-      )}
+        </div>
+
+        <div className="space-y-2 pt-4 border-t">
+            <Label className="font-semibold">Ítems de la Factura (precios netos)</Label>
+            {items.map((item, index) => (
+                <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                    <Input placeholder="Código" value={item.productCode} onChange={e => handleItemChange(index, 'productCode', e.target.value)} className="col-span-2" />
+                    <Input placeholder="Detalle" value={item.productDetail} onChange={e => handleItemChange(index, 'productDetail', e.target.value)} className="col-span-4" required/>
+                    <Input type="number" placeholder="Cant." value={item.quantity || ''} onChange={e => handleItemChange(index, 'quantity', Number(e.target.value))} className="col-span-2 text-center" required />
+                    <Input type="number" placeholder="P. Unit. Neto" value={item.unitPrice || ''} onChange={e => handleItemChange(index, 'unitPrice', Number(e.target.value))} className="col-span-3 text-right" required />
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} className="col-span-1" disabled={items.length <= 1}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
+            ))}
+            <Button type="button" variant="outline" onClick={addItem} className="w-full">
+                <PlusCircle className="mr-2 h-4 w-4" /> Añadir Ítem
+            </Button>
+        </div>
+        
+         <div className="text-right space-y-2 mt-4">
+            <div className="flex justify-end items-center gap-4">
+                <span className="text-sm font-medium">Neto:</span>
+                <span className="font-semibold w-32 text-right">{formatCurrency(totals.net)}</span>
+            </div>
+            <div className="flex justify-end items-center gap-4">
+                <span className="text-sm font-medium">IVA (19%):</span>
+                <span className="font-semibold w-32 text-right">{formatCurrency(totals.tax)}</span>
+            </div>
+            <div className="flex justify-end items-center gap-4 font-bold text-lg">
+                <span>Total:</span>
+                <span className="w-32 text-right">{formatCurrency(totals.total)}</span>
+            </div>
+        </div>
+
        <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-            <Button type="submit" disabled={!selectedOrder || !invoiceNumber}>Registrar Factura</Button>
+            <Button type="submit" disabled={!invoiceNumber || items.some(i => !i.productDetail)}>Registrar Factura</Button>
         </DialogFooter>
     </form>
   );
@@ -152,7 +216,7 @@ export default function SupplierInvoicesPage() {
     }, [invoices, dateRange]);
 
     const reportTotal = useMemo(() => {
-        return filteredInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+        return filteredInvoices.reduce((sum, inv) => sum + inv.total, 0);
     }, [filteredInvoices]);
 
     const handleRegisterInvoice = (data: Omit<SupplierInvoice, 'id' | 'status'>) => {
@@ -187,7 +251,9 @@ export default function SupplierInvoicesPage() {
             'Proveedor': inv.supplierName,
             'Nº OC': inv.purchaseOrderId,
             'Fecha Factura': format(parseISO(inv.date), 'P', { locale: es }),
-            'Monto': inv.amount,
+            'Neto': inv.net,
+            'IVA': inv.tax,
+            'Total': inv.total,
             'Estado': inv.status,
         }));
         const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
@@ -228,7 +294,7 @@ export default function SupplierInvoicesPage() {
                                 <TableCell className="p-1">{invoice.invoiceNumber}</TableCell>
                                 <TableCell className="p-1">{invoice.supplierName}</TableCell>
                                 <TableCell className="p-1">{format(parseISO(invoice.date), 'P', { locale: es })}</TableCell>
-                                <TableCell className="p-1 text-right">{formatCurrency(invoice.amount)}</TableCell>
+                                <TableCell className="p-1 text-right">{formatCurrency(invoice.total)}</TableCell>
                                 <TableCell className="p-1">{invoice.status}</TableCell>
                             </TableRow>
                         ))}
@@ -299,7 +365,7 @@ export default function SupplierInvoicesPage() {
                                 <TableHead>Folio Factura</TableHead>
                                 <TableHead>Proveedor</TableHead>
                                 <TableHead>Fecha</TableHead>
-                                <TableHead className="text-right">Monto</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
                                 <TableHead>Estado</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -309,7 +375,7 @@ export default function SupplierInvoicesPage() {
                                     <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
                                     <TableCell>{invoice.supplierName}</TableCell>
                                     <TableCell>{format(parseISO(invoice.date), 'P', { locale: es })}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(invoice.amount)}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
                                     <TableCell>
                                         <Badge variant={invoice.status === 'Pagada' ? 'default' : invoice.status === 'Vencida' ? 'destructive' : 'secondary'}>
                                             {invoice.status}
@@ -338,11 +404,11 @@ export default function SupplierInvoicesPage() {
             </Card>
             
             <Dialog open={isFormModalOpen} onOpenChange={setIsFormModalOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle className="font-headline">Registrar Factura de Proveedor</DialogTitle>
                         <DialogDescription>
-                            Asocia una factura a una orden de compra ya recibida.
+                            Asocia una factura a una orden de compra o ingresa los detalles manualmente.
                         </DialogDescription>
                     </DialogHeader>
                     <InvoiceForm 
