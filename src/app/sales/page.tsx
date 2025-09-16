@@ -29,6 +29,7 @@ export type OrderItem = {
   recipeId: string;
   formatSku: string;
   quantity: number;
+  lote?: string;
 };
 
 export type Order = {
@@ -48,13 +49,13 @@ export type Order = {
 
 export const initialOrders: Order[] = [
     // Previous Orders
-    { id: 'SALE881', customerId: '2', locationId: 'loc2', customer: 'Cafe Central', amount: 270000, status: 'Completado', date: '2025-08-27', deliveryDate: '2025-08-28', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 75 }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
+    { id: 'SALE881', customerId: '2', locationId: 'loc2', customer: 'Cafe Central', amount: 270000, status: 'Completado', date: '2025-08-27', deliveryDate: '2025-08-28', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 75, lote: 'LOTE2508A' }], dispatcher: 'RENE', comments: 'Entregar por acceso de servicio.' },
     { id: 'SALE882', customerId: '3', locationId: 'loc3', customer: 'Supermercado del Sur', amount: 820000, status: 'Pendiente', date: '2025-08-28', deliveryDate: '2025-08-30', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'CRUT11MM', formatSku: 'CRUT11MM-U10', quantity: 200 }], dispatcher: 'MARCELO', comments: '' },
     { id: 'SALE883', customerId: '1', locationId: 'loc1', customer: 'Panaderia San Jose', amount: 330000, status: 'Enviado', date: '2025-08-28', deliveryDate: '2025-08-29', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 80 }], dispatcher: 'RENE', comments: 'Horario de entrega estricto: 8am-10am' },
     { id: 'SALE884', customerId: '2', locationId: 'loc2', customer: 'Cafe Central', amount: 150000, status: 'Cancelado', date: '2025-08-29', deliveryDate: '2025-08-30', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: '400100', formatSku: '400100-7', quantity: 71 }], dispatcher: 'RENE', comments: 'Cliente cancela por sobrestock.' },
     
     // New orders for planning from Sept 1st
-    { id: 'SALE885', customerId: '3', locationId: 'loc4', customer: 'Supermercado del Sur', amount: 550000, status: 'En Preparación', date: '2025-08-30', deliveryDate: '2025-09-01', deliveryAddress: 'Bodega Central, Av. Departamental 987, San Miguel', items: [{ recipeId: 'GUAINT16', formatSku: 'GUAINT16-7', quantity: 120 }], dispatcher: 'MARCELO', comments: 'Preparar en cajas especiales.' },
+    { id: 'SALE885', customerId: '3', locationId: 'loc4', customer: 'Supermercado del Sur', amount: 550000, status: 'En Preparación', date: '2025-08-30', deliveryDate: '2025-09-01', deliveryAddress: 'Bodega Central, Av. Departamental 987, San Miguel', items: [{ recipeId: 'GUAINT16', formatSku: 'GUAINT16-7', quantity: 120, lote: 'LOTE2508B' }], dispatcher: 'MARCELO', comments: 'Preparar en cajas especiales.' },
     { id: 'SALE886', customerId: '1', locationId: 'loc1', customer: 'Panaderia San Jose', amount: 184000, status: 'Pendiente', date: '2025-08-31', deliveryDate: '2025-09-02', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'RALLADBCO', formatSku: 'RALLADBCO-10K', quantity: 40 }], dispatcher: 'RENE', comments: '' },
     { id: 'SALE887', customerId: '2', locationId: 'loc2', customer: 'Cafe Central', amount: 440000, status: 'Enviado', date: '2025-08-31', deliveryDate: '2025-09-01', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'GUIN1432', formatSku: 'GUIN1432-1K', quantity: 100 }], dispatcher: 'MARCELO', comments: 'Facturar a RUT diferente.' },
     { id: 'SALE888', customerId: '3', locationId: 'loc3', customer: 'Supermercado del Sur', amount: 615000, status: 'Completado', date: '2025-09-01', deliveryDate: '2025-09-02', deliveryAddress: 'Gran Avenida 5678, La Cisterna', items: [{ recipeId: 'GUBL1332', formatSku: 'GUBL1332-11', quantity: 150 }], dispatcher: 'RENE', comments: '' },
@@ -64,7 +65,7 @@ export const initialOrders: Order[] = [
     { id: 'SALE892', customerId: '1', locationId: 'loc1', customer: 'Panaderia San Jose', amount: 430000, status: 'En Preparación', date: '2025-09-03', deliveryDate: '2025-09-02', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'GUAINT16', formatSku: 'GUAINT16-7', quantity: 100 }], dispatcher: 'MARCELO', comments: 'Cliente pide llamar antes de entregar.' },
     { id: 'SALE893', customerId: '3', locationId: 'loc4', customer: 'Supermercado del Sur', amount: 1230000, status: 'Pendiente', date: '2025-09-04', deliveryDate: '2025-09-01', deliveryAddress: 'Bodega Central, Av. Departamental 987, San Miguel', items: [{ recipeId: 'MIGAARG22', formatSku: 'MIGAARG22-11', quantity: 341 }], dispatcher: 'RENE', comments: '' },
     { id: 'SALE894', customerId: '2', locationId: 'loc2', customer: 'Cafe Central', amount: 82000, status: 'Enviado', date: '2025-09-04', deliveryDate: '2025-09-02', deliveryAddress: 'Av. Providencia 1234, Providencia', items: [{ recipeId: 'GUABCO16', formatSku: 'GUABCO16-9.5', quantity: 20 }], dispatcher: 'MARCELO', comments: '' },
-    { id: 'SALE895', customerId: '1', locationId: 'loc1', customer: 'Panaderia San Jose', amount: 360000, status: 'Completado', date: '2025-09-05', deliveryDate: '2025-09-03', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 100 }], dispatcher: 'RENE', comments: '' },
+    { id: 'SALE895', customerId: '1', locationId: 'loc1', customer: 'Panaderia San Jose', amount: 360000, status: 'Completado', date: '2025-09-05', deliveryDate: '2025-09-03', deliveryAddress: 'Calle Larga 45, Maipú', items: [{ recipeId: 'TIPA0500', formatSku: 'TIPA0500-40K', quantity: 100, lote: 'LOTE2509A' }], dispatcher: 'RENE', comments: '' },
 ];
 
 export default function SalesPage() {
@@ -130,7 +131,8 @@ export default function SalesPage() {
                 description: `${recipe?.name || 'N/A'} - ${format?.name || 'N/A'}`,
                 quantity: item.quantity,
                 unitPrice: cost,
-                subtotal: subtotal
+                subtotal: subtotal,
+                lote: item.lote || 'N/A',
             };
         });
     };
@@ -151,7 +153,8 @@ export default function SalesPage() {
             const recipe = initialRecipes.find(r => r.id === item.recipeId);
             const format = recipe?.formats.find(f => f.sku === item.formatSku);
             if (recipe && format) {
-                totalAmount += item.quantity * format.cost;
+                const itemPrice = recipe.formats.find(f => f.sku === item.formatSku)?.cost || 0;
+                totalAmount += item.quantity * itemPrice;
             }
         });
 
@@ -187,7 +190,8 @@ export default function SalesPage() {
             const recipe = initialRecipes.find(r => r.id === item.recipeId);
             const format = recipe?.formats.find(f => f.sku === item.formatSku);
             if (recipe && format) {
-                totalAmount += item.quantity * format.cost;
+                const itemPrice = recipe.formats.find(f => f.sku === item.formatSku)?.cost || 0;
+                totalAmount += item.quantity * itemPrice;
             }
         });
 
@@ -578,6 +582,7 @@ export default function SalesPage() {
                                 <TableRow>
                                     <TableHead className="text-left font-bold text-gray-700 uppercase p-3">SKU</TableHead>
                                     <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Descripción</TableHead>
+                                    <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Lote</TableHead>
                                     <TableHead className="text-right font-bold text-gray-700 uppercase p-3">Cantidad</TableHead>
                                     <TableHead className="text-right font-bold text-gray-700 uppercase p-3">Precio Unit.</TableHead>
                                     <TableHead className="text-right font-bold text-gray-700 uppercase p-3">Subtotal</TableHead>
@@ -588,6 +593,7 @@ export default function SalesPage() {
                                     <TableRow key={index} className="border-b border-gray-200">
                                         <TableCell className="p-3 font-mono">{item.sku}</TableCell>
                                         <TableCell className="p-3">{item.description}</TableCell>
+                                        <TableCell className="p-3 font-mono">{item.lote}</TableCell>
                                         <TableCell className="text-right p-3">{item.quantity}</TableCell>
                                         <TableCell className="text-right p-3">${item.unitPrice.toLocaleString('es-CL')}</TableCell>
                                         <TableCell className="text-right p-3">${item.subtotal.toLocaleString('es-CL')}</TableCell>
@@ -596,7 +602,7 @@ export default function SalesPage() {
                             </TableBody>
                             <TableFooter>
                                 <TableRow className="font-bold text-lg bg-gray-100">
-                                    <TableCell colSpan={4} className="text-right p-3">TOTAL ORDEN</TableCell>
+                                    <TableCell colSpan={5} className="text-right p-3">TOTAL ORDEN</TableCell>
                                     <TableCell className="text-right p-3">${selectedOrder.amount.toLocaleString('es-CL')}</TableCell>
                                 </TableRow>
                             </TableFooter>

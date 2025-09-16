@@ -17,14 +17,7 @@ import { format, addDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Customer, DeliveryLocation } from '@/app/admin/customers/page';
 import { Textarea } from './ui/textarea';
-import type { Order } from '@/app/sales/page';
-
-
-type OrderItem = {
-  recipeId: string;
-  formatSku: string;
-  quantity: number;
-};
+import type { Order, OrderItem } from '@/app/sales/page';
 
 export type OrderFormData = {
     customerId: string;
@@ -78,7 +71,7 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers,
   const [customerId, setCustomerId] = useState('');
   const [locationId, setLocationId] = useState('');
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(addDays(new Date(), 3));
-  const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1 }]);
+  const [items, setItems] = useState<OrderItem[]>([{ recipeId: '', formatSku: '', quantity: 1, lote: '' }]);
   const [dispatcher, setDispatcher] = useState('');
   const [comments, setComments] = useState('');
 
@@ -95,7 +88,7 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers,
             setLocationId(initialData.locationId);
         }
         setDeliveryDate(parseISO(initialData.deliveryDate));
-        setItems(initialData.items);
+        setItems(initialData.items.map(item => ({...item, lote: item.lote || ''})));
         setDispatcher(initialData.dispatcher);
         setComments(initialData.comments);
     } else {
@@ -104,7 +97,7 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers,
         setLocationId('');
         setAvailableLocations([]);
         setDeliveryDate(addDays(new Date(), 3));
-        setItems([{ recipeId: '', formatSku: '', quantity: 1 }]);
+        setItems([{ recipeId: '', formatSku: '', quantity: 1, lote: '' }]);
         setDispatcher('');
         setComments('');
     }
@@ -142,7 +135,7 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers,
   };
 
   const addItem = () => {
-    setItems([...items, { recipeId: '', formatSku: '', quantity: 1 }]);
+    setItems([...items, { recipeId: '', formatSku: '', quantity: 1, lote: '' }]);
   };
 
   const removeItem = (index: number) => {
@@ -174,6 +167,14 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers,
     const recipe = recipes.find(r => r.id === recipeId);
     return recipe?.formats || [];
   };
+
+  const totalAmount = useMemo(() => {
+    return items.reduce((acc, item) => {
+        const recipe = recipes.find(r => r.id === item.recipeId);
+        const itemPrice = recipe?.formats.find(f => f.sku === item.formatSku)?.cost || 0;
+        return acc + (item.quantity * itemPrice);
+    }, 0);
+  }, [items, recipes]);
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6 py-4 font-body max-h-[70vh] overflow-y-auto px-2">
@@ -236,24 +237,12 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers,
                 return (
                  <div key={index} className="grid grid-cols-12 gap-2 items-center">
                     <Select onValueChange={(value) => handleItemChange(index, 'recipeId', value)} value={item.recipeId}>
-                        <SelectTrigger className="col-span-5">
-                            <SelectValue placeholder="Producto/Receta"/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {recipes.map(recipe => (
-                                <SelectItem key={recipe.id} value={recipe.id}>{recipe.name}</SelectItem>
-                            ))}
-                        </SelectContent>
+                        <SelectTrigger className="col-span-4"><SelectValue placeholder="Producto/Receta"/></SelectTrigger>
+                        <SelectContent>{recipes.map(recipe => (<SelectItem key={recipe.id} value={recipe.id}>{recipe.name}</SelectItem>))}</SelectContent>
                     </Select>
                      <Select onValueChange={(value) => handleItemChange(index, 'formatSku', value)} value={item.formatSku} disabled={!item.recipeId}>
-                        <SelectTrigger className="col-span-4">
-                            <SelectValue placeholder="Formato"/>
-                        </SelectTrigger>
-                        <SelectContent>
-                            {availableFormats(item.recipeId).map(format => (
-                                <SelectItem key={format.sku} value={format.sku}>{format.name}</SelectItem>
-                            ))}
-                        </SelectContent>
+                        <SelectTrigger className="col-span-3"><SelectValue placeholder="Formato"/></SelectTrigger>
+                        <SelectContent>{availableFormats(item.recipeId).map(format => (<SelectItem key={format.sku} value={format.sku}>{format.name}</SelectItem>))}</SelectContent>
                     </Select>
 
                     <Input
@@ -264,6 +253,12 @@ export default function SalesOrderForm({ onSubmit, onCancel, recipes, customers,
                         onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
                         className="col-span-2"
                         required
+                    />
+                    <Input
+                        placeholder="Lote"
+                        value={item.lote || ''}
+                        onChange={(e) => handleItemChange(index, 'lote', e.target.value)}
+                        className="col-span-2"
                     />
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} className="col-span-1 h-8 w-8" disabled={items.length <= 1}>
                         <Trash2 className="h-4 w-4 text-destructive" />
