@@ -38,8 +38,8 @@ type SupplierInvoice = {
 };
 
 const initialInvoices: SupplierInvoice[] = [
-    { id: 'INV-001', purchaseOrderId: 'OC-001', supplierName: 'Harinas del Sur S.A.', invoiceNumber: 'F-78901', date: '2025-07-05', amount: 700000, status: 'Pendiente de Pago' },
-    { id: 'INV-002', purchaseOrderId: 'OC-004', supplierName: 'Harinas del Sur S.A.', invoiceNumber: 'F-79100', date: '2025-06-25', amount: 300000, status: 'Pagada' },
+    { id: 'INV-001', purchaseOrderId: 'OC-001', supplierName: 'Harinas del Sur S.A.', invoiceNumber: 'F-78901', date: '2025-07-05', amount: 833000, status: 'Pendiente de Pago' },
+    { id: 'INV-002', purchaseOrderId: 'OC-004', supplierName: 'Harinas del Sur S.A.', invoiceNumber: 'F-79100', date: '2025-06-25', amount: 357000, status: 'Pagada' },
 ];
 
 const formatCurrency = (value: number) => {

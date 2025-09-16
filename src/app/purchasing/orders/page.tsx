@@ -33,15 +33,17 @@ export type PurchaseOrder = {
     date: string;
     deliveryDate: string;
     items: PurchaseOrderItem[];
+    net: number;
+    tax: number;
     total: number;
     status: 'Borrador' | 'Aprobado' | 'Recibido' | 'Cancelado';
 };
 
 export const initialPurchaseOrders: PurchaseOrder[] = [
-    { id: 'OC-001', supplierId: '1', supplierName: 'Harinas del Sur S.A.', date: '2025-07-01', deliveryDate: '2025-07-05', items: [{ name: 'Harina de Trigo', quantity: 500, price: 1300 }, { name: 'Sal de Mar', quantity: 100, price: 500 }], total: 700000, status: 'Recibido' },
-    { id: 'OC-002', supplierId: '2', supplierName: 'Distribuidora Lácteos del Maule', date: '2025-07-10', deliveryDate: '2025-07-12', items: [{ name: 'Levadura Fresca', quantity: 50, price: 8000 }], total: 400000, status: 'Aprobado' },
-    { id: 'OC-003', supplierId: '3', supplierName: 'Insumos de Panadería ProPan', date: '2025-07-15', deliveryDate: '2025-07-18', items: [{ name: 'Bolsas de Papel', quantity: 2000, price: 100 }], total: 200000, status: 'Borrador' },
-    { id: 'OC-004', supplierId: '1', supplierName: 'Harinas del Sur S.A.', date: '2025-06-20', deliveryDate: '2025-06-25', items: [{ name: 'Harina de Centeno', quantity: 200, price: 1500 }], total: 300000, status: 'Recibido' },
+    { id: 'OC-001', supplierId: '1', supplierName: 'Harinas del Sur S.A.', date: '2025-07-01', deliveryDate: '2025-07-05', items: [{ name: 'Harina de Trigo', quantity: 500, price: 1300 }, { name: 'Sal de Mar', quantity: 100, price: 500 }], net: 700000, tax: 133000, total: 833000, status: 'Recibido' },
+    { id: 'OC-002', supplierId: '2', supplierName: 'Distribuidora Lácteos del Maule', date: '2025-07-10', deliveryDate: '2025-07-12', items: [{ name: 'Levadura Fresca', quantity: 50, price: 8000 }], net: 400000, tax: 76000, total: 476000, status: 'Aprobado' },
+    { id: 'OC-003', supplierId: '3', supplierName: 'Insumos de Panadería ProPan', date: '2025-07-15', deliveryDate: '2025-07-18', items: [{ name: 'Bolsas de Papel', quantity: 2000, price: 100 }], net: 200000, tax: 38000, total: 238000, status: 'Borrador' },
+    { id: 'OC-004', supplierId: '1', supplierName: 'Harinas del Sur S.A.', date: '2025-06-20', deliveryDate: '2025-06-25', items: [{ name: 'Harina de Centeno', quantity: 200, price: 1500 }], net: 300000, tax: 57000, total: 357000, status: 'Recibido' },
 ];
 
 const formatCurrency = (value: number) => {
@@ -85,7 +87,9 @@ export default function PurchaseOrdersPage() {
     };
 
     const handleFormSubmit = (data: PurchaseOrderData) => {
-        const total = data.items.reduce((acc, item) => acc + item.quantity * item.price, 0);
+        const net = data.items.reduce((acc, item) => acc + item.quantity * item.price, 0);
+        const tax = net * 0.19;
+        const total = net + tax;
         const supplier = initialSuppliers.find(s => s.id === data.supplierId);
 
         if (selectedOrder) {
@@ -94,6 +98,8 @@ export default function PurchaseOrdersPage() {
                 ...selectedOrder,
                 ...data,
                 supplierName: supplier?.name || 'N/A',
+                net,
+                tax,
                 total,
             };
             setOrders(orders.map(o => o.id === selectedOrder.id ? updatedOrder : o));
@@ -104,6 +110,8 @@ export default function PurchaseOrdersPage() {
                 ...data,
                 id: `OC-${String(orders.length + 1).padStart(3, '0')}`,
                 supplierName: supplier?.name || 'N/A',
+                net,
+                tax,
                 total,
                 status: 'Borrador',
             };
@@ -151,6 +159,8 @@ export default function PurchaseOrdersPage() {
             'Proveedor': o.supplierName,
             'Fecha Emisión': format(parseISO(o.date), 'P', { locale: es }),
             'Fecha Entrega': format(parseISO(o.deliveryDate), 'P', { locale: es }),
+            'Neto': o.net,
+            'IVA': o.tax,
             'Total': o.total,
             'Estado': o.status,
             'Items': o.items.map(i => `${i.quantity}x ${i.name}`).join(', ')
@@ -335,5 +345,3 @@ export default function PurchaseOrdersPage() {
         </AppLayout>
     );
 }
-
-    

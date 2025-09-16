@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -74,9 +74,13 @@ export default function PurchaseOrderForm({ order, onSubmit, onCancel }: Purchas
         onSubmit({ supplierId, date, deliveryDate, items });
     };
 
-    const calculateTotal = () => {
-        return items.reduce((acc, item) => acc + (item.quantity * item.price), 0);
-    };
+    const totals = useMemo(() => {
+        const net = items.reduce((acc, item) => acc + (item.quantity * item.price), 0);
+        const tax = net * 0.19;
+        const total = net + tax;
+        return { net, tax, total };
+    }, [items]);
+
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto p-1">
@@ -105,7 +109,7 @@ export default function PurchaseOrderForm({ order, onSubmit, onCancel }: Purchas
             </div>
 
             <div className="space-y-2 pt-4 border-t">
-                <Label className="font-semibold">Ítems de la Orden</Label>
+                <Label className="font-semibold">Ítems de la Orden (precios netos)</Label>
                 {items.map((item, index) => (
                     <div key={index} className="flex gap-2 items-center">
                         <Input
@@ -126,7 +130,7 @@ export default function PurchaseOrderForm({ order, onSubmit, onCancel }: Purchas
                         />
                         <Input
                             type="number"
-                            placeholder="Precio Unit."
+                            placeholder="Precio Unit. Neto"
                             value={item.price || ''}
                             onChange={e => handleItemChange(index, 'price', Number(e.target.value))}
                             className="w-32"
@@ -143,8 +147,19 @@ export default function PurchaseOrderForm({ order, onSubmit, onCancel }: Purchas
                 </Button>
             </div>
             
-            <div className="text-right font-bold text-lg mt-4">
-                Total: ${calculateTotal().toLocaleString('es-CL')}
+             <div className="text-right space-y-2 mt-4">
+                <div className="flex justify-end items-center gap-4">
+                    <span className="text-sm font-medium">Neto:</span>
+                    <span className="font-semibold w-32 text-right">${totals.net.toLocaleString('es-CL')}</span>
+                </div>
+                <div className="flex justify-end items-center gap-4">
+                    <span className="text-sm font-medium">IVA (19%):</span>
+                    <span className="font-semibold w-32 text-right">${totals.tax.toLocaleString('es-CL')}</span>
+                </div>
+                <div className="flex justify-end items-center gap-4 font-bold text-lg">
+                    <span>Total:</span>
+                    <span className="w-32 text-right">${totals.total.toLocaleString('es-CL')}</span>
+                </div>
             </div>
 
             <DialogFooter className="sticky bottom-0 bg-background pt-4 pb-0 -mx-2 -mb-4">
