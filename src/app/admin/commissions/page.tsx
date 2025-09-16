@@ -8,7 +8,7 @@ import { MoreHorizontal, PlusCircle, ArrowLeft } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import CommissionRuleForm from '@/components/commission-rule-form';
 import { Badge } from '@/components/ui/badge';
@@ -37,6 +37,11 @@ export default function CommissionsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedRule, setSelectedRule] = useState<CommissionRule | undefined>(undefined);
     const { toast } = useToast();
+
+    const uniqueVendors = useMemo(() => {
+        return [...new Set(initialOrders.map(order => order.dispatcher))];
+    }, []);
+
 
     const handleOpenModal = (rule?: CommissionRule) => {
         setSelectedRule(rule);
