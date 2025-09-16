@@ -13,20 +13,22 @@ import { useToast } from '@/hooks/use-toast';
 import CommissionRuleForm from '@/components/commission-rule-form';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { initialRecipes } from '@/app/recipes/page';
+import { initialOrders } from '@/app/sales/page';
 
 export type CommissionRule = {
     id: string;
-    type: 'Vendedor' | 'Cliente' | 'Producto' | 'Local' | 'General';
-    name: string; // This will hold the ID of the customer, vendor, product, or location
+    type: 'Vendedor' | 'Producto' | 'Local' | 'General';
+    name: string; // This will hold the ID of the product, vendor, or location
     targetName: string; // This will hold the display name
     rate: number;
 };
 
 export const initialCommissionRules: CommissionRule[] = [
-    { id: '1', type: 'General', name: 'Base', targetName: 'Tasa Base General', rate: 0.015 },
+    { id: '1', type: 'General', name: 'Base', targetName: 'Tasa Base General', rate: 0.01 },
     { id: '2', type: 'Vendedor', name: 'RENE', targetName: 'RENE', rate: 0.02 },
     { id: '3', type: 'Vendedor', name: 'MARCELO', targetName: 'MARCELO', rate: 0.025 },
-    { id: '4', type: 'Cliente', name: '3', targetName: 'Supermercado del Sur', rate: 0.01 },
+    { id: '4', type: 'Producto', name: 'GUABCO16', targetName: 'PAN GUAGUA BLANCA 16X16', rate: 0.05 },
     { id: '5', type: 'Local', name: 'loc2', targetName: 'Cafe Central - Providencia', rate: 0.03 },
 ];
 
@@ -74,7 +76,7 @@ export default function CommissionsPage() {
                         <div>
                             <CardTitle className="font-headline">Gestión de Reglas de Comisión</CardTitle>
                             <CardDescription className="font-body">
-                                Define las tasas de comisión por vendedor, cliente, producto o local de entrega.
+                                Define las tasas de comisión por vendedor, producto o local de entrega.
                             </CardDescription>
                         </div>
                          <div className="flex items-center gap-2">
@@ -141,6 +143,8 @@ export default function CommissionsPage() {
                         rule={selectedRule}
                         onSubmit={handleSubmit}
                         onCancel={handleCloseModal}
+                        recipes={initialRecipes}
+                        vendors={uniqueVendors}
                     />
                 </DialogContent>
             </Dialog>

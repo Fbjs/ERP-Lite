@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { CommissionRule } from '@/app/admin/commissions/page';
+import type { Recipe } from '@/app/recipes/page';
 import { initialCustomers } from '@/app/admin/customers/page';
-import { initialOrders } from '@/app/sales/page';
 
 type CommissionRuleFormData = Omit<CommissionRule, 'id'>;
 
@@ -17,6 +17,8 @@ type CommissionRuleFormProps = {
     rule?: CommissionRule | null;
     onSubmit: (data: CommissionRuleFormData) => void;
     onCancel: () => void;
+    recipes: Recipe[];
+    vendors: string[];
 };
 
 const defaultFormData: CommissionRuleFormData = {
@@ -26,7 +28,7 @@ const defaultFormData: CommissionRuleFormData = {
     rate: 0,
 };
 
-export default function CommissionRuleForm({ rule, onSubmit, onCancel }: CommissionRuleFormProps) {
+export default function CommissionRuleForm({ rule, onSubmit, onCancel, recipes, vendors }: CommissionRuleFormProps) {
     const [formData, setFormData] = useState<CommissionRuleFormData>(defaultFormData);
 
     useEffect(() => {
@@ -37,10 +39,6 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel }: Commiss
         }
     }, [rule]);
 
-    const uniqueVendors = useMemo(() => {
-        return [...new Set(initialOrders.map(order => order.dispatcher))];
-    }, []);
-
     const allLocations = useMemo(() => {
         return initialCustomers.flatMap(c => c.deliveryLocations.map(l => ({ ...l, customerName: c.name })));
     }, []);
@@ -48,20 +46,17 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel }: Commiss
     const nameOptions = useMemo(() => {
         switch (formData.type) {
             case 'Vendedor':
-                return uniqueVendors.map(v => ({ value: v, label: v }));
-            case 'Cliente':
-                return initialCustomers.map(c => ({ value: c.id, label: c.name }));
+                return vendors.map(v => ({ value: v, label: v }));
             case 'Local':
                  return allLocations.map(l => ({ value: l.id, label: `${l.customerName} - ${l.name}` }));
             case 'Producto':
-                // This would be populated from recipes in a real scenario
-                return [{ value: 'GUABCO16', label: 'PAN GUAGUA BLANCA 16X16'}, { value: 'CERE0003', label: 'PAN LINAZA 500 GRS'}];
+                return recipes.map(r => ({ value: r.id, label: r.name}));
             case 'General':
                 return [{ value: 'Base', label: 'Tasa Base General' }]; // Predefined for the general base rate
             default:
                 return [];
         }
-    }, [formData.type, uniqueVendors, allLocations]);
+    }, [formData.type, vendors, allLocations, recipes]);
     
     useEffect(() => {
         const currentOptionExists = nameOptions.some(opt => opt.value === formData.name);
@@ -100,9 +95,8 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel }: Commiss
                     <SelectContent>
                         <SelectItem value="General">General (Base)</SelectItem>
                         <SelectItem value="Vendedor">Por Vendedor</SelectItem>
-                        <SelectItem value="Cliente">Por Cliente</SelectItem>
                         <SelectItem value="Local">Por Local de Entrega</SelectItem>
-                        <SelectItem value="Producto" disabled>Por Producto (Próximamente)</SelectItem>
+                        <SelectItem value="Producto">Por Producto</SelectItem>
                     </SelectContent>
                 </Select>
             </div>

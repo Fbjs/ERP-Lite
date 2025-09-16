@@ -5,23 +5,40 @@ import AppLayout from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Download, ArrowLeft, Calculator, User, Calendar as CalendarIcon } from 'lucide-react';
+import { Download, ArrowLeft, Calculator, User, Calendar as CalendarIcon, Info } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { initialOrders, Order } from '@/app/sales/page';
-import { format, parse, startOfMonth, endOfMonth } from 'date-fns';
+import { format, parse, startOfMonth, endOfMonth, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { initialCommissionRules, CommissionRule } from '@/app/admin/commissions/page';
+import { initialRecipes } from '@/app/recipes/page';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
+
+type CommissionDetail = {
+    orderId: string;
+    productName: string;
+    saleAmount: number;
+    appliedRate: number;
+    commissionAmount: number;
+    ruleType: string;
+};
 
 type CommissionResult = {
     vendor: string;
     totalSales: number;
-    commissionAmount: number;
+    totalCommission: number;
+    details: CommissionDetail[];
 };
 
 const formatCurrency = (value: number) => {
@@ -50,36 +67,62 @@ export default function CommissionsPage() {
         const defaultRule = initialCommissionRules.find(r => r.type === 'General');
         const defaultRate = defaultRule ? defaultRule.rate : 0;
         
+        const productRules = initialCommissionRules.filter(r => r.type === 'Producto');
         const vendorRules = initialCommissionRules.filter(r => r.type === 'Vendedor');
-        const clientRules = initialCommissionRules.filter(r => r.type === 'Cliente');
         const locationRules = initialCommissionRules.filter(r => r.type === 'Local');
 
-        const resultsMap = new Map<string, { totalSales: number, commissionAmount: number }>();
+        const resultsMap = new Map<string, { totalSales: number, totalCommission: number, details: CommissionDetail[] }>();
 
         vendorsToCalculate.forEach(vendor => {
-            resultsMap.set(vendor, { totalSales: 0, commissionAmount: 0 });
+            resultsMap.set(vendor, { totalSales: 0, totalCommission: 0, details: [] });
         });
 
         const ordersInPeriod = initialOrders.filter(order => {
-            const orderDate = parse(order.date, 'yyyy-MM-dd', new Date());
+            const orderDate = parseISO(order.date);
             return order.status === 'Completado' && orderDate >= startDate && orderDate <= endDate;
         });
 
         ordersInPeriod.forEach(order => {
             if (resultsMap.has(order.dispatcher)) {
-                
-                // Determine rate with hierarchy: Local > Cliente > Vendedor > General
-                const locationRule = locationRules.find(r => r.name === order.locationId);
-                const clientRule = clientRules.find(r => r.name === order.customerId);
-                const vendorRule = vendorRules.find(r => r.name === order.dispatcher);
-
-                const applicableRate = locationRule?.rate ?? clientRule?.rate ?? vendorRule?.rate ?? defaultRate;
-                
-                const orderCommission = order.amount * applicableRate;
-
                 const vendorData = resultsMap.get(order.dispatcher)!;
-                vendorData.totalSales += order.amount;
-                vendorData.commissionAmount += orderCommission;
+
+                order.items.forEach(item => {
+                    const recipe = initialRecipes.find(r => r.id === item.recipeId);
+                    const formatInfo = recipe?.formats.find(f => f.sku === item.formatSku);
+                    const itemSaleAmount = (formatInfo?.cost || 0) * item.quantity;
+                    
+                    // Determine rate with hierarchy: Producto > Local > Vendedor > General
+                    const productRule = productRules.find(r => r.name === item.recipeId);
+                    const locationRule = locationRules.find(r => r.name === order.locationId);
+                    const vendorRule = vendorRules.find(r => r.name === order.dispatcher);
+
+                    let appliedRate = defaultRate;
+                    let ruleType = 'General';
+
+                    if(productRule) {
+                        appliedRate = productRule.rate;
+                        ruleType = `Producto: ${productRule.targetName}`;
+                    } else if (locationRule) {
+                        appliedRate = locationRule.rate;
+                        ruleType = `Local: ${locationRule.targetName}`;
+                    } else if (vendorRule) {
+                        appliedRate = vendorRule.rate;
+                        ruleType = `Vendedor: ${vendorRule.targetName}`;
+                    }
+                    
+                    const itemCommission = itemSaleAmount * appliedRate;
+
+                    vendorData.totalSales += itemSaleAmount;
+                    vendorData.totalCommission += itemCommission;
+                    vendorData.details.push({
+                        orderId: order.id,
+                        productName: recipe?.name || 'N/A',
+                        saleAmount: itemSaleAmount,
+                        appliedRate,
+                        commissionAmount: itemCommission,
+                        ruleType,
+                    });
+                });
             }
         });
 
@@ -93,21 +136,6 @@ export default function CommissionsPage() {
             title: "Comisiones Calculadas",
             description: `Se han calculado las comisiones para el período ${format(startDate, 'MMMM yyyy', {locale: es})}.`
         });
-    };
-
-    const getAppliedRateForSale = (order: Order) => {
-        const defaultRule = initialCommissionRules.find(r => r.type === 'General');
-        const defaultRate = defaultRule ? defaultRule.rate : 0;
-        
-        const vendorRules = initialCommissionRules.filter(r => r.type === 'Vendedor');
-        const clientRules = initialCommissionRules.filter(r => r.type === 'Cliente');
-        const locationRules = initialCommissionRules.filter(r => r.type === 'Local');
-
-        const locationRule = locationRules.find(r => r.name === order.locationId);
-        const clientRule = clientRules.find(r => r.name === order.customerId);
-        const vendorRule = vendorRules.find(r => r.name === order.dispatcher);
-
-        return locationRule?.rate ?? clientRule?.rate ?? vendorRule?.rate ?? defaultRate;
     };
 
 
@@ -176,7 +204,7 @@ export default function CommissionsPage() {
                                 <TableRow key={data.vendor}>
                                     <TableCell className="font-medium">{data.vendor}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(data.totalSales)}</TableCell>
-                                    <TableCell className="text-right font-bold">{formatCurrency(data.commissionAmount)}</TableCell>
+                                    <TableCell className="text-right font-bold">{formatCurrency(data.totalCommission)}</TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>
@@ -191,7 +219,7 @@ export default function CommissionsPage() {
                                 <TableRow className="font-bold">
                                     <TableCell>Total</TableCell>
                                     <TableCell className="text-right">{formatCurrency(commissionData.reduce((acc, curr) => acc + curr.totalSales, 0))}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(commissionData.reduce((acc, curr) => acc + curr.commissionAmount, 0))}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(commissionData.reduce((acc, curr) => acc + curr.totalCommission, 0))}</TableCell>
                                 </TableRow>
                             </TableFooter>
                          )}
