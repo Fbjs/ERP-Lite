@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { MoreHorizontal, PlusCircle, Check, X, Calendar as CalendarIcon, Filter, Users, Plane, Stethoscope, ArrowLeft, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { es } from 'date-fns/locale';
 import { format, differenceInBusinessDays, parseISO } from 'date-fns';
 import { initialEmployees, Employee, initialLeaveRequests, LeaveRequest, LeaveType } from '../data';
@@ -33,6 +33,14 @@ export default function LeavePage() {
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [voucherData, setVoucherData] = useState<{employee: Employee, request: LeaveRequest} | null>(null);
   const voucherRef = useRef<HTMLDivElement>(null);
+  const [onLeaveToday, setOnLeaveToday] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Calculate on client side to avoid hydration mismatch
+    const today = new Date();
+    const onLeave = requests.filter(r => r.status === 'Aprobado' && today >= r.startDate && today <= r.endDate).length;
+    setOnLeaveToday(onLeave);
+  }, [requests]);
 
 
   const handleStatusChange = (id: string, newStatus: 'Aprobado' | 'Rechazado') => {
@@ -123,11 +131,12 @@ export default function LeavePage() {
     };
 
 
-  const summaryData = useMemo(() to ({
+  const summaryData = useMemo(() => {
+    return {
     totalAvailableDays: employees.reduce((acc, e) => acc + e.diasVacacionesDisponibles, 0),
     pendingRequests: requests.filter(r => r.status === 'Pendiente').length,
-    onLeaveToday: requests.filter(r => r.status === 'Aprobado' && new Date() >= r.startDate && new Date() <= r.endDate).length
-  }), [employees, requests]);
+    }
+  }, [employees, requests]);
 
   return (
     <AppLayout pageTitle="Vacaciones y Ausencias">
@@ -159,7 +168,11 @@ export default function LeavePage() {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{summaryData.onLeaveToday}</div>
+                        {onLeaveToday === null ? (
+                            <div className="text-2xl font-bold animate-pulse">...</div>
+                        ) : (
+                            <div className="text-2xl font-bold">{onLeaveToday}</div>
+                        )}
                         <p className="text-xs text-muted-foreground">Con permiso o licencia aprobada</p>
                     </CardContent>
                 </Card>
@@ -429,5 +442,3 @@ export default function LeavePage() {
     </AppLayout>
   );
 }
-
-    
