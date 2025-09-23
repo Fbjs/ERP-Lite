@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Circle, Package, ShoppingCart, BarChart3, Warehouse, Trash2, AreaChart } from 'lucide-react';
+import { Circle, Package, ShoppingCart, BarChart3, Warehouse, Trash2, AreaChart, TrendingUp, TrendingDown, Scale, Users, Banknote, FileText } from 'lucide-react';
 import { initialOrders as allProductionOrders } from '@/app/production/page';
 import { initialOrders as allSalesOrders } from '@/app/sales/page';
 import { initialInventoryItems } from '@/app/inventory/page';
@@ -12,6 +12,45 @@ import FinancialSummary from '@/components/financial-summary';
 import FinancialIndicesChart from '@/components/financial-indices-chart';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+
+const reportSections = [
+    {
+        area: "Área de Manufactura",
+        icon: Factory,
+        reports: [
+            { title: "Reporte de Producción", href: "/production", description: "Informe del total de panes producidos por tipo." },
+            { title: "Reporte de Calidad y Mermas", href: "/production/waste-report", description: "Análisis de fallos, motivos y porcentajes de incidencia." },
+            { title: "Reporte de Consumo Mensual", href: "/production/consumption-report", description: "Consumo de materias primas vs. venta." },
+        ]
+    },
+    {
+        area: "Área Financiera",
+        icon: Banknote,
+        reports: [
+            { title: "Balances y EERR", href: "/accounting/reports", description: "Balances generales y estados de resultados." },
+            { title: "Flujo de Caja", href: "/accounting/cash-flow", description: "Proyección y análisis de los flujos de efectivo." },
+            { title: "Inventario", href: "/inventory", description: "Control de stock de materias primas y productos." },
+        ]
+    },
+    {
+        area: "Área Comercial",
+        icon: ShoppingCart,
+        reports: [
+            { title: "Reporte General de Ventas", href: "/sales/general-report", description: "Análisis de ventas por producto, vendedor y más." },
+            { title: "Reporte por Vendedor", href: "/sales/daily-vendor-report", description: "Pedidos consolidados para cada vendedor." },
+            { title: "Reporte Industrial", href: "/sales/industrial-report", description: "Vista detallada de pedidos industriales." },
+        ]
+    },
+    {
+        area: "Área de Personal",
+        icon: Users,
+        reports: [
+            { title: "Reporte de Asistencia", href: "/hr/attendance", description: "Control de ausencias, atrasos y horas trabajadas." },
+            { title: "Gestión de Vacaciones", href: "/hr/leave", description: "Solicitudes y calendario de vacaciones y permisos." },
+            { title: "Indicadores de RRHH", href: "/hr/reports", description: "Métricas de rotación, ausentismo y costos." },
+        ]
+    }
+];
 
 export default function DashboardPage() {
 
@@ -72,33 +111,32 @@ export default function DashboardPage() {
         <FinancialSummary />
       </div>
 
-      <div className="mt-6">
-        <Card>
-            <CardHeader>
-                <CardTitle className="font-headline">Accesos Directos de Producción</CardTitle>
-                <CardDescription className="font-body">Consulta rápidamente los reportes e inventarios clave de producción.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-wrap items-center gap-4">
-                 <Button asChild variant="secondary">
-                    <Link href="/inventory">
-                        <Warehouse className="mr-2 h-4 w-4" />
-                        Ver Inventario
-                    </Link>
-                </Button>
-                <Button asChild variant="secondary">
-                    <Link href="/production/waste-report">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Reporte de Mermas
-                    </Link>
-                </Button>
-                <Button asChild variant="secondary">
-                    <Link href="/production/consumption-report">
-                        <AreaChart className="mr-2 h-4 w-4" />
-                        Reporte de Consumo
-                    </Link>
-                </Button>
-            </CardContent>
-        </Card>
+       <div className="mt-6">
+          <h2 className="text-2xl font-headline font-semibold mb-4 text-primary">Central de Reportes por Área</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {reportSections.map(section => (
+                <Card key={section.area}>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-3 font-headline text-xl">
+                            <section.icon className="w-6 h-6 text-primary" />
+                            {section.area}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-2">
+                        {section.reports.map(report => (
+                             <Button asChild variant="outline" className="justify-start text-left h-auto py-2">
+                                <Link href={report.href}>
+                                    <div>
+                                        <p className="font-semibold">{report.title}</p>
+                                        <p className="text-xs text-muted-foreground font-normal">{report.description}</p>
+                                    </div>
+                                </Link>
+                            </Button>
+                        ))}
+                    </CardContent>
+                </Card>
+            ))}
+          </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-6">
