@@ -124,7 +124,7 @@ export default function DashboardPage() {
                     </CardHeader>
                     <CardContent className="flex flex-col gap-2">
                         {section.reports.map(report => (
-                             <Button asChild variant="outline" className="justify-start text-left h-auto py-2">
+                             <Button key={report.href} asChild variant="outline" className="justify-start text-left h-auto py-2">
                                 <Link href={report.href}>
                                     <div>
                                         <p className="font-semibold">{report.title}</p>
