@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Circle, Package, ShoppingCart, BarChart3, Warehouse, Trash2, AreaChart, TrendingUp, TrendingDown, Scale, Users, Banknote, FileText } from 'lucide-react';
+import { Circle, Package, ShoppingCart, BarChart3, Warehouse, Trash2, AreaChart, TrendingUp, TrendingDown, Scale, Users, Banknote, FileText, Factory } from 'lucide-react';
 import { initialOrders as allProductionOrders } from '@/app/production/page';
 import { initialOrders as allSalesOrders } from '@/app/sales/page';
 import { initialInventoryItems } from '@/app/inventory/page';
