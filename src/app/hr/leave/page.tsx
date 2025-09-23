@@ -4,10 +4,10 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Check, X, Calendar as CalendarIcon, Filter, Users, Plane, Stethoscope, ArrowLeft } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Check, X, Calendar as CalendarIcon, Filter, Users, Plane, Stethoscope, ArrowLeft, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { es } from 'date-fns/locale';
 import { format, differenceInBusinessDays, parseISO } from 'date-fns';
 import { initialEmployees, Employee, initialLeaveRequests, LeaveRequest, LeaveType } from '../data';
@@ -20,6 +20,9 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import Logo from '@/components/logo';
 
 export default function LeavePage() {
   const [requests, setRequests] = useState<LeaveRequest[]>(initialLeaveRequests);
@@ -27,6 +30,10 @@ export default function LeavePage() {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [newRequest, setNewRequest] = useState<{employeeId: string, leaveType: LeaveType, dateRange: DateRange | undefined, justification: string}>({employeeId: '', leaveType: 'Vacaciones', dateRange: undefined, justification: ''});
   const { toast } = useToast();
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  const [voucherData, setVoucherData] = useState<{employee: Employee, request: LeaveRequest} | null>(null);
+  const voucherRef = useRef<HTMLDivElement>(null);
+
 
   const handleStatusChange = (id: string, newStatus: 'Aprobado' | 'Rechazado') => {
     let updatedRequests = [...requests];
@@ -41,9 +48,17 @@ export default function LeavePage() {
       const employeeIndex = employees.findIndex(e => e.id === originalRequest.employeeId);
       if (employeeIndex !== -1) {
         let updatedEmployees = [...employees];
-        updatedEmployees[employeeIndex].diasVacacionesDisponibles -= originalRequest.days;
+        const employee = updatedEmployees[employeeIndex];
+        const previousAvailableDays = employee.diasVacacionesDisponibles;
+
+        employee.diasVacacionesDisponibles -= originalRequest.days;
         setEmployees(updatedEmployees);
-        toast({ title: 'Vacaciones Aprobadas', description: `Se han descontado ${originalRequest.days} días del saldo de ${originalRequest.employeeName}.` });
+        
+        setVoucherData({
+            employee: { ...employee, diasVacacionesDisponibles: previousAvailableDays }, // Pass old balance to voucher
+            request: originalRequest,
+        });
+        setIsVoucherModalOpen(true);
       }
     } else {
        toast({ title: 'Solicitud Actualizada', description: `La solicitud de ${originalRequest.employeeName} ha sido marcada como '${newStatus}'.` });
@@ -84,9 +99,31 @@ export default function LeavePage() {
     setNewRequest({employeeId: '', leaveType: 'Vacaciones', dateRange: undefined, justification: ''});
     toast({ title: 'Solicitud Creada', description: `Se ha registrado la solicitud para ${employee.name}.` });
   };
+  
+    const handleDownloadVoucher = async () => {
+        const input = voucherRef.current;
+        if (input) {
+            const canvas = await html2canvas(input, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const ratio = canvas.width / canvas.height;
+            let newWidth = pdfWidth - 20;
+            let newHeight = newWidth / ratio;
+            if (newHeight > pdfHeight - 20) {
+                newHeight = pdfHeight - 20;
+                newWidth = newHeight * ratio;
+            }
+            const x = (pdfWidth - newWidth) / 2;
+            pdf.addImage(imgData, 'PNG', x, 10, newWidth, newHeight);
+            pdf.save(`comprobante-feriado-${voucherData?.employee.rut}.pdf`);
+            toast({ title: "Comprobante Descargado", description: `Se ha descargado el comprobante para ${voucherData?.employee.name}.` });
+        }
+    };
 
 
-  const summaryData = useMemo(() => ({
+  const summaryData = useMemo(() to ({
     totalAvailableDays: employees.reduce((acc, e) => acc + e.diasVacacionesDisponibles, 0),
     pendingRequests: requests.filter(r => r.status === 'Pendiente').length,
     onLeaveToday: requests.filter(r => r.status === 'Aprobado' && new Date() >= r.startDate && new Date() <= r.endDate).length
@@ -312,7 +349,85 @@ export default function LeavePage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            
+             <Dialog open={isVoucherModalOpen} onOpenChange={setIsVoucherModalOpen}>
+                <DialogContent className="sm:max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle className="font-headline">Comprobante de Feriado Generado</DialogTitle>
+                         <DialogDescription>
+                            La solicitud de vacaciones ha sido aprobada. Revisa y descarga el comprobante.
+                        </DialogDescription>
+                    </DialogHeader>
+                     {voucherData && (
+                        <>
+                         <div className="max-h-[70vh] overflow-y-auto p-1 my-4">
+                            <div ref={voucherRef} className="p-6 bg-white text-black font-sans text-xs">
+                                <h1 className="text-center font-bold text-lg mb-4">COMPROBANTE DE FERIADO</h1>
+                                <div className="border border-black p-2">
+                                     <p className="mb-2">En cumplimiento a las disposiciones legales vigentes se deja constancia que a contar de las fechas que se indican, el trabajador.</p>
+                                     <div className="grid grid-cols-3 gap-2 border-b border-black pb-1">
+                                        <p><strong>Don(ña):</strong> {voucherData.employee.name}</p>
+                                        <p><strong>RUT:</strong> {voucherData.employee.rut}</p>
+                                        <p><strong>Empleado(a) N°:</strong> {voucherData.employee.id.replace('EMP','')}</p>
+                                     </div>
+                                     <p className="py-1">hará uso <strong>Parcial</strong> de su feriado legal de acuerdo al siguiente detalle:</p>
+                                </div>
+                                <div className="border border-black border-t-0 p-2 grid grid-cols-4 gap-2">
+                                    <div className="col-span-3">
+                                        <p className="font-bold">DESCANSO EFECTIVO ENTRE LAS FECHAS QUE SE INDICAN:</p>
+                                        <p><strong>Desde:</strong> {format(voucherData.request.startDate, 'dd/MM/yyyy')} <strong>Hasta:</strong> {format(voucherData.request.endDate, 'dd/MM/yyyy')}</p>
+                                    </div>
+                                    <div className="grid grid-cols-3 border border-black text-center">
+                                        <div className="border-r border-black"><p className="font-bold text-xs">Hab.</p><p>{voucherData.request.days}</p></div>
+                                        <div className="border-r border-black"><p className="font-bold text-xs">Prog.</p><p>0</p></div>
+                                        <div><p className="font-bold text-xs">Inhab.</p><p>0</p></div>
+                                    </div>
+                                </div>
+                                <div className="border border-black border-t-0 p-2">
+                                    <p>Se hace presente que la remuneración correspondiente al periodo del feriado se incluirá en la liquidación correspondiente al presente mes.</p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 mt-4">
+                                    <div className="border border-black">
+                                        <div className="grid grid-cols-2 border-b border-black font-bold text-center"><p className="p-1 border-r border-black">DETALLE DEL FERIADO</p><p className="p-1">DÍAS</p></div>
+                                        <div className="grid grid-cols-2 border-b"><p className="p-1 border-r border-black">Saldo Anterior</p><p className="p-1 text-center">{voucherData.employee.diasVacacionesDisponibles.toFixed(2)}</p></div>
+                                        <div className="grid grid-cols-2 border-b"><p className="p-1 border-r border-black">Días Hábiles (-)</p><p className="p-1 text-center">{voucherData.request.days}</p></div>
+                                        <div className="grid grid-cols-2"><p className="p-1 border-r border-black">Días Progresivos (-)</p><p className="p-1 text-center">0</p></div>
+                                    </div>
+                                     <div className="border border-black h-fit">
+                                        <div className="grid grid-cols-2 border-b border-black font-bold text-center"><p className="p-1 border-r border-black">DETALLE DEL PERIODO</p><p className="p-1">Saldo utilizado</p></div>
+                                        <div className="grid grid-cols-2"><p className="p-1 border-r border-black">Periodo {voucherData.request.startDate.getFullYear()}-{voucherData.request.startDate.getFullYear() + 1}</p><p className="p-1 text-center">{voucherData.request.days}</p></div>
+                                    </div>
+                                </div>
+                                <div className="border border-black p-1 mt-4 text-sm">
+                                    <p className="flex justify-between"><span>Saldo pendiente días hábiles</span> <span>{(voucherData.employee.diasVacacionesDisponibles - voucherData.request.days).toFixed(2)}</span></p>
+                                    <p className="flex justify-between"><span>Saldo pendiente días progresivos</span> <span>{voucherData.employee.diasProgresivos}</span></p>
+                                    <p className="flex justify-between font-bold"><span>Saldo Pendiente</span> <span>{(voucherData.employee.diasVacacionesDisponibles - voucherData.request.days + voucherData.employee.diasProgresivos).toFixed(2)}</span></p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 mt-12">
+                                    <div className="border border-black p-2 text-center text-xs">
+                                        <div className="h-16"></div>
+                                        <p className="border-t border-black pt-1">FIRMA 817674003 ALIMENTOS VOLLKORN SOC LTDA</p>
+                                    </div>
+                                    <div className="border border-black p-2 text-center text-xs">
+                                        <p className="text-left text-xs mb-2">Declaro hacer uso del feriado indicado en este documento</p>
+                                        <div className="h-10"></div>
+                                        <p className="border-t border-black pt-1">FIRMA {voucherData.employee.rut} {voucherData.employee.name}</p>
+                                        <p className="border-t border-black pt-1 mt-2 text-left">FECHA: {format(new Date(), 'dd/MM/yyyy')}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsVoucherModalOpen(false)}>Cerrar</Button>
+                            <Button onClick={handleDownloadVoucher}><Download className="mr-2 h-4 w-4"/>Descargar Comprobante</Button>
+                        </DialogFooter>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
 
     </AppLayout>
   );
 }
+
+    
