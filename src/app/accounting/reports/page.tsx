@@ -1,4 +1,3 @@
-
 'use client';
 
 import AppLayout from '@/components/layout/app-layout';
@@ -19,6 +18,8 @@ import Logo from '@/components/logo';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 
 const formatCurrency = (value: number) => {
@@ -41,6 +42,23 @@ const chartOfAccounts: { [key: string]: AccountType } = {
     'Ingresos Financieros': 'Resultado Ganancia',
     'Gastos Bancarios': 'Resultado Perdida',
 };
+
+const financialIndicesData = [
+  { month: 'ene-21', SOLVENCIA: 2.22, LIQUIDEZ: 1.17, ENDEUDAMIENTO: 0.82, TESORERIA: 2.39 },
+  { month: 'feb-21', SOLVENCIA: 2.17, LIQUIDEZ: 1.12, ENDEUDAMIENTO: 0.86, TESORERIA: 2.10 },
+  { month: 'mar-21', SOLVENCIA: 2.08, LIQUIDEZ: 1.08, ENDEUDAMIENTO: 0.93, TESORERIA: 1.90 },
+  { month: 'abr-21', SOLVENCIA: 2.22, LIQUIDEZ: 1.19, ENDEUDAMIENTO: 1.19, TESORERIA: 2.40 },
+  { month: 'may-21', SOLVENCIA: 1.85, LIQUIDEZ: 1.17, ENDEUDAMIENTO: 1.17, TESORERIA: 2.42 },
+  { month: 'jun-21', SOLVENCIA: 1.89, LIQUIDEZ: 1.13, ENDEUDAMIENTO: 1.13, TESORERIA: 2.46 },
+  { month: 'jul-21', SOLVENCIA: 1.91, LIQUIDEZ: 1.10, ENDEUDAMIENTO: 1.10, TESORERIA: 2.79 },
+  { month: 'ago-21', SOLVENCIA: 1.96, LIQUIDEZ: 1.17, ENDEUDAMIENTO: 1.03, TESORERIA: 2.79 },
+  { month: 'sep-21', SOLVENCIA: 2.05, LIQUIDEZ: 1.13, ENDEUDAMIENTO: 1.06, TESORERIA: 2.05 },
+  { month: 'oct-21', SOLVENCIA: 2.13, LIQUIDEZ: 1.19, ENDEUDAMIENTO: 0.96, TESORERIA: 2.10 },
+  { month: 'nov-21', SOLVENCIA: 2.00, LIQUIDEZ: 1.20, ENDEUDAMIENTO: 0.95, TESORERIA: 2.02 },
+  { month: 'dic-21', SOLVENCIA: 1.81, LIQUIDEZ: 1.20, ENDEUDAMIENTO: 1.20, TESORERIA: 1.76 },
+  { month: 'ene-22', SOLVENCIA: 1.83, LIQUIDEZ: 1.19, ENDEUDAMIENTO: 1.19, TESORERIA: 1.74 },
+  { month: 'feb-22', SOLVENCIA: 1.81, LIQUIDEZ: 1.21, ENDEUDAMIENTO: 1.21, TESORERIA: 1.68 },
+];
 
 export default function ReportsPage() {
     const { toast } = useToast();
@@ -268,171 +286,239 @@ export default function ReportsPage() {
                     </CardHeader>
                 </Card>
                 
-                <Card>
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <CardTitle className="font-headline">Balance de 8 Columnas</CardTitle>
-                                <CardDescription className="font-body">Un desglose completo de sumas y saldos, y su clasificación.</CardDescription>
-                            </div>
-                            <div className="flex gap-2">
-                                <Button variant="outline" onClick={handleDownloadExcel}><FileSpreadsheet className="mr-2 h-4 w-4"/>Excel</Button>
-                                <Button variant="outline" onClick={() => handleDownloadPdf(balanceReportRef, 'Balance-8-Columnas.pdf', 'l')}><Download className="mr-2 h-4 w-4"/>PDF</Button>
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="overflow-x-auto">
-                        <Table className="text-xs min-w-[1000px]">
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead rowSpan={2} className="text-left align-bottom">Cuenta</TableHead>
-                                    <TableHead colSpan={2} className="text-center">Sumas</TableHead>
-                                    <TableHead colSpan={2} className="text-center">Saldos</TableHead>
-                                    <TableHead colSpan={2} className="text-center">Inventario</TableHead>
-                                    <TableHead colSpan={2} className="text-center">Resultados</TableHead>
-                                </TableRow>
-                                 <TableRow>
-                                    <TableHead className="text-right">Debe</TableHead>
-                                    <TableHead className="text-right">Haber</TableHead>
-                                    <TableHead className="text-right">Deudor</TableHead>
-                                    <TableHead className="text-right">Acreedor</TableHead>
-                                    <TableHead className="text-right">Activo</TableHead>
-                                    <TableHead className="text-right">Pasivo</TableHead>
-                                    <TableHead className="text-right">Pérdida</TableHead>
-                                    <TableHead className="text-right">Ganancia</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {eightColumnBalanceData.accounts.map(acc => (
-                                    <TableRow key={acc.account}>
-                                        <TableCell>{acc.account}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(acc.sumDebit)}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(acc.sumCredit)}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(acc.balanceDebit)}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(acc.balanceCredit)}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(acc.type === 'Activo' ? acc.balanceDebit : 0)}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(acc.type === 'Pasivo' || acc.type === 'Patrimonio' ? acc.balanceCredit : 0)}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(acc.type === 'Resultado Perdida' ? acc.balanceDebit : 0)}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(acc.type === 'Resultado Ganancia' ? acc.balanceCredit : 0)}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                             <TableFooter>
-                                <TableRow className="font-bold bg-secondary">
-                                    <TableCell>Totales</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.sumDebit)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.sumCredit)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.balanceDebit)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.balanceCredit)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.asset)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.liability + eightColumnBalanceData.totals.equity)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.loss)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.gain)}</TableCell>
-                                </TableRow>
-                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-right font-semibold">Resultado del Ejercicio</TableCell>
-                                    <TableCell className="text-right font-semibold">{formatCurrency(eightColumnBalanceData.resultOfThePeriod > 0 ? 0 : -eightColumnBalanceData.resultOfThePeriod)}</TableCell>
-                                    <TableCell className="text-right font-semibold">{formatCurrency(eightColumnBalanceData.resultOfThePeriod > 0 ? eightColumnBalanceData.resultOfThePeriod : 0)}</TableCell>
-                                </TableRow>
-                                <TableRow className="font-bold text-base bg-secondary">
-                                    <TableCell colSpan={7} className="text-right">Sumas Iguales</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.loss + (eightColumnBalanceData.resultOfThePeriod < 0 ? -eightColumnBalanceData.resultOfThePeriod : 0))}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.gain + (eightColumnBalanceData.resultOfThePeriod > 0 ? eightColumnBalanceData.resultOfThePeriod : 0))}</TableCell>
-                                </TableRow>
-                            </TableFooter>
-                        </Table>
-                         <p className="text-xs text-muted-foreground mt-4">* Los datos se basan en los movimientos del Libro Diario.</p>
-                    </CardContent>
-                </Card>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                    <Card>
-                        <CardHeader>
-                             <div className="flex justify-between items-center">
-                                <div>
-                                    <CardTitle className="font-headline">Estado de Resultados</CardTitle>
-                                    <CardDescription className="font-body">
-                                    Un resumen de los ingresos y gastos durante un período específico.
-                                    </CardDescription>
+                <Tabs defaultValue="balance">
+                    <TabsList>
+                        <TabsTrigger value="balance">Balances</TabsTrigger>
+                        <TabsTrigger value="income">Estado de Resultados</TabsTrigger>
+                        <TabsTrigger value="indices">Indicadores Financieros</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="balance" className="space-y-6 mt-4">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <CardTitle className="font-headline">Balance de 8 Columnas</CardTitle>
+                                        <CardDescription className="font-body">Un desglose completo de sumas y saldos, y su clasificación.</CardDescription>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" onClick={handleDownloadExcel}><FileSpreadsheet className="mr-2 h-4 w-4"/>Excel</Button>
+                                        <Button variant="outline" onClick={() => handleDownloadPdf(balanceReportRef, 'Balance-8-Columnas.pdf', 'l')}><Download className="mr-2 h-4 w-4"/>PDF</Button>
+                                    </div>
                                 </div>
-                                <Button variant="outline" onClick={() => handleDownloadPdf(incomeStatementRef, 'Estado-de-Resultados.pdf', 'p')}><Download className="mr-2 h-4 w-4"/>PDF</Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableBody>
-                                    <TableRow className="font-bold text-base">
-                                        <TableCell>Ingresos por Ventas</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(incomeStatementData.revenue)}</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="pl-8">Costo de Ventas (COGS)</TableCell>
-                                        <TableCell className="text-right text-red-600">({formatCurrency(incomeStatementData.costOfGoodsSold)})</TableCell>
-                                    </TableRow>
-                                    <TableRow className="font-bold text-lg border-t-2 border-b-2 border-primary">
-                                        <TableCell>Utilidad Bruta</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(incomeStatementData.grossProfit)}</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="pl-8">Gastos Operacionales</TableCell>
-                                        <TableCell className="text-right text-red-600">({formatCurrency(incomeStatementData.operatingExpenses)})</TableCell>
-                                    </TableRow>
-                                    <TableRow className="font-bold text-xl bg-secondary">
-                                        <TableCell>Utilidad Neta (Antes de Impuestos)</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(incomeStatementData.netIncome)}</TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                             <p className="text-xs text-muted-foreground mt-4">* Los datos son para fines demostrativos y se basan en los movimientos de los libros de Ventas y Compras.</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline">Balance General Clasificado</CardTitle>
-                            <CardDescription className="font-body">Una fotografía de la posición financiera de la empresa.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="font-bold text-lg text-primary">ACTIVOS</TableHead>
-                                        <TableHead></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {eightColumnBalanceData.accounts.filter(a => a.type === 'Activo').map(acc => (
-                                        <TableRow key={acc.account}><TableCell>{acc.account}</TableCell><TableCell className="text-right">{formatCurrency(acc.balanceDebit)}</TableCell></TableRow>
-                                    ))}
-                                </TableBody>
-                                <TableFooter>
-                                    <TableRow className="font-bold text-base bg-secondary/50"><TableCell>TOTAL ACTIVOS</TableCell><TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.asset)}</TableCell></TableRow>
-                                </TableFooter>
-                            </Table>
-                             <Table className="mt-4">
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead className="font-bold text-lg text-primary">PASIVOS Y PATRIMONIO</TableHead>
-                                        <TableHead></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow><TableCell colSpan={2} className="font-semibold text-muted-foreground">Pasivos</TableCell></TableRow>
-                                     {eightColumnBalanceData.accounts.filter(a => a.type === 'Pasivo').map(acc => (
-                                        <TableRow key={acc.account}><TableCell className="pl-6">{acc.account}</TableCell><TableCell className="text-right">{formatCurrency(acc.balanceCredit)}</TableCell></TableRow>
-                                    ))}
-                                     <TableRow><TableCell colSpan={2} className="font-semibold text-muted-foreground pt-4">Patrimonio</TableCell></TableRow>
-                                    <TableRow><TableCell className="pl-6">Resultado del Ejercicio</TableCell><TableCell className="text-right">{formatCurrency(eightColumnBalanceData.resultOfThePeriod)}</TableCell></TableRow>
-                                </TableBody>
-                                <TableFooter>
-                                    <TableRow className="font-bold text-base bg-secondary/50"><TableCell>TOTAL PASIVO Y PATRIMONIO</TableCell><TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.liability + eightColumnBalanceData.resultOfThePeriod)}</TableCell></TableRow>
-                                </TableFooter>
-                            </Table>
-                        </CardContent>
-                    </Card>
-
-                </div>
+                            </CardHeader>
+                            <CardContent className="overflow-x-auto">
+                                <Table className="text-xs min-w-[1000px]">
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead rowSpan={2} className="text-left align-bottom">Cuenta</TableHead>
+                                            <TableHead colSpan={2} className="text-center">Sumas</TableHead>
+                                            <TableHead colSpan={2} className="text-center">Saldos</TableHead>
+                                            <TableHead colSpan={2} className="text-center">Inventario</TableHead>
+                                            <TableHead colSpan={2} className="text-center">Resultados</TableHead>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableHead className="text-right">Debe</TableHead>
+                                            <TableHead className="text-right">Haber</TableHead>
+                                            <TableHead className="text-right">Deudor</TableHead>
+                                            <TableHead className="text-right">Acreedor</TableHead>
+                                            <TableHead className="text-right">Activo</TableHead>
+                                            <TableHead className="text-right">Pasivo</TableHead>
+                                            <TableHead className="text-right">Pérdida</TableHead>
+                                            <TableHead className="text-right">Ganancia</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {eightColumnBalanceData.accounts.map(acc => (
+                                            <TableRow key={acc.account}>
+                                                <TableCell>{acc.account}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(acc.sumDebit)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(acc.sumCredit)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(acc.balanceDebit)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(acc.balanceCredit)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(acc.type === 'Activo' ? acc.balanceDebit : 0)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(acc.type === 'Pasivo' || acc.type === 'Patrimonio' ? acc.balanceCredit : 0)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(acc.type === 'Resultado Perdida' ? acc.balanceDebit : 0)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(acc.type === 'Resultado Ganancia' ? acc.balanceCredit : 0)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                    <TableFooter>
+                                        <TableRow className="font-bold bg-secondary">
+                                            <TableCell>Totales</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.sumDebit)}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.sumCredit)}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.balanceDebit)}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.balanceCredit)}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.asset)}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.liability + eightColumnBalanceData.totals.equity)}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.loss)}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.gain)}</TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell colSpan={7} className="text-right font-semibold">Resultado del Ejercicio</TableCell>
+                                            <TableCell className="text-right font-semibold">{formatCurrency(eightColumnBalanceData.resultOfThePeriod > 0 ? 0 : -eightColumnBalanceData.resultOfThePeriod)}</TableCell>
+                                            <TableCell className="text-right font-semibold">{formatCurrency(eightColumnBalanceData.resultOfThePeriod > 0 ? eightColumnBalanceData.resultOfThePeriod : 0)}</TableCell>
+                                        </TableRow>
+                                        <TableRow className="font-bold text-base bg-secondary">
+                                            <TableCell colSpan={7} className="text-right">Sumas Iguales</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.loss + (eightColumnBalanceData.resultOfThePeriod < 0 ? -eightColumnBalanceData.resultOfThePeriod : 0))}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.gain + (eightColumnBalanceData.resultOfThePeriod > 0 ? eightColumnBalanceData.resultOfThePeriod : 0))}</TableCell>
+                                        </TableRow>
+                                    </TableFooter>
+                                </Table>
+                                <p className="text-xs text-muted-foreground mt-4">* Los datos se basan en los movimientos del Libro Diario.</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline">Balance General Clasificado</CardTitle>
+                                <CardDescription className="font-body">Una fotografía de la posición financiera de la empresa.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="font-bold text-lg text-primary">ACTIVOS</TableHead>
+                                                <TableHead></TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {eightColumnBalanceData.accounts.filter(a => a.type === 'Activo').map(acc => (
+                                                <TableRow key={acc.account}><TableCell>{acc.account}</TableCell><TableCell className="text-right">{formatCurrency(acc.balanceDebit)}</TableCell></TableRow>
+                                            ))}
+                                        </TableBody>
+                                        <TableFooter>
+                                            <TableRow className="font-bold text-base bg-secondary/50"><TableCell>TOTAL ACTIVOS</TableCell><TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.asset)}</TableCell></TableRow>
+                                        </TableFooter>
+                                    </Table>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="font-bold text-lg text-primary">PASIVOS Y PATRIMONIO</TableHead>
+                                                <TableHead></TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            <TableRow><TableCell colSpan={2} className="font-semibold text-muted-foreground">Pasivos</TableCell></TableRow>
+                                            {eightColumnBalanceData.accounts.filter(a => a.type === 'Pasivo').map(acc => (
+                                                <TableRow key={acc.account}><TableCell className="pl-6">{acc.account}</TableCell><TableCell className="text-right">{formatCurrency(acc.balanceCredit)}</TableCell></TableRow>
+                                            ))}
+                                            <TableRow><TableCell colSpan={2} className="font-semibold text-muted-foreground pt-4">Patrimonio</TableCell></TableRow>
+                                            <TableRow><TableCell className="pl-6">Resultado del Ejercicio</TableCell><TableCell className="text-right">{formatCurrency(eightColumnBalanceData.resultOfThePeriod)}</TableCell></TableRow>
+                                        </TableBody>
+                                        <TableFooter>
+                                            <TableRow className="font-bold text-base bg-secondary/50"><TableCell>TOTAL PASIVO Y PATRIMONIO</TableCell><TableCell className="text-right">{formatCurrency(eightColumnBalanceData.totals.liability + eightColumnBalanceData.resultOfThePeriod)}</TableCell></TableRow>
+                                        </TableFooter>
+                                    </Table>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="income" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <CardTitle className="font-headline">Estado de Resultados</CardTitle>
+                                        <CardDescription className="font-body">
+                                        Un resumen de los ingresos y gastos durante un período específico.
+                                        </CardDescription>
+                                    </div>
+                                    <Button variant="outline" onClick={() => handleDownloadPdf(incomeStatementRef, 'Estado-de-Resultados.pdf', 'p')}><Download className="mr-2 h-4 w-4"/>PDF</Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableBody>
+                                        <TableRow className="font-bold text-base">
+                                            <TableCell>Ingresos por Ventas</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(incomeStatementData.revenue)}</TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell className="pl-8">Costo de Ventas (COGS)</TableCell>
+                                            <TableCell className="text-right text-red-600">({formatCurrency(incomeStatementData.costOfGoodsSold)})</TableCell>
+                                        </TableRow>
+                                        <TableRow className="font-bold text-lg border-t-2 border-b-2 border-primary">
+                                            <TableCell>Utilidad Bruta</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(incomeStatementData.grossProfit)}</TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell className="pl-8">Gastos Operacionales</TableCell>
+                                            <TableCell className="text-right text-red-600">({formatCurrency(incomeStatementData.operatingExpenses)})</TableCell>
+                                        </TableRow>
+                                        <TableRow className="font-bold text-xl bg-secondary">
+                                            <TableCell>Utilidad Neta (Antes de Impuestos)</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(incomeStatementData.netIncome)}</TableCell>
+                                        </TableRow>
+                                    </TableBody>
+                                </Table>
+                                <p className="text-xs text-muted-foreground mt-4">* Los datos son para fines demostrativos y se basan en los movimientos de los libros de Ventas y Compras.</p>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                    <TabsContent value="indices" className="space-y-6 mt-4">
+                         <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline">Evolución de Indicadores Financieros</CardTitle>
+                                <CardDescription>Gráfico con la evolución de los principales ratios financieros desde Enero 2021.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <ResponsiveContainer width="100%" height={400}>
+                                    <LineChart data={financialIndicesData}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+                                        <YAxis stroke="hsl(var(--muted-foreground))" domain={[0, 4]}/>
+                                        <Tooltip
+                                            contentStyle={{
+                                                background: "hsl(var(--background))",
+                                                border: "hsl(var(--border))",
+                                                borderRadius: "var(--radius)"
+                                            }}
+                                        />
+                                        <Legend />
+                                        <Line type="monotone" dataKey="SOLVENCIA" stroke="hsl(var(--chart-1))" strokeWidth={2} />
+                                        <Line type="monotone" dataKey="LIQUIDEZ" stroke="hsl(var(--chart-2))" strokeWidth={2} />
+                                        <Line type="monotone" dataKey="ENDEUDAMIENTO" stroke="hsl(var(--chart-3))" strokeWidth={2} />
+                                        <Line type="monotone" dataKey="TESORERIA" stroke="hsl(var(--chart-4))" strokeWidth={2} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline">Datos Históricos de Indicadores</CardTitle>
+                            </CardHeader>
+                            <CardContent className="overflow-x-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Mes</TableHead>
+                                            <TableHead className="text-center">Solvencia</TableHead>
+                                            <TableHead className="text-center">Liquidez</TableHead>
+                                            <TableHead className="text-center">Endeudamiento</TableHead>
+                                            <TableHead className="text-center">Tesorería</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {financialIndicesData.map(d => (
+                                            <TableRow key={d.month}>
+                                                <TableCell className="font-medium">{d.month}</TableCell>
+                                                <TableCell className="text-center">{d.SOLVENCIA.toFixed(2)}</TableCell>
+                                                <TableCell className="text-center">{d.LIQUIDEZ.toFixed(2)}</TableCell>
+                                                <TableCell className="text-center">{d.ENDEUDAMIENTO.toFixed(2)}</TableCell>
+                                                <TableCell className="text-center">{d.TESORERIA.toFixed(2)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
              </div>
         </AppLayout>
     );
 }
+
+    
