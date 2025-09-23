@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Circle, Package, ShoppingCart, BarChart3 } from 'lucide-react';
+import { Circle, Package, ShoppingCart, BarChart3, Warehouse, Trash2, AreaChart } from 'lucide-react';
 import { initialOrders as allProductionOrders } from '@/app/production/page';
 import { initialOrders as allSalesOrders } from '@/app/sales/page';
 import { initialInventoryItems } from '@/app/inventory/page';
@@ -70,6 +70,35 @@ export default function DashboardPage() {
 
        <div className="mt-6">
         <FinancialSummary />
+      </div>
+
+      <div className="mt-6">
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline">Accesos Directos de Producción</CardTitle>
+                <CardDescription className="font-body">Consulta rápidamente los reportes e inventarios clave de producción.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap items-center gap-4">
+                 <Button asChild variant="secondary">
+                    <Link href="/inventory">
+                        <Warehouse className="mr-2 h-4 w-4" />
+                        Ver Inventario
+                    </Link>
+                </Button>
+                <Button asChild variant="secondary">
+                    <Link href="/production/waste-report">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Reporte de Mermas
+                    </Link>
+                </Button>
+                <Button asChild variant="secondary">
+                    <Link href="/production/consumption-report">
+                        <AreaChart className="mr-2 h-4 w-4" />
+                        Reporte de Consumo
+                    </Link>
+                </Button>
+            </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-6">
