@@ -17,7 +17,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card';
+} from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Download, FileSpreadsheet, ArrowLeft, AreaChart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -167,4 +167,3 @@ export default function ConsumptionReportPage() {
         </AppLayout>
     );
 }
-
