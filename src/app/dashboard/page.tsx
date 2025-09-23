@@ -8,6 +8,7 @@ import { Circle, Package, ShoppingCart } from 'lucide-react';
 import { initialOrders as allProductionOrders } from '@/app/production/page';
 import { initialOrders as allSalesOrders } from '@/app/sales/page';
 import { initialInventoryItems } from '@/app/inventory/page';
+import FinancialSummary from '@/components/financial-summary';
 
 export default function DashboardPage() {
 
@@ -63,6 +64,11 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+       <div className="mt-6">
+        <FinancialSummary />
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-6">
         <Card className="lg:col-span-4">
           <CardHeader>
