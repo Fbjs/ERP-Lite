@@ -142,6 +142,3 @@ export default function WasteReportPage() {
         </AppLayout>
     );
 }
-
-
-    
