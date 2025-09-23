@@ -4,11 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Circle, Package, ShoppingCart } from 'lucide-react';
+import { Circle, Package, ShoppingCart, BarChart3 } from 'lucide-react';
 import { initialOrders as allProductionOrders } from '@/app/production/page';
 import { initialOrders as allSalesOrders } from '@/app/sales/page';
 import { initialInventoryItems } from '@/app/inventory/page';
 import FinancialSummary from '@/components/financial-summary';
+import FinancialIndicesChart from '@/components/financial-indices-chart';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function DashboardPage() {
 
@@ -133,6 +136,26 @@ export default function DashboardPage() {
                 </BarChart>
             </ResponsiveContainer>
           </CardContent>
+        </Card>
+      </div>
+      <div className="mt-6">
+        <Card>
+            <CardHeader>
+                <div className="flex flex-wrap justify-between items-center gap-4">
+                    <div>
+                        <CardTitle className="font-headline">Evolución de Indicadores Financieros</CardTitle>
+                        <CardDescription>Principales ratios financieros desde Enero 2021.</CardDescription>
+                    </div>
+                    <Button asChild variant="outline">
+                        <Link href="/accounting/reports">
+                           <BarChart3 className="mr-2 h-4 w-4" /> Ver Historial Detallado
+                        </Link>
+                    </Button>
+                </div>
+            </CardHeader>
+            <CardContent className="h-[400px]">
+                <FinancialIndicesChart />
+            </CardContent>
         </Card>
       </div>
     </AppLayout>
