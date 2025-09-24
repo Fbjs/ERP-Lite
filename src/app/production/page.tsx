@@ -8,7 +8,7 @@ import { MoreHorizontal, PlusCircle, Download, FilePlus, Calendar as CalendarIco
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, forwardRef, useImperativeHandle } from 'react';
 import ProductionOrderForm, { ProductionOrderData } from '@/components/production-order-form';
 import { useToast } from '@/hooks/use-toast';
 import { initialRecipes, Recipe } from '@/app/recipes/page';
@@ -169,7 +169,7 @@ export const initialOrders: Order[] = [
 const MAX_UNITS_PER_PRODUCTION_ORDER = 200;
 
 
-export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {handleOpenFormProp?: (order: Order | null, product?: string) => void, prefilledProduct?: string}) {
+const ProductionPage = forwardRef(({handleOpenFormProp, prefilledProduct}: {handleOpenFormProp?: (order: Order | null, product?: string) => void, prefilledProduct?: string}, ref) => {
     const [orders, setOrders] = useState<Order[]>(initialOrders);
     const [isFormModalOpen, setFormModalOpen] = useState(false);
     const [isDetailsModalOpen, setDetailsModalOpen] = useState(false);
@@ -180,6 +180,12 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
     const reportContentRef = useRef<HTMLDivElement>(null);
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
     const { toast } = useToast();
+    
+    useImperativeHandle(ref, () => ({
+        handleOpenForm: (order: Order | null, product?: string, quantity?: number) => {
+            handleOpenForm(order, product, quantity);
+        }
+    }));
 
     useEffect(() => {
         if(prefilledProduct && handleOpenFormProp){
@@ -259,7 +265,7 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
         } else {
             // Creating new order
             const newOrder: Order = {
-                id: `PROD${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+                id: `PROD${Date.now() % 1000}`,
                 date: new Date().toISOString().split('T')[0],
                 ...data,
             };
@@ -304,7 +310,7 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
                      const quantityForThisOrder = Math.min(remainingToProduce, capacity);
                      
                      const newOrder: Order = {
-                        id: `PROD${(Math.random() * 1000).toFixed(0).padStart(3, '0')}`,
+                        id: `PROD${Date.now() % 1000}-${Math.random()}`,
                         product: need.recipe.name,
                         quantity: quantityForThisOrder,
                         status: 'En Cola',
@@ -853,6 +859,8 @@ export default function ProductionPage({handleOpenFormProp, prefilledProduct}: {
         </Dialog>
     </AppLayout>
   );
-}
+})
 
-    
+ProductionPage.displayName = 'ProductionPage';
+
+export default ProductionPage;
