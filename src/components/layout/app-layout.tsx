@@ -27,9 +27,9 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
         { href: '/hr/my-portal', label: 'Mi Portal', icon: Contact, roles: ['Admin', 'Producción', 'Ventas', 'Logística', 'Contabilidad'] },
         { href: '/production', label: 'Producción', icon: Factory, roles: ['Admin', 'Producción'] },
         { href: '/recipes', label: 'Recetas', icon: NotebookText, roles: ['Admin', 'Producción'] },
+        { href: '/inventory', label: 'Inventario', icon: Warehouse, roles: ['Admin', 'Producción', 'Logística'] },
         { href: '/sales', label: 'Ventas', icon: ShoppingCart, roles: ['Admin', 'Ventas', 'Contabilidad'] },
         { href: '/purchasing', label: 'Compras', icon: ClipboardList, roles: ['Admin', 'Logística', 'Contabilidad'] },
-        { href: '/inventory', label: 'Inventario', icon: Warehouse, roles: ['Admin', 'Producción', 'Logística'] },
         { href: '/hr', label: 'Recursos Humanos', icon: Users, roles: ['Admin'] },
         { href: '/accounting', label: 'Contabilidad', icon: BookCopy, roles: ['Admin', 'Contabilidad'] },
         { 
