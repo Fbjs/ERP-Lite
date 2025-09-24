@@ -11,6 +11,7 @@ import { Customer, DeliveryLocation } from '@/app/admin/customers/page';
 import { Textarea } from './ui/textarea';
 import { Recipe, initialRecipes } from '@/app/recipes/page';
 import { PlusCircle, Trash2 } from 'lucide-react';
+import { addDays, format } from 'date-fns';
 
 export type InvoiceItem = {
   recipeId: string;
@@ -23,6 +24,7 @@ export type InvoiceFormData = {
     customerId: string;
     locationId: string;
     salesperson: string;
+    deliveryDate: string;
     items: InvoiceItem[];
     purchaseOrderNumber?: string;
 };
@@ -40,6 +42,7 @@ export default function InvoiceForm({ onSubmit, onCancel, customers, recipes }: 
   const [salesperson, setSalesperson] = useState('');
   const [items, setItems] = useState<InvoiceItem[]>([{ recipeId: '', formatSku: '', quantity: 1, unitPrice: 0 }]);
   const [purchaseOrderNumber, setPurchaseOrderNumber] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState(format(addDays(new Date(), 1), 'yyyy-MM-dd'));
 
   const [availableLocations, setAvailableLocations] = useState<DeliveryLocation[]>([]);
 
@@ -98,7 +101,7 @@ export default function InvoiceForm({ onSubmit, onCancel, customers, recipes }: 
         alert('Por favor, selecciona un cliente y un local de entrega.');
         return;
     }
-    onSubmit({ customerId, locationId, salesperson, items, purchaseOrderNumber });
+    onSubmit({ customerId, locationId, salesperson, items, purchaseOrderNumber, deliveryDate });
   };
   
   const availableFormats = (recipeId: string) => {
@@ -106,8 +109,11 @@ export default function InvoiceForm({ onSubmit, onCancel, customers, recipes }: 
     return recipe?.formats || [];
   };
   
-  const totalAmount = useMemo(() => {
-    return items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+  const totals = useMemo(() => {
+    const neto = items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+    const iva = neto * 0.19;
+    const total = neto + iva;
+    return { neto, iva, total };
   }, [items]);
 
   return (
@@ -129,20 +135,24 @@ export default function InvoiceForm({ onSubmit, onCancel, customers, recipes }: 
                     </Select>
                 </div>
             </div>
-             <div className="grid grid-cols-2 gap-4">
+             <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-1">
                     <Label>Vendedor</Label>
-                    <Input value={salesperson} onChange={(e) => setSalesperson(e.target.value)} required disabled={!locationId} />
+                    <Input value={salesperson} onChange={(e) => setSalesperson(e.target.value)} required readOnly />
                 </div>
                  <div className="space-y-1">
                     <Label>Nº Orden Compra (Opcional)</Label>
                     <Input value={purchaseOrderNumber} onChange={(e) => setPurchaseOrderNumber(e.target.value)} />
                 </div>
+                <div className="space-y-1">
+                    <Label>Fecha de Entrega</Label>
+                    <Input type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required />
+                </div>
             </div>
         </div>
 
         <div className="space-y-4 pt-4 border-t">
-            <Label className="font-semibold">Ítems de la Factura</Label>
+            <Label className="font-semibold">Ítems de la Factura (precios netos)</Label>
             {items.map((item, index) => (
                  <div key={index} className="grid grid-cols-12 gap-2 items-center">
                     <Select onValueChange={(value) => handleItemChange(index, 'recipeId', value)} value={item.recipeId}>
@@ -154,7 +164,7 @@ export default function InvoiceForm({ onSubmit, onCancel, customers, recipes }: 
                         <SelectContent>{availableFormats(item.recipeId).map(f => (<SelectItem key={f.sku} value={f.sku}>{f.name}</SelectItem>))}</SelectContent>
                     </Select>
                     <Input type="number" placeholder="Cant." value={item.quantity || ''} onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))} className="col-span-2 text-center" required />
-                    <Input type="number" placeholder="P. Unit" value={item.unitPrice || ''} onChange={(e) => handleItemChange(index, 'unitPrice', Number(e.target.value))} className="col-span-2 text-right" required />
+                    <Input type="number" placeholder="P. Unit" value={item.unitPrice || ''} onChange={(e) => handleItemChange(index, 'unitPrice', Number(e.target.value))} className="col-span-2 text-right" required readOnly/>
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(index)} className="col-span-1" disabled={items.length <= 1}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                 </div>
             ))}
@@ -162,8 +172,19 @@ export default function InvoiceForm({ onSubmit, onCancel, customers, recipes }: 
                 <PlusCircle className="mr-2 h-4 w-4" /> Añadir Producto
             </Button>
         </div>
-        <div className="text-right font-bold text-xl mt-4">
-            Total: ${totalAmount.toLocaleString('es-CL')}
+        <div className="text-right space-y-1 mt-4">
+            <div className="flex justify-end items-center gap-4">
+                <span className="text-sm font-medium">Neto:</span>
+                <span className="font-semibold w-32 text-right">${totals.neto.toLocaleString('es-CL')}</span>
+            </div>
+            <div className="flex justify-end items-center gap-4">
+                <span className="text-sm font-medium">IVA (19%):</span>
+                <span className="font-semibold w-32 text-right">${totals.iva.toLocaleString('es-CL')}</span>
+            </div>
+            <div className="flex justify-end items-center gap-4 font-bold text-lg">
+                <span>Total:</span>
+                <span className="w-32 text-right">${totals.total.toLocaleString('es-CL')}</span>
+            </div>
         </div>
       <DialogFooter className="mt-4">
         <Button variant="outline" type="button" onClick={onCancel}>
