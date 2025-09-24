@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building2, Contact, Landmark, ShieldCheck, ShoppingBag, Trash2, Users, BadgePercent } from 'lucide-react';
+import { Building2, Contact, Landmark, ShieldCheck, ShoppingBag, Trash2, Users, BadgePercent, Group } from 'lucide-react';
 import AppLayout from '@/components/layout/app-layout';
 import Link from 'next/link';
 
@@ -13,6 +13,7 @@ const adminSections = [
     { href: '/admin/customers', title: 'Clientes', description: 'Administra la cartera de clientes.', icon: Contact },
     { href: '/admin/bank-accounts', title: 'Cuentas Bancarias', description: 'Administra las cuentas bancarias.', icon: Landmark },
     { href: '/admin/waste-types', title: 'Tipos de Merma', description: 'Configura las causas de merma.', icon: Trash2 },
+    { href: '/admin/product-families', title: 'Familias de Productos', description: 'Organiza las categorías de recetas.', icon: Group },
     { href: '/admin/commissions', title: 'Comisiones', description: 'Configura las reglas de comisiones.', icon: BadgePercent },
 ]
 

@@ -4,7 +4,7 @@
 import type { ReactNode } from 'react';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, LayoutDashboard, NotebookText, Factory, ShoppingCart, Users, BookCopy, Truck, Warehouse, Settings, Building2, ShieldCheck, Contact, ShoppingBag, Trash2, ClipboardList, CalendarCheck } from 'lucide-react';
+import { LogOut, LayoutDashboard, NotebookText, Factory, ShoppingCart, Users, BookCopy, Truck, Warehouse, Settings, Building2, ShieldCheck, Contact, ShoppingBag, Trash2, ClipboardList, CalendarCheck, Group } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from '@/components/logo';
@@ -44,6 +44,7 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
                 { href: '/admin/suppliers', label: 'Proveedores', icon: ShoppingBag, roles: ['Admin'] },
                 { href: '/admin/customers', label: 'Clientes', icon: Contact, roles: ['Admin'] },
                 { href: '/admin/waste-types', label: 'Tipos de Merma', icon: Trash2, roles: ['Admin'] },
+                { href: '/admin/product-families', label: 'Familias de Productos', icon: Group, roles: ['Admin'] },
             ]
         },
     ];

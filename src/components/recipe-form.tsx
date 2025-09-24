@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Ingredient, Recipe, ProductFormat } from '@/app/recipes/page';
 import { Trash2, PlusCircle } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { initialProductFamilies } from '../app/admin/product-families/page';
 
 type RecipeFormData = Omit<Recipe, 'id' | 'lastUpdated'>;
 
@@ -80,7 +82,16 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
         </div>
          <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="family" className="text-right">Familia</Label>
-            <Input id="family" value={family} onChange={(e) => setFamily(e.target.value)} className="col-span-3" required placeholder="Ej: PAN CENTENO" />
+             <Select value={family} onValueChange={(value) => setFamily(value)} required>
+                <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Selecciona una familia..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {initialProductFamilies.map(fam => (
+                        <SelectItem key={fam.id} value={fam.name}>{fam.name}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
         <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="capacityPerMold" className="text-right">Capacidad por Molde/Lote</Label>
