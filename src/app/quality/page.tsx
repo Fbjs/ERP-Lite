@@ -25,7 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 const qualityModules = [
     { href: '/quality/parameters', title: 'Parámetros de Calidad', description: 'Define los estándares y métricas para cada producto.', icon: SlidersHorizontal },
     { href: '/quality/reports', title: 'Reportes de Calidad', description: 'Visualiza tendencias y tasas de no conformidad.', icon: BarChart3 },
-    { href: '#', title: 'Documentación', description: 'Gestiona los manuales y procedimientos de calidad.', icon: FileText },
+    { href: '/quality/documentation', title: 'Documentación', description: 'Gestiona los manuales y procedimientos de calidad.', icon: FileText },
 ];
 
 type QualityCheck = {
@@ -227,7 +227,10 @@ export default function QualityPage() {
                                 <div><span className="font-semibold">Producto:</span> {selectedCheck.product}</div>
                                 <div><span className="font-semibold">Fecha:</span> {format(selectedCheck.date, 'PPP', {locale: es})}</div>
                                 <div><span className="font-semibold">Inspector:</span> {selectedCheck.inspector}</div>
-                                <div className="flex items-center gap-2"><span className="font-semibold">Resultado:</span> <Badge variant={selectedCheck.result === 'Aprobado' ? 'default' : 'destructive'}>{selectedCheck.result}</Badge></div>
+                                <div>
+                                    <span className="font-semibold">Resultado:</span>{' '}
+                                    <Badge variant={selectedCheck.result === 'Aprobado' ? 'default' : 'destructive'}>{selectedCheck.result}</Badge>
+                                </div>
                             </div>
                             <div>
                                 <h4 className="font-semibold mb-2">Parámetros Medidos</h4>
