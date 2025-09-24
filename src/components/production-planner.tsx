@@ -234,7 +234,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
     };
 
     return (
-        <div className="space-y-4 font-body">
+        <div className="font-body flex flex-col h-[80vh]">
              <div ref={reportRef} className="fixed -left-[9999px] top-0 bg-white text-black p-4 font-body" style={{ width: '1600px' }}>
                  <header className="flex justify-between items-start mb-4 border-b-2 border-gray-800 pb-2">
                     <div className="flex items-center gap-3">
@@ -285,7 +285,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     </TableBody>
                 </Table>
             </div>
-            <div className="flex flex-wrap items-end gap-4 p-4 border rounded-lg bg-secondary/30">
+            <div className="flex-shrink-0 flex flex-wrap items-end gap-4 p-4 border rounded-lg bg-secondary/30">
                 <div className="space-y-2">
                     <Label>Rango de Fechas de Entrega</Label>
                     <Popover>
@@ -341,7 +341,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     <Button variant="outline" onClick={handleDownloadPdf}><Download className="mr-2 h-4 w-4" /> PDF</Button>
                 </div>
             </div>
-            <ScrollArea className="h-[40vh] border rounded-lg">
+            <ScrollArea className="flex-grow mt-4">
                 <Table>
                     <TableHeader className="sticky top-0 bg-secondary z-10">
                         <TableRow>
@@ -359,18 +359,20 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                         </TableRow>
                     </TableHeader>
                      <TableBody>
-                        {productionNeeds.length > 0 ? productionNeeds.filter(need => {
-                            if (demandTypeFilter === 'all') return true;
-                            const totalDemandFiltered = demandTypeFilter === 'general' 
-                                ? need.demands.general.reduce((sum, d) => sum + d.quantity, 0)
-                                : need.demands.industrial.reduce((sum, d) => sum + d.quantity, 0);
-                            return totalDemandFiltered > 0;
-                        }).map(need => {
-                            const demandToShow = planningDays.map((_, index) => {
-                                if (demandTypeFilter === 'general') return need.demands.general[index].quantity;
-                                if (demandTypeFilter === 'industrial') return need.demands.industrial[index].quantity;
-                                return need.demands.general[index].quantity + need.demands.industrial[index].quantity;
-                            });
+                        {productionNeeds.length > 0 ? productionNeeds.map(need => {
+                            let demandToShow: number[] = [];
+                            if (demandTypeFilter === 'all') {
+                                demandToShow = planningDays.map((_, index) => need.demands.general[index].quantity + need.demands.industrial[index].quantity);
+                            } else if (demandTypeFilter === 'general') {
+                                demandToShow = need.demands.general.map(d => d.quantity);
+                            } else {
+                                demandToShow = need.demands.industrial.map(d => d.quantity);
+                            }
+                            
+                            // Only show row if there is demand for the filtered type
+                            if (demandTypeFilter !== 'all' && demandToShow.every(d => d === 0)) {
+                                return null;
+                            }
 
                             return (
                                 <TableRow key={need.recipe.id}>
@@ -407,7 +409,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     </tfoot>
                 </Table>
             </ScrollArea>
-             <Card>
+             <Card className="mt-4 flex-shrink-0">
                 <CardHeader>
                     <CardTitle className="font-headline text-lg">Control de Masas Madre</CardTitle>
                 </CardHeader>
@@ -436,7 +438,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     </Table>
                 </CardContent>
             </Card>
-            <DialogFooter>
+            <DialogFooter className="pt-4 flex-shrink-0">
                 <Button onClick={handleCreateOrders} disabled={productionNeeds.every(n => n.netToProduce === 0)}>
                     Crear Órdenes de Producción Sugeridas
                 </Button>
