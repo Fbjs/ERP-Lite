@@ -8,6 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PlusCircle, MoreHorizontal, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import QualityParameterForm from '@/components/quality-parameter-form';
+
 
 type QualityParameter = {
     id: string;
@@ -28,6 +34,35 @@ const initialParameters: QualityParameter[] = [
 
 export default function QualityParametersPage() {
     const [parameters, setParameters] = useState<QualityParameter[]>(initialParameters);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedParameter, setSelectedParameter] = useState<QualityParameter | null>(null);
+    const { toast } = useToast();
+
+    const handleOpenForm = (param: QualityParameter | null) => {
+        setSelectedParameter(param);
+        setIsModalOpen(true);
+    };
+
+    const handleFormSubmit = (data: Omit<QualityParameter, 'id'>) => {
+        if (selectedParameter) {
+            // Editing
+            const updatedParam = { ...selectedParameter, ...data };
+            setParameters(parameters.map(p => p.id === selectedParameter.id ? updatedParam : p));
+            toast({ title: 'Parámetro Actualizado', description: `Se guardaron los cambios para ${data.parameter}.` });
+        } else {
+            // Creating
+            const newParam = { ...data, id: `PARAM-${Date.now()}` };
+            setParameters([newParam, ...parameters]);
+            toast({ title: 'Parámetro Creado', description: `Se ha añadido el parámetro ${data.parameter}.` });
+        }
+        setIsModalOpen(false);
+        setSelectedParameter(null);
+    };
+
+    const handleDelete = (paramId: string) => {
+        setParameters(parameters.filter(p => p.id !== paramId));
+        toast({ title: 'Parámetro Eliminado', variant: 'destructive' });
+    };
 
     return (
         <AppLayout pageTitle="Parámetros de Control de Calidad">
@@ -47,7 +82,7 @@ export default function QualityParametersPage() {
                                     Volver
                                 </Link>
                             </Button>
-                            <Button>
+                            <Button onClick={() => handleOpenForm(null)}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Nuevo Parámetro
                             </Button>
@@ -75,9 +110,38 @@ export default function QualityParametersPage() {
                                     <TableCell className="text-center">{param.maxValue}</TableCell>
                                     <TableCell>{param.unit}</TableCell>
                                     <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                <DropdownMenuItem onClick={() => handleOpenForm(param)}>
+                                                    Editar
+                                                </DropdownMenuItem>
+                                                 <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                            Eliminar
+                                                        </DropdownMenuItem>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>¿Confirmar eliminación?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Esta acción no se puede deshacer. Se eliminará el parámetro de calidad para este producto.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={() => handleDelete(param.id)}>Sí, eliminar</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -85,6 +149,20 @@ export default function QualityParametersPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="font-headline">{selectedParameter ? 'Editar Parámetro' : 'Nuevo Parámetro de Calidad'}</DialogTitle>
+                    </DialogHeader>
+                    <QualityParameterForm
+                        onSubmit={handleFormSubmit}
+                        onCancel={() => setIsModalOpen(false)}
+                        initialData={selectedParameter}
+                    />
+                </DialogContent>
+            </Dialog>
+
         </AppLayout>
     );
 }
