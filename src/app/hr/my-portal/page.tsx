@@ -32,15 +32,16 @@ const loggedInEmployee: Employee = initialEmployees[0];
 
 // Mock attendance data for the calendar
 const mockAttendance = [
-    { date: '2025-07-28', status: 'A Tiempo' },
-    { date: '2025-07-29', status: 'A Tiempo' },
-    { date: '2025-07-30', status: 'Atraso' },
-    { date: '2025-07-31', status: 'A Tiempo' },
-    { date: '2025-07-25', status: 'A Tiempo' },
-    { date: '2025-07-24', status: 'Ausente' },
-    { date: '2025-07-23', status: 'A Tiempo' },
-    { date: '2025-07-22', status: 'A Tiempo' },
+    { date: '2025-07-28', status: 'A Tiempo', clockIn: '07:58', clockOut: '18:02', hoursWorked: '9h 4m' },
+    { date: '2025-07-29', status: 'A Tiempo', clockIn: '08:00', clockOut: '18:00', hoursWorked: '9h 0m' },
+    { date: '2025-07-30', status: 'Atraso', clockIn: '08:12', clockOut: '18:15', hoursWorked: '9h 3m' },
+    { date: '2025-07-31', status: 'A Tiempo', clockIn: '07:55', clockOut: '17:58', hoursWorked: '9h 3m' },
+    { date: '2025-07-25', status: 'A Tiempo', clockIn: '08:01', clockOut: '18:05', hoursWorked: '9h 4m' },
+    { date: '2025-07-24', status: 'Ausente', clockIn: null, clockOut: null, hoursWorked: null },
+    { date: '2025-07-23', status: 'A Tiempo', clockIn: '07:59', clockOut: '18:01', hoursWorked: '9h 2m' },
+    { date: '2025-07-22', status: 'A Tiempo', clockIn: '08:02', clockOut: '18:00', hoursWorked: '8h 58m' },
 ];
+
 
 const mockShiftHistory = [
     { date: subDays(new Date(), 1), shift: 'Mañana' },
@@ -229,16 +230,32 @@ export default function MyPortalPage() {
                             <CardDescription>Resumen de tus últimos registros de asistencia.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                             <ul className="space-y-2">
-                                {mockAttendance.slice(0, 5).map(record => (
-                                    <li key={record.date} className="flex justify-between items-center p-2 rounded-md bg-secondary/50">
-                                        <p className="font-medium">{format(parseISO(record.date), 'PPPP', {locale: es})}</p>
-                                        <Badge variant={record.status === 'A Tiempo' ? 'default' : record.status === 'Atraso' ? 'secondary' : 'destructive'}>
-                                            {record.status}
-                                        </Badge>
-                                    </li>
-                                ))}
-                            </ul>
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Fecha</TableHead>
+                                        <TableHead>Entrada</TableHead>
+                                        <TableHead>Salida</TableHead>
+                                        <TableHead>Hrs. Trabajadas</TableHead>
+                                        <TableHead>Estado</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {mockAttendance.slice(0, 5).map(record => (
+                                        <TableRow key={record.date}>
+                                            <TableCell>{format(parseISO(record.date), 'PPPP', {locale: es})}</TableCell>
+                                            <TableCell>{record.clockIn || '-'}</TableCell>
+                                            <TableCell>{record.clockOut || '-'}</TableCell>
+                                            <TableCell>{record.hoursWorked || '-'}</TableCell>
+                                            <TableCell>
+                                                 <Badge variant={record.status === 'A Tiempo' ? 'default' : record.status === 'Atraso' ? 'secondary' : 'destructive'}>
+                                                    {record.status}
+                                                </Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                             </Table>
                             <Button variant="outline" className="w-full mt-4" onClick={() => setIsCalendarModalOpen(true)}>
                                 <Calendar className="mr-2 h-4 w-4"/> Ver Calendario Completo
                             </Button>
@@ -322,7 +339,7 @@ export default function MyPortalPage() {
 
              {/* Modal para calendario de asistencia */}
             <Dialog open={isCalendarModalOpen} onOpenChange={setIsCalendarModalOpen}>
-                <DialogContent>
+                <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
                         <DialogTitle className="font-headline">Calendario de Asistencia</DialogTitle>
                          <DialogDescription>
@@ -333,7 +350,7 @@ export default function MyPortalPage() {
                          <CalendarComponent
                             mode="single"
                             month={startOfMonth(new Date(2025, 6, 1))}
-                            className="rounded-md border p-0"
+                            className="rounded-md border p-4"
                             locale={es}
                             modifiers={{
                                 onTime: attendanceModifiers.onTime,
