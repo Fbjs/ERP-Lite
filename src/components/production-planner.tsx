@@ -23,6 +23,7 @@ import * as XLSX from 'xlsx';
 import Logo from './logo';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { ScrollArea } from './ui/scroll-area';
 
 
 export type ProductionNeed = {
@@ -340,7 +341,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     <Button variant="outline" onClick={handleDownloadPdf}><Download className="mr-2 h-4 w-4" /> PDF</Button>
                 </div>
             </div>
-            <div className="max-h-[60vh] overflow-auto border rounded-lg">
+            <ScrollArea className="h-[40vh] border rounded-lg">
                 <Table>
                     <TableHeader className="sticky top-0 bg-secondary z-10">
                         <TableRow>
@@ -358,19 +359,18 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                         </TableRow>
                     </TableHeader>
                      <TableBody>
-                        {productionNeeds.length > 0 ? productionNeeds.map(need => {
-                            let demandToShow = planningDays.map(() => 0);
-                            if (demandTypeFilter === 'general') {
-                                demandToShow = need.demands.general.map(d => d.quantity);
-                            } else if (demandTypeFilter === 'industrial') {
-                                demandToShow = need.demands.industrial.map(d => d.quantity);
-                            } else {
-                                demandToShow = planningDays.map((_, index) => need.demands.general[index].quantity + need.demands.industrial[index].quantity);
-                            }
-                            
-                             if (demandTypeFilter !== 'all' && need.totalDemand === 0) {
-                                return null;
-                            }
+                        {productionNeeds.length > 0 ? productionNeeds.filter(need => {
+                            if (demandTypeFilter === 'all') return true;
+                            const totalDemandFiltered = demandTypeFilter === 'general' 
+                                ? need.demands.general.reduce((sum, d) => sum + d.quantity, 0)
+                                : need.demands.industrial.reduce((sum, d) => sum + d.quantity, 0);
+                            return totalDemandFiltered > 0;
+                        }).map(need => {
+                            const demandToShow = planningDays.map((_, index) => {
+                                if (demandTypeFilter === 'general') return need.demands.general[index].quantity;
+                                if (demandTypeFilter === 'industrial') return need.demands.industrial[index].quantity;
+                                return need.demands.general[index].quantity + need.demands.industrial[index].quantity;
+                            });
 
                             return (
                                 <TableRow key={need.recipe.id}>
@@ -406,7 +406,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                         </TableRow>
                     </tfoot>
                 </Table>
-            </div>
+            </ScrollArea>
              <Card>
                 <CardHeader>
                     <CardTitle className="font-headline text-lg">Control de Masas Madre</CardTitle>
@@ -427,7 +427,9 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                                     <TableCell className="font-medium">{need.name}</TableCell>
                                     <TableCell className="text-right">{need.stock.toFixed(2)}</TableCell>
                                     <TableCell className="text-right">{need.required.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right font-bold">{(need.stock - need.required).toFixed(2)}</TableCell>
+                                    <TableCell className={`text-right font-bold ${need.stock - need.required < 0 ? 'text-red-500' : ''}`}>
+                                        {(need.stock - need.required).toFixed(2)}
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
