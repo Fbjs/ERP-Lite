@@ -216,10 +216,10 @@ export default function QualityPage() {
                      {selectedCheck && (
                         <div className="space-y-4 py-4">
                             <div className="grid grid-cols-2 gap-4">
-                                <p><span className="font-semibold">Producto:</span> {selectedCheck.product}</p>
-                                <p><span className="font-semibold">Fecha:</span> {format(selectedCheck.date, 'PPP', {locale: es})}</p>
-                                <p><span className="font-semibold">Inspector:</span> {selectedCheck.inspector}</p>
-                                <p><span className="font-semibold">Resultado:</span> <Badge variant={selectedCheck.result === 'Aprobado' ? 'default' : 'destructive'}>{selectedCheck.result}</Badge></p>
+                                <div><span className="font-semibold">Producto:</span> {selectedCheck.product}</div>
+                                <div><span className="font-semibold">Fecha:</span> {format(selectedCheck.date, 'PPP', {locale: es})}</div>
+                                <div><span className="font-semibold">Inspector:</span> {selectedCheck.inspector}</div>
+                                <div><span className="font-semibold">Resultado:</span> <Badge variant={selectedCheck.result === 'Aprobado' ? 'default' : 'destructive'}>{selectedCheck.result}</Badge></div>
                             </div>
                             <div>
                                 <h4 className="font-semibold mb-2">Parámetros Medidos</h4>
