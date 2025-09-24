@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Circle, Package, ShoppingCart, BarChart3, Warehouse, Trash2, AreaChart, TrendingUp, TrendingDown, Scale, Users, Banknote, FileText, Factory } from 'lucide-react';
+import { Circle, Package, ShoppingCart, BarChart3, Warehouse, Trash2, AreaChart, TrendingUp, TrendingDown, Scale, Users, Banknote, FileText, Factory, BadgePercent } from 'lucide-react';
 import { initialOrders as allProductionOrders } from '@/app/production/page';
 import { initialOrders as allSalesOrders } from '@/app/sales/page';
 import { initialInventoryItems } from '@/app/inventory/page';
@@ -39,6 +39,7 @@ const reportSections = [
             { title: "Reporte General de Ventas", href: "/sales/general-report", description: "Análisis de ventas por producto, vendedor y más." },
             { title: "Reporte por Vendedor", href: "/sales/daily-vendor-report", description: "Pedidos consolidados para cada vendedor." },
             { title: "Reporte Industrial", href: "/sales/industrial-report", description: "Vista detallada de pedidos industriales." },
+            { title: "Índice de Comisiones", href: "/sales/commissions", description: "Calcula y desglosa las comisiones por vendedor." },
         ]
     },
     {
