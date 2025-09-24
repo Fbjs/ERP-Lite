@@ -21,7 +21,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import Logo from './logo';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 
 
 export type ProductionNeed = {
@@ -297,16 +297,13 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                 </div>
                  <div className="space-y-2">
                     <Label>Tipo de Demanda</Label>
-                    <Select value={demandTypeFilter} onValueChange={(value) => setDemandTypeFilter(value as any)}>
-                        <SelectTrigger className="w-[200px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Todos los Tipos</SelectItem>
-                            <SelectItem value="general">General</SelectItem>
-                            <SelectItem value="industrial">Industrial</SelectItem>
-                        </SelectContent>
-                    </Select>
+                     <Tabs defaultValue="all" onValueChange={(value) => setDemandTypeFilter(value as any)}>
+                        <TabsList>
+                            <TabsTrigger value="all">Todos</TabsTrigger>
+                            <TabsTrigger value="general">General</TabsTrigger>
+                            <TabsTrigger value="industrial">Industrial</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
                 </div>
                  <div className="flex items-end gap-2">
                     <Button variant="outline" onClick={handleDownloadExcel}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
@@ -413,4 +410,3 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
         </div>
     );
 }
-
