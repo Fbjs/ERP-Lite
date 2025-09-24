@@ -317,8 +317,8 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     </TableHeader>
                      <TableBody>
                         {productionNeeds.length > 0 ? productionNeeds.map(need => (
-                            <>
-                               <TableRow key={`${need.recipe.id}-general`} className="text-sm">
+                            <React.Fragment key={need.recipe.id}>
+                               <TableRow className="text-sm">
                                     <TableCell className="font-medium text-xs pl-8 italic">General</TableCell>
                                     <TableCell className="text-center">{need.inventoryStock}</TableCell>
                                      {need.demands.general.map((demand, index) => <TableCell key={index} className="text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
@@ -331,17 +331,17 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                                         </Button>
                                     </TableCell>
                                 </TableRow>
-                                <TableRow key={`${need.recipe.id}-industrial`} className="text-sm bg-yellow-50/50">
+                                <TableRow className="text-sm bg-yellow-50/50">
                                     <TableCell className="font-medium text-xs pl-8 italic">Industrial</TableCell>
                                     <TableCell></TableCell>
                                     {need.demands.industrial.map((demand, index) => <TableCell key={index} className="text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
                                 </TableRow>
-                                <TableRow key={`${need.recipe.id}-name`} className="bg-secondary/70">
+                                <TableRow className="bg-secondary/70">
                                     <TableCell className="font-bold text-xs">{need.recipe.name}</TableCell>
                                     <TableCell></TableCell>
                                     {planningDays.map((day, index) => <TableCell key={index} className="text-center font-bold">{(need.demands.general[index].quantity + need.demands.industrial[index].quantity) || ''}</TableCell>)}
                                 </TableRow>
-                            </>
+                            </React.Fragment>
                         )) : (
                             <TableRow>
                                 <TableCell colSpan={8 + planningDays.length} className="text-center h-24">
@@ -378,4 +378,3 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
         </div>
     );
 }
-
