@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,8 @@ import { Ingredient, Recipe, ProductFormat } from '@/app/recipes/page';
 import { Trash2, PlusCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { initialProductFamilies } from '../app/admin/product-families/page';
+import { initialInventoryItems } from '@/app/inventory/page';
+import { ComboboxInput } from './ui/combobox';
 
 type RecipeFormData = Omit<Recipe, 'id' | 'lastUpdated'>;
 
@@ -30,6 +32,13 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
   const [formats, setFormats] = useState<ProductFormat[]>([defaultFormat]);
   
   const isEditing = !!initialData;
+
+  const rawMaterials = useMemo(() => 
+      initialInventoryItems
+          .filter(item => item.category === 'Materia Prima')
+          .map(item => item.name)
+  , []);
+
 
   useEffect(() => {
     if (initialData) {
@@ -120,7 +129,14 @@ export default function RecipeForm({ onSubmit, onCancel, initialData }: RecipeFo
             <h3 className="font-semibold text-lg">Receta Base (Ingredientes)</h3>
             {ingredients.map((ing, index) => (
                 <div key={index} className="grid grid-cols-12 gap-2 items-center">
-                    <Input placeholder="Nombre Ingrediente" value={ing.name} onChange={(e) => handleIngredientChange(index, 'name', e.target.value)} className="col-span-5" required />
+                    <div className="col-span-5">
+                       <ComboboxInput
+                           options={rawMaterials}
+                           value={ing.name}
+                           onSelect={(value) => handleIngredientChange(index, 'name', value)}
+                           placeholder="Ingrediente..."
+                       />
+                    </div>
                     <Input type="number" placeholder="Cant." step="0.001" value={ing.quantity || ''} onChange={(e) => handleIngredientChange(index, 'quantity', Number(e.target.value))} className="col-span-3" required />
                     <Input placeholder="Unidad (kg, L, Un)" value={ing.unit} onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)} className="col-span-3" required />
                     <Button type="button" variant="ghost" size="icon" onClick={() => removeIngredient(index)} className="col-span-1 h-8 w-8" disabled={ingredients.length <= 1}>
