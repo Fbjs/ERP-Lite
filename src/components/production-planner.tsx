@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useRef, Fragment } from 'react';
+import React, { useState, useMemo, useRef, Fragment } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { initialRecipes, Recipe } from '@/app/recipes/page';
@@ -21,6 +21,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import Logo from './logo';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 
 export type ProductionNeed = {
@@ -48,6 +49,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
         from: today,
         to: addDays(today, 2),
     });
+    const [demandTypeFilter, setDemandTypeFilter] = useState<'all' | 'general' | 'industrial'>('all');
     const reportRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
 
@@ -230,7 +232,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     </TableHeader>
                      <TableBody>
                         {productionNeeds.map(need => (
-                            <Fragment key={need.recipe.id}>
+                            <React.Fragment key={need.recipe.id}>
                             <TableRow className="bg-blue-50">
                                 <TableCell className="p-1 pl-4 text-xs italic">General</TableCell>
                                 <TableCell className="p-1 text-center">{need.inventoryStock}</TableCell>
@@ -247,14 +249,14 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                                 <TableCell className="p-1 text-center"></TableCell>
                                 {planningDays.map((day, index) => <TableCell key={index} className="p-1 text-center">{ (need.demands.general[index].quantity + need.demands.industrial[index].quantity) || '' }</TableCell>)}
                             </TableRow>
-                            </Fragment>
+                            </React.Fragment>
                         ))}
                     </TableBody>
                 </Table>
             </div>
             <div className="flex flex-wrap items-end gap-4 p-4 border rounded-lg bg-secondary/30">
                 <div className="space-y-2">
-                    <Label>Rango de Fechas de Entrega a Planificar</Label>
+                    <Label>Rango de Fechas de Entrega</Label>
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
@@ -293,6 +295,19 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                         </PopoverContent>
                     </Popover>
                 </div>
+                 <div className="space-y-2">
+                    <Label>Tipo de Demanda</Label>
+                    <Select value={demandTypeFilter} onValueChange={(value) => setDemandTypeFilter(value as any)}>
+                        <SelectTrigger className="w-[200px]">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos los Tipos</SelectItem>
+                            <SelectItem value="general">General</SelectItem>
+                            <SelectItem value="industrial">Industrial</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
                  <div className="flex items-end gap-2">
                     <Button variant="outline" onClick={handleDownloadExcel}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
                     <Button variant="outline" onClick={handleDownloadPdf}><Download className="mr-2 h-4 w-4" /> PDF</Button>
@@ -317,31 +332,47 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     </TableHeader>
                      <TableBody>
                         {productionNeeds.length > 0 ? productionNeeds.map(need => (
-                            <Fragment key={need.recipe.id}>
-                               <TableRow className="text-sm">
-                                    <TableCell className="font-medium text-xs pl-8 italic">General</TableCell>
-                                    <TableCell className="text-center">{need.inventoryStock}</TableCell>
-                                     {need.demands.general.map((demand, index) => <TableCell key={index} className="text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
-                                    <TableCell rowSpan={3} className="text-center align-middle font-bold text-lg text-primary">{need.netToProduce > 0 ? need.netToProduce : ''}</TableCell>
-                                    <TableCell rowSpan={3} className="text-center align-middle">{need.recipe.capacityPerMold || ''}</TableCell>
-                                    <TableCell rowSpan={3} className="text-center align-middle">{need.netToProduce > 0 ? (Math.ceil(need.netToProduce / (need.recipe.capacityPerMold || need.netToProduce))) : ''}</TableCell>
-                                    <TableCell rowSpan={3} className="text-center align-middle">
-                                         <Button variant="ghost" size="icon" onClick={() => onCreateSingleOrder(need.recipe.name, need.netToProduce || 1)} disabled={!need.netToProduce || need.netToProduce <= 0}>
-                                            <PlusCircle className="h-4 w-4 text-green-600" />
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow className="text-sm bg-yellow-50/50">
-                                    <TableCell className="font-medium text-xs pl-8 italic">Industrial</TableCell>
-                                    <TableCell></TableCell>
-                                    {need.demands.industrial.map((demand, index) => <TableCell key={index} className="text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
-                                </TableRow>
+                            <React.Fragment key={need.recipe.id}>
+                                {(demandTypeFilter === 'all' || demandTypeFilter === 'general') && (
+                                   <TableRow className="text-sm">
+                                        <TableCell className="font-medium text-xs pl-8 italic">General</TableCell>
+                                        <TableCell className="text-center">{need.inventoryStock}</TableCell>
+                                        {need.demands.general.map((demand, index) => <TableCell key={index} className="text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
+                                        <TableCell rowSpan={demandTypeFilter === 'all' ? 3 : 1} className="text-center align-middle font-bold text-lg text-primary">{need.netToProduce > 0 ? need.netToProduce : ''}</TableCell>
+                                        <TableCell rowSpan={demandTypeFilter === 'all' ? 3 : 1} className="text-center align-middle">{need.recipe.capacityPerMold || ''}</TableCell>
+                                        <TableCell rowSpan={demandTypeFilter === 'all' ? 3 : 1} className="text-center align-middle">{need.netToProduce > 0 ? (Math.ceil(need.netToProduce / (need.recipe.capacityPerMold || need.netToProduce))) : ''}</TableCell>
+                                        <TableCell rowSpan={demandTypeFilter === 'all' ? 3 : 1} className="text-center align-middle">
+                                            <Button variant="ghost" size="icon" onClick={() => onCreateSingleOrder(need.recipe.name, need.netToProduce || 1)} disabled={!need.netToProduce || need.netToProduce <= 0}>
+                                                <PlusCircle className="h-4 w-4 text-green-600" />
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                                {(demandTypeFilter === 'all' || demandTypeFilter === 'industrial') && (
+                                    <TableRow className="text-sm bg-yellow-50/50">
+                                        <TableCell className="font-medium text-xs pl-8 italic">Industrial</TableCell>
+                                        <TableCell>{demandTypeFilter === 'industrial' ? need.inventoryStock : ''}</TableCell>
+                                        {need.demands.industrial.map((demand, index) => <TableCell key={index} className="text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
+                                        {demandTypeFilter === 'industrial' && (
+                                            <>
+                                                <TableCell rowSpan={1} className="text-center align-middle font-bold text-lg text-primary">{need.netToProduce > 0 ? need.netToProduce : ''}</TableCell>
+                                                <TableCell rowSpan={1} className="text-center align-middle">{need.recipe.capacityPerMold || ''}</TableCell>
+                                                <TableCell rowSpan={1} className="text-center align-middle">{need.netToProduce > 0 ? (Math.ceil(need.netToProduce / (need.recipe.capacityPerMold || need.netToProduce))) : ''}</TableCell>
+                                                <TableCell rowSpan={1} className="text-center align-middle">
+                                                    <Button variant="ghost" size="icon" onClick={() => onCreateSingleOrder(need.recipe.name, need.netToProduce || 1)} disabled={!need.netToProduce || need.netToProduce <= 0}>
+                                                        <PlusCircle className="h-4 w-4 text-green-600" />
+                                                    </Button>
+                                                </TableCell>
+                                            </>
+                                        )}
+                                    </TableRow>
+                                )}
                                 <TableRow className="bg-secondary/70">
                                     <TableCell className="font-bold text-xs">{need.recipe.name}</TableCell>
                                     <TableCell></TableCell>
-                                    {planningDays.map((day, index) => <TableCell key={index} className="text-center font-bold">{(need.demands.general[index].quantity + need.demands.industrial[index].quantity) || ''}</TableCell>)}
+                                    {planningDays.map((day, index) => <TableCell key={index} className="text-center font-bold">{ (need.demands.general[index].quantity + need.demands.industrial[index].quantity) || '' }</TableCell>)}
                                 </TableRow>
-                            </Fragment>
+                            </React.Fragment>
                         )) : (
                             <TableRow>
                                 <TableCell colSpan={8 + planningDays.length} className="text-center h-24">
@@ -351,22 +382,26 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                         )}
                     </TableBody>
                      <tfoot className="sticky bottom-0 bg-secondary z-10">
-                        <TableRow className="font-bold">
-                            <TableHead>Total General</TableHead>
-                            <TableHead></TableHead>
-                            {totals.general.map((total, index) => (
-                                <TableHead key={index} className="text-center">{total > 0 ? total : ''}</TableHead>
-                            ))}
-                            <TableHead colSpan={4}></TableHead>
-                        </TableRow>
-                        <TableRow className="font-bold bg-yellow-50/50">
-                            <TableHead>Total Industrial</TableHead>
-                            <TableHead></TableHead>
-                            {totals.industrial.map((total, index) => (
-                                <TableHead key={index} className="text-center">{total > 0 ? total : ''}</TableHead>
-                            ))}
-                            <TableHead colSpan={4}></TableHead>
-                        </TableRow>
+                        {(demandTypeFilter === 'all' || demandTypeFilter === 'general') && (
+                            <TableRow className="font-bold">
+                                <TableHead>Total General</TableHead>
+                                <TableHead></TableHead>
+                                {totals.general.map((total, index) => (
+                                    <TableHead key={index} className="text-center">{total > 0 ? total : ''}</TableHead>
+                                ))}
+                                <TableHead colSpan={4}></TableHead>
+                            </TableRow>
+                        )}
+                         {(demandTypeFilter === 'all' || demandTypeFilter === 'industrial') && (
+                            <TableRow className="font-bold bg-yellow-50/50">
+                                <TableHead>Total Industrial</TableHead>
+                                <TableHead></TableHead>
+                                {totals.industrial.map((total, index) => (
+                                    <TableHead key={index} className="text-center">{total > 0 ? total : ''}</TableHead>
+                                ))}
+                                <TableHead colSpan={4}></TableHead>
+                            </TableRow>
+                        )}
                     </tfoot>
                 </Table>
             </div>
