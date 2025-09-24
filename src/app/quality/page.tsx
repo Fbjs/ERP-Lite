@@ -20,10 +20,11 @@ import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { es } from 'date-fns/locale';
 import { initialOrders } from '../production/page';
+import { useToast } from '@/hooks/use-toast';
 
 const qualityModules = [
     { href: '/quality/parameters', title: 'Parámetros de Calidad', description: 'Define los estándares y métricas para cada producto.', icon: SlidersHorizontal },
-    { href: '#', title: 'Reportes de Calidad', description: 'Visualiza tendencias y tasas de no conformidad.', icon: BarChart3 },
+    { href: '/quality/reports', title: 'Reportes de Calidad', description: 'Visualiza tendencias y tasas de no conformidad.', icon: BarChart3 },
     { href: '#', title: 'Documentación', description: 'Gestiona los manuales y procedimientos de calidad.', icon: FileText },
 ];
 
@@ -38,10 +39,12 @@ type QualityCheck = {
 };
 
 const initialChecks: QualityCheck[] = [
-    { id: 'QC-001', orderId: 'PROD021', product: 'PAN LINAZA 500 GRS', date: new Date(), result: 'Aprobado', inspector: 'Ana Paredes', details: [{parameter: 'Peso', value: '502gr', status: 'OK'}, {parameter: 'Humedad', value: '40%', status: 'OK'}] },
-    { id: 'QC-002', orderId: 'PROD022', product: 'PAN GUAGUA BLANCA 16X16', date: new Date(), result: 'Aprobado', inspector: 'Ana Paredes', details: [{parameter: 'Peso', value: '95gr', status: 'OK'}] },
-    { id: 'QC-003', orderId: 'PROD019', product: 'PAN SCHWARZBROT 750 GRS', date: new Date(Date.now() - 86400000), result: 'Rechazado', inspector: 'Carlos Soto', details: [{parameter: 'Color', value: 'Muy oscuro', status: 'Fuera de Rango'}] },
-    { id: 'QC-004', orderId: 'PROD020', product: 'CRUTONES HOREADOS 1KG 11mm', date: new Date(Date.now() - 172800000), result: 'Aprobado', inspector: 'Ana Paredes', details: [{parameter: 'Crocancia', value: 'OK', status: 'OK'}] },
+    { id: 'QC-001', orderId: 'PROD021', product: 'PAN LINAZA 500 GRS', date: new Date(2025, 6, 1), result: 'Aprobado', inspector: 'Ana Paredes', details: [{parameter: 'Peso', value: '502gr', status: 'OK'}, {parameter: 'Humedad', value: '40%', status: 'OK'}] },
+    { id: 'QC-002', orderId: 'PROD022', product: 'PAN GUAGUA BLANCA 16X16', date: new Date(2025, 6, 5), result: 'Aprobado', inspector: 'Ana Paredes', details: [{parameter: 'Peso', value: '95gr', status: 'OK'}] },
+    { id: 'QC-003', orderId: 'PROD019', product: 'PAN SCHWARZBROT 750 GRS', date: new Date(2025, 5, 28), result: 'Rechazado', inspector: 'Carlos Soto', details: [{parameter: 'Color', value: 'Muy oscuro', status: 'Fuera de Rango'}] },
+    { id: 'QC-004', orderId: 'PROD020', product: 'CRUTONES HOREADOS 1KG 11mm', date: new Date(2025, 5, 15), result: 'Aprobado', inspector: 'Ana Paredes', details: [{parameter: 'Crocancia', value: 'OK', status: 'OK'}] },
+    { id: 'QC-005', orderId: 'PROD018', product: 'PAN DE MOLDE', date: new Date(2025, 4, 20), result: 'Aprobado', inspector: 'Ana Paredes', details: [{parameter: 'Peso', value: '605gr', status: 'OK'}] },
+    { id: 'QC-006', orderId: 'PROD017', product: 'BAGUETTE', date: new Date(2025, 4, 18), result: 'Aprobado', inspector: 'Carlos Soto', details: [{parameter: 'Largo', value: '55cm', status: 'OK'}] },
 ];
 
 export default function QualityPage() {
@@ -51,6 +54,7 @@ export default function QualityPage() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [selectedCheck, setSelectedCheck] = useState<QualityCheck | null>(null);
+    const { toast } = useToast();
 
     const filteredChecks = useMemo(() => {
         return qualityChecks.filter(check => {
@@ -77,6 +81,10 @@ export default function QualityPage() {
         };
         setQualityChecks(prev => [newCheck, ...prev]);
         setIsCreateModalOpen(false);
+         toast({
+            title: "Control Creado",
+            description: `Se ha registrado el control para la orden ${data.orderId}.`
+        });
     };
 
 
@@ -219,7 +227,7 @@ export default function QualityPage() {
                                 <div><span className="font-semibold">Producto:</span> {selectedCheck.product}</div>
                                 <div><span className="font-semibold">Fecha:</span> {format(selectedCheck.date, 'PPP', {locale: es})}</div>
                                 <div><span className="font-semibold">Inspector:</span> {selectedCheck.inspector}</div>
-                                <div><span className="font-semibold">Resultado:</span> <Badge variant={selectedCheck.result === 'Aprobado' ? 'default' : 'destructive'}>{selectedCheck.result}</Badge></div>
+                                <div className="flex items-center gap-2"><span className="font-semibold">Resultado:</span> <Badge variant={selectedCheck.result === 'Aprobado' ? 'default' : 'destructive'}>{selectedCheck.result}</Badge></div>
                             </div>
                             <div>
                                 <h4 className="font-semibold mb-2">Parámetros Medidos</h4>
@@ -244,7 +252,7 @@ export default function QualityPage() {
                             </div>
                              <div className="space-y-2">
                                 <h4 className="font-semibold">Documento Asociado</h4>
-                                <Button variant="outline" className="w-full justify-start"><FileText className="mr-2 h-4 w-4"/> Informe_Calidad_QC-001.pdf</Button>
+                                <Button variant="outline" className="w-full justify-start"><FileText className="mr-2 h-4 w-4"/> Informe_Calidad_{selectedCheck.id}.pdf</Button>
                             </div>
                         </div>
                      )}
