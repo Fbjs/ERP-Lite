@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useMemo, useRef, Fragment } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { initialRecipes, Recipe } from '@/app/recipes/page';
@@ -118,12 +118,16 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
         const dailyTotals = {
             general: planningDays.map(() => 0),
             industrial: planningDays.map(() => 0),
+            all: planningDays.map(() => 0),
         };
 
         productionNeeds.forEach(need => {
             planningDays.forEach((day, index) => {
-                dailyTotals.general[index] += need.demands.general[index].quantity;
-                dailyTotals.industrial[index] += need.demands.industrial[index].quantity;
+                const generalDemand = need.demands.general[index]?.quantity || 0;
+                const industrialDemand = need.demands.industrial[index]?.quantity || 0;
+                dailyTotals.general[index] += generalDemand;
+                dailyTotals.industrial[index] += industrialDemand;
+                dailyTotals.all[index] += generalDemand + industrialDemand;
             });
         });
 
@@ -328,49 +332,36 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                         </TableRow>
                     </TableHeader>
                      <TableBody>
-                        {productionNeeds.length > 0 ? productionNeeds.map(need => (
-                            <React.Fragment key={need.recipe.id}>
-                                {(demandTypeFilter === 'all' || demandTypeFilter === 'general') && (
-                                   <TableRow className="text-sm">
-                                        <TableCell className="font-medium text-xs pl-8 italic">General</TableCell>
-                                        <TableCell className="text-center">{need.inventoryStock}</TableCell>
-                                        {need.demands.general.map((demand, index) => <TableCell key={index} className="text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
-                                        <TableCell rowSpan={demandTypeFilter === 'all' ? 3 : 1} className="text-center align-middle font-bold text-lg text-primary">{need.netToProduce > 0 ? need.netToProduce : ''}</TableCell>
-                                        <TableCell rowSpan={demandTypeFilter === 'all' ? 3 : 1} className="text-center align-middle">{need.recipe.capacityPerMold || ''}</TableCell>
-                                        <TableCell rowSpan={demandTypeFilter === 'all' ? 3 : 1} className="text-center align-middle">{need.netToProduce > 0 ? (Math.ceil(need.netToProduce / (need.recipe.capacityPerMold || need.netToProduce))) : ''}</TableCell>
-                                        <TableCell rowSpan={demandTypeFilter === 'all' ? 3 : 1} className="text-center align-middle">
-                                            <Button variant="ghost" size="icon" onClick={() => onCreateSingleOrder(need.recipe.name, need.netToProduce || 1)} disabled={!need.netToProduce || need.netToProduce <= 0}>
-                                                <PlusCircle className="h-4 w-4 text-green-600" />
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                                {(demandTypeFilter === 'all' || demandTypeFilter === 'industrial') && (
-                                    <TableRow className="text-sm bg-yellow-50/50">
-                                        <TableCell className="font-medium text-xs pl-8 italic">Industrial</TableCell>
-                                        <TableCell>{demandTypeFilter === 'industrial' ? need.inventoryStock : ''}</TableCell>
-                                        {need.demands.industrial.map((demand, index) => <TableCell key={index} className="text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
-                                        {demandTypeFilter === 'industrial' && (
-                                            <>
-                                                <TableCell rowSpan={1} className="text-center align-middle font-bold text-lg text-primary">{need.netToProduce > 0 ? need.netToProduce : ''}</TableCell>
-                                                <TableCell rowSpan={1} className="text-center align-middle">{need.recipe.capacityPerMold || ''}</TableCell>
-                                                <TableCell rowSpan={1} className="text-center align-middle">{need.netToProduce > 0 ? (Math.ceil(need.netToProduce / (need.recipe.capacityPerMold || need.netToProduce))) : ''}</TableCell>
-                                                <TableCell rowSpan={1} className="text-center align-middle">
-                                                    <Button variant="ghost" size="icon" onClick={() => onCreateSingleOrder(need.recipe.name, need.netToProduce || 1)} disabled={!need.netToProduce || need.netToProduce <= 0}>
-                                                        <PlusCircle className="h-4 w-4 text-green-600" />
-                                                    </Button>
-                                                </TableCell>
-                                            </>
-                                        )}
-                                    </TableRow>
-                                )}
-                                <TableRow className="bg-secondary/70">
+                        {productionNeeds.length > 0 ? productionNeeds.map(need => {
+                            let demandToShow = planningDays.map(() => 0);
+                            if (demandTypeFilter === 'general') {
+                                demandToShow = need.demands.general.map(d => d.quantity);
+                            } else if (demandTypeFilter === 'industrial') {
+                                demandToShow = need.demands.industrial.map(d => d.quantity);
+                            } else {
+                                demandToShow = planningDays.map((_, index) => need.demands.general[index].quantity + need.demands.industrial[index].quantity);
+                            }
+                            
+                             if (demandTypeFilter !== 'all' && demandToShow.every(d => d === 0)) {
+                                return null;
+                            }
+
+                            return (
+                                <TableRow key={need.recipe.id}>
                                     <TableCell className="font-bold text-xs">{need.recipe.name}</TableCell>
-                                    <TableCell></TableCell>
-                                    {planningDays.map((day, index) => <TableCell key={index} className="text-center font-bold">{ (need.demands.general[index].quantity + need.demands.industrial[index].quantity) || '' }</TableCell>)}
+                                    <TableCell className="text-center">{need.inventoryStock}</TableCell>
+                                    {demandToShow.map((demand, index) => <TableCell key={index} className="text-center">{demand > 0 ? demand : ''}</TableCell>)}
+                                    <TableCell className="text-center align-middle font-bold text-lg text-primary">{need.netToProduce > 0 ? need.netToProduce : ''}</TableCell>
+                                    <TableCell className="text-center align-middle">{need.recipe.capacityPerMold || ''}</TableCell>
+                                    <TableCell className="text-center align-middle">{need.netToProduce > 0 ? (Math.ceil(need.netToProduce / (need.recipe.capacityPerMold || need.netToProduce))) : ''}</TableCell>
+                                    <TableCell className="text-center align-middle">
+                                        <Button variant="ghost" size="icon" onClick={() => onCreateSingleOrder(need.recipe.name, need.netToProduce || 1)} disabled={!need.netToProduce || need.netToProduce <= 0}>
+                                            <PlusCircle className="h-4 w-4 text-green-600" />
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
-                            </React.Fragment>
-                        )) : (
+                            );
+                        }) : (
                             <TableRow>
                                 <TableCell colSpan={8 + planningDays.length} className="text-center h-24">
                                     No hay pedidos de venta para el rango seleccionado.
@@ -379,26 +370,14 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                         )}
                     </TableBody>
                      <tfoot className="sticky bottom-0 bg-secondary z-10">
-                        {(demandTypeFilter === 'all' || demandTypeFilter === 'general') && (
-                            <TableRow className="font-bold">
-                                <TableHead>Total General</TableHead>
-                                <TableHead></TableHead>
-                                {totals.general.map((total, index) => (
-                                    <TableHead key={index} className="text-center">{total > 0 ? total : ''}</TableHead>
-                                ))}
-                                <TableHead colSpan={4}></TableHead>
-                            </TableRow>
-                        )}
-                         {(demandTypeFilter === 'all' || demandTypeFilter === 'industrial') && (
-                            <TableRow className="font-bold bg-yellow-50/50">
-                                <TableHead>Total Industrial</TableHead>
-                                <TableHead></TableHead>
-                                {totals.industrial.map((total, index) => (
-                                    <TableHead key={index} className="text-center">{total > 0 ? total : ''}</TableHead>
-                                ))}
-                                <TableHead colSpan={4}></TableHead>
-                            </TableRow>
-                        )}
+                        <TableRow className="font-bold">
+                            <TableHead>Total {demandTypeFilter === 'all' ? 'Consolidado' : demandTypeFilter === 'general' ? 'General' : 'Industrial'}</TableHead>
+                            <TableHead></TableHead>
+                            {(demandTypeFilter === 'all' ? totals.all : demandTypeFilter === 'general' ? totals.general : totals.industrial).map((total, index) => (
+                                <TableHead key={index} className="text-center">{total > 0 ? total : ''}</TableHead>
+                            ))}
+                            <TableHead colSpan={4}></TableHead>
+                        </TableRow>
                     </tfoot>
                 </Table>
             </div>
@@ -410,3 +389,4 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
         </div>
     );
 }
+
