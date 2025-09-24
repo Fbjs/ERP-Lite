@@ -26,15 +26,21 @@ import Logo from './logo';
 export type ProductionNeed = {
     recipe: Recipe;
     inventoryStock: number;
-    demands: { date: Date; quantity: number }[];
+    demands: {
+        general: { date: Date; quantity: number }[];
+        industrial: { date: Date; quantity: number }[];
+    };
     totalDemand: number;
     netToProduce: number;
 };
+
 
 type ProductionPlannerProps = {
     onCreateOrders: (needs: ProductionNeed[]) => void;
     onCreateSingleOrder: (productName: string, quantity: number) => void;
 };
+
+const INDUSTRIAL_CUSTOMERS = ['SUPERMERCADO DEL SUR'];
 
 export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder }: ProductionPlannerProps) {
     const today = new Date(2025, 8, 1); // Set to Sept 1st for consistency
@@ -51,65 +57,74 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
         return eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
     }, [dateRange]);
 
-    const productionNeeds = useMemo(() => {
+    const productionNeeds = useMemo((): ProductionNeed[] => {
         if (planningDays.length === 0) return [];
 
         const needsMap = new Map<string, ProductionNeed>();
 
-        // Initialize map with all recipes
         initialRecipes.forEach(recipe => {
             const inventoryItem = initialInventoryItems.find(
-                invItem => invItem.category === 'Producto Terminado' && invItem.sku === recipe.id
+                invItem => invItem.category === 'Producto Terminado' && invItem.name.toUpperCase() === recipe.name.toUpperCase()
             );
             const inventoryStock = inventoryItem?.stock || 0;
 
             needsMap.set(recipe.id, {
                 recipe,
                 inventoryStock,
-                demands: planningDays.map(day => ({ date: day, quantity: 0 })),
+                demands: {
+                    general: planningDays.map(day => ({ date: day, quantity: 0 })),
+                    industrial: planningDays.map(day => ({ date: day, quantity: 0 })),
+                },
                 totalDemand: 0,
                 netToProduce: 0,
             });
         });
-
-        // Populate demands from sales orders
+        
         const pendingSalesOrders = allSalesOrders.filter(order =>
             order.status === 'Pendiente' || order.status === 'En Preparación'
         );
 
         pendingSalesOrders.forEach(order => {
-            const deliveryDate = new Date(order.deliveryDate + 'T00:00:00'); // Ensure local timezone
-            const demandDay = planningDays.find(d => format(d, 'yyyy-MM-dd') === format(deliveryDate, 'yyyy-MM-dd'));
-            if (demandDay) {
+            const deliveryDate = new Date(order.deliveryDate + 'T00:00:00');
+            const demandDayIndex = planningDays.findIndex(d => format(d, 'yyyy-MM-dd') === format(deliveryDate, 'yyyy-MM-dd'));
+
+            if (demandDayIndex !== -1) {
+                const isIndustrial = INDUSTRIAL_CUSTOMERS.includes(order.customer.toUpperCase());
+                
                 order.items.forEach(item => {
                     if (needsMap.has(item.recipeId)) {
                         const need = needsMap.get(item.recipeId)!;
-                        const dayDemand = need.demands.find(d => d.date === demandDay);
-                        if (dayDemand) {
-                            dayDemand.quantity += item.quantity;
-                        }
+                        const demandType = isIndustrial ? 'industrial' : 'general';
+                        need.demands[demandType][demandDayIndex].quantity += item.quantity;
                     }
                 });
             }
         });
-        
-        // Calculate totals
+
         needsMap.forEach(need => {
-            need.totalDemand = need.demands.reduce((acc, curr) => acc + curr.quantity, 0);
+            const totalGeneralDemand = need.demands.general.reduce((acc, curr) => acc + curr.quantity, 0);
+            const totalIndustrialDemand = need.demands.industrial.reduce((acc, curr) => acc + curr.quantity, 0);
+            need.totalDemand = totalGeneralDemand + totalIndustrialDemand;
             need.netToProduce = Math.max(0, need.totalDemand - need.inventoryStock);
         });
 
-        return Array.from(needsMap.values());
+        return Array.from(needsMap.values()).filter(n => n.totalDemand > 0 || n.inventoryStock > 0);
 
     }, [planningDays]);
     
     const totals = useMemo(() => {
-        const dailyTotals = planningDays.map(day => 
-            productionNeeds.reduce((acc, need) => {
-                const dayDemand = need.demands.find(d => format(d.date, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd'));
-                return acc + (dayDemand?.quantity || 0);
-            }, 0)
-        );
+        const dailyTotals = {
+            general: planningDays.map(() => 0),
+            industrial: planningDays.map(() => 0),
+        };
+
+        productionNeeds.forEach(need => {
+            planningDays.forEach((day, index) => {
+                dailyTotals.general[index] += need.demands.general[index].quantity;
+                dailyTotals.industrial[index] += need.demands.industrial[index].quantity;
+            });
+        });
+
         return dailyTotals;
     }, [productionNeeds, planningDays]);
 
@@ -153,16 +168,25 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
     };
     
     const handleDownloadExcel = () => {
-        const dataForSheet = productionNeeds.map(need => {
-            const row: {[key: string]: any} = {
+        const dataForSheet = productionNeeds.flatMap(need => {
+             const generalRow: {[key: string]: any} = {
                 'Producto': need.recipe.name,
+                'Tipo Demanda': 'General',
                 'Stock Sobrante': need.inventoryStock,
             };
-            need.demands.forEach(demand => {
-                row[`Pedido ${format(demand.date, 'EEE dd')}`] = demand.quantity || '';
+            const industrialRow: {[key: string]: any} = {
+                'Producto': need.recipe.name,
+                'Tipo Demanda': 'Industrial',
+                'Stock Sobrante': '',
+            };
+             planningDays.forEach((day, index) => {
+                generalRow[`Pedido ${format(day, 'EEE dd')}`] = need.demands.general[index].quantity || '';
+                industrialRow[`Pedido ${format(day, 'EEE dd')}`] = need.demands.industrial[index].quantity || '';
             });
-            row['A Producir'] = need.netToProduce || '';
-            return row;
+            generalRow['A Producir'] = need.netToProduce || '';
+            industrialRow['A Producir'] = '';
+
+            return [generalRow, industrialRow];
         });
 
         const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
@@ -194,7 +218,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                  <Table className="w-full text-xs">
                     <TableHeader className="bg-gray-100">
                         <TableRow>
-                            <TableHead className="p-1 font-bold">Producto</TableHead>
+                            <TableHead className="p-1 font-bold w-1/4">Producto</TableHead>
                             <TableHead className="p-1 font-bold text-center">Stock Sobrante</TableHead>
                              {planningDays.map(day => (
                                 <TableHead key={day.toISOString()} className="p-1 font-bold text-center">
@@ -204,18 +228,26 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                             <TableHead className="p-1 font-bold text-center">A Producir</TableHead>
                         </TableRow>
                     </TableHeader>
-                    <TableBody>
+                     <TableBody>
                         {productionNeeds.map(need => (
-                            <TableRow key={need.recipe.id}>
-                                <TableCell className="p-1">{need.recipe.name}</TableCell>
+                            <>
+                            <TableRow key={`${need.recipe.id}-general`} className="bg-blue-50">
+                                <TableCell className="p-1 pl-4 text-xs italic">General</TableCell>
                                 <TableCell className="p-1 text-center">{need.inventoryStock}</TableCell>
-                                {need.demands.map((demand, index) => (
-                                    <TableCell key={index} className="p-1 text-center">
-                                        {demand.quantity > 0 ? demand.quantity : ''}
-                                    </TableCell>
-                                ))}
-                                <TableCell className="p-1 text-center font-bold">{need.netToProduce > 0 ? need.netToProduce : ''}</TableCell>
+                                {need.demands.general.map((demand, index) => <TableCell key={index} className="p-1 text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
+                                <TableCell rowSpan={3} className="p-1 text-center align-middle font-bold text-lg text-blue-600">{need.netToProduce > 0 ? need.netToProduce : ''}</TableCell>
                             </TableRow>
+                             <TableRow key={`${need.recipe.id}-industrial`} className="bg-yellow-50">
+                                <TableCell className="p-1 pl-4 text-xs italic">Industrial</TableCell>
+                                <TableCell className="p-1 text-center"></TableCell>
+                                {need.demands.industrial.map((demand, index) => <TableCell key={index} className="p-1 text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
+                            </TableRow>
+                             <TableRow key={`${need.recipe.id}-total`} className="bg-gray-200 font-bold">
+                                <TableCell className="p-1">{need.recipe.name}</TableCell>
+                                <TableCell className="p-1 text-center"></TableCell>
+                                {planningDays.map((day, index) => <TableCell key={index} className="p-1 text-center">{ (need.demands.general[index].quantity + need.demands.industrial[index].quantity) || '' }</TableCell>)}
+                            </TableRow>
+                            </>
                         ))}
                     </TableBody>
                 </Table>
@@ -271,45 +303,45 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     <TableHeader className="sticky top-0 bg-secondary z-10">
                         <TableRow>
                             <TableHead className="w-1/4">Producto</TableHead>
-                            <TableHead className="text-center">Stock Sobrante</TableHead>
+                            <TableHead className="text-center">Stock</TableHead>
                             {planningDays.map(day => (
                                 <TableHead key={day.toISOString()} className="text-center">
                                     Pedido {format(day, 'EEE dd', { locale: es })}
                                 </TableHead>
                             ))}
-                            <TableHead className="text-center font-bold text-primary">Cálculo a Producir</TableHead>
+                            <TableHead className="text-center font-bold text-primary">A Producir</TableHead>
                             <TableHead className="text-center">Moldes</TableHead>
-                            <TableHead className="text-center">Nº OPs</TableHead>
-                            <TableHead className="text-center">Acciones</TableHead>
+                            <TableHead className="text-center">OPs</TableHead>
+                            <TableHead className="text-center">Acción</TableHead>
                         </TableRow>
                     </TableHeader>
-                    <TableBody>
+                     <TableBody>
                         {productionNeeds.length > 0 ? productionNeeds.map(need => (
-                            <TableRow key={need.recipe.id}>
-                                <TableCell className="font-medium text-xs">{need.recipe.name}</TableCell>
-                                <TableCell className="text-center">{need.inventoryStock}</TableCell>
-                                {need.demands.map((demand, index) => (
-                                    <TableCell key={index} className="text-center">
-                                        {demand.quantity > 0 ? demand.quantity : ''}
+                            <>
+                               <TableRow key={`${need.recipe.id}-general`} className="text-sm">
+                                    <TableCell className="font-medium text-xs pl-8 italic">General</TableCell>
+                                    <TableCell className="text-center">{need.inventoryStock}</TableCell>
+                                     {need.demands.general.map((demand, index) => <TableCell key={index} className="text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
+                                    <TableCell rowSpan={3} className="text-center align-middle font-bold text-lg text-primary">{need.netToProduce > 0 ? need.netToProduce : ''}</TableCell>
+                                    <TableCell rowSpan={3} className="text-center align-middle">{need.recipe.capacityPerMold || ''}</TableCell>
+                                    <TableCell rowSpan={3} className="text-center align-middle">{need.netToProduce > 0 ? (Math.ceil(need.netToProduce / (need.recipe.capacityPerMold || need.netToProduce))) : ''}</TableCell>
+                                    <TableCell rowSpan={3} className="text-center align-middle">
+                                         <Button variant="ghost" size="icon" onClick={() => onCreateSingleOrder(need.recipe.name, need.netToProduce || 1)} disabled={!need.netToProduce || need.netToProduce <= 0}>
+                                            <PlusCircle className="h-4 w-4 text-green-600" />
+                                        </Button>
                                     </TableCell>
-                                ))}
-                                <TableCell className="text-center font-bold text-primary">
-                                    {need.netToProduce > 0 ? need.netToProduce : ''}
-                                </TableCell>
-                                <TableCell className="text-center">{need.recipe.capacityPerMold || ''}</TableCell>
-                                <TableCell className="text-center">
-                                     {need.netToProduce > 0 ? (Math.ceil(need.netToProduce / (need.recipe.capacityPerMold || need.netToProduce))) : ''}
-                                </TableCell>
-                                <TableCell className="text-center">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => onCreateSingleOrder(need.recipe.name, need.netToProduce || 1)}
-                                    >
-                                        <PlusCircle className="h-4 w-4 text-green-600" />
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
+                                </TableRow>
+                                <TableRow key={`${need.recipe.id}-industrial`} className="text-sm bg-yellow-50/50">
+                                    <TableCell className="font-medium text-xs pl-8 italic">Industrial</TableCell>
+                                    <TableCell></TableCell>
+                                    {need.demands.industrial.map((demand, index) => <TableCell key={index} className="text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
+                                </TableRow>
+                                <TableRow key={`${need.recipe.id}-name`} className="bg-secondary/70">
+                                    <TableCell className="font-bold text-xs">{need.recipe.name}</TableCell>
+                                    <TableCell></TableCell>
+                                    {planningDays.map((day, index) => <TableCell key={index} className="text-center font-bold">{(need.demands.general[index].quantity + need.demands.industrial[index].quantity) || ''}</TableCell>)}
+                                </TableRow>
+                            </>
                         )) : (
                             <TableRow>
                                 <TableCell colSpan={8 + planningDays.length} className="text-center h-24">
@@ -320,9 +352,17 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     </TableBody>
                      <tfoot className="sticky bottom-0 bg-secondary z-10">
                         <TableRow className="font-bold">
-                            <TableHead>Total Pedidos</TableHead>
+                            <TableHead>Total General</TableHead>
                             <TableHead></TableHead>
-                            {totals.map((total, index) => (
+                            {totals.general.map((total, index) => (
+                                <TableHead key={index} className="text-center">{total > 0 ? total : ''}</TableHead>
+                            ))}
+                            <TableHead colSpan={4}></TableHead>
+                        </TableRow>
+                        <TableRow className="font-bold bg-yellow-50/50">
+                            <TableHead>Total Industrial</TableHead>
+                            <TableHead></TableHead>
+                            {totals.industrial.map((total, index) => (
                                 <TableHead key={index} className="text-center">{total > 0 ? total : ''}</TableHead>
                             ))}
                             <TableHead colSpan={4}></TableHead>
@@ -338,3 +378,4 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
         </div>
     );
 }
+
