@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format, parse, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import * as XLSX from 'xlsx';
 
 // Data from the image
 const wasteData = [
@@ -83,11 +84,11 @@ export default function WasteReportPage() {
     const processedData = useMemo(() => {
         return filteredData.map(item => {
             const merma_producto = item.produccion_2025 > 0 ? item.total_merma / item.produccion_2025 : 0;
-            const merma_total = item.produccion_2025 > 0 ? (item.total_merma + item.devoluciones) / item.produccion_2025 : 0;
+            const produccion_buena = item.produccion_2025 - item.total_merma;
             return {
                 ...item,
                 merma_producto,
-                merma_total
+                produccion_buena,
             };
         });
     }, [filteredData]);
@@ -96,8 +97,8 @@ export default function WasteReportPage() {
         if (processedData.length === 0) return null;
         
         const totalRow: any = { product: 'TOTAL' };
-        wasteHeaders.forEach(h => totalRow[h.key] = 0);
-        ['produccion_2024', 'produccion_2025', 'total_merma', 'devoluciones'].forEach(key => {
+        
+        ['produccion_2025', 'total_merma', 'devoluciones', 'produccion_buena'].forEach(key => {
             totalRow[key] = processedData.reduce((acc, curr) => acc + (curr as any)[key], 0);
         });
         
@@ -106,8 +107,7 @@ export default function WasteReportPage() {
         });
 
         totalRow.merma_producto = totalRow.produccion_2025 > 0 ? totalRow.total_merma / totalRow.produccion_2025 : 0;
-        totalRow.merma_total = totalRow.produccion_2025 > 0 ? (totalRow.total_merma + totalRow.devoluciones) / totalRow.produccion_2025 : 0;
-
+        
         return totalRow;
     }, [processedData]);
 
@@ -123,12 +123,12 @@ export default function WasteReportPage() {
     }
 
     return (
-        <AppLayout pageTitle="Reporte de Mermas">
+        <AppLayout pageTitle="Reporte de Calidad y Mermas">
             <Card>
                 <CardHeader>
                     <div className="flex flex-wrap justify-between items-center gap-4">
                         <div>
-                            <CardTitle className="font-headline">Reporte Mensual de Mermas</CardTitle>
+                            <CardTitle className="font-headline">Reporte de Calidad y Mermas de Producción</CardTitle>
                             <CardDescription className="font-body">Análisis detallado de las pérdidas de producción por producto y causa.</CardDescription>
                         </div>
                          <div className="flex items-center gap-2">
@@ -190,13 +190,11 @@ export default function WasteReportPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="font-bold sticky left-0 bg-secondary">Producto</TableHead>
-                                <TableHead className="text-right">Producción 2024</TableHead>
-                                <TableHead className="text-right">Producción 2025</TableHead>
-                                <TableHead className="text-right">Total Merma</TableHead>
-                                <TableHead className="text-right">Merma/Prod.</TableHead>
-                                <TableHead className="text-right">Devoluciones</TableHead>
-                                <TableHead className="text-right">Merma/Total</TableHead>
+                                <TableHead className="font-bold sticky left-0 bg-secondary w-[250px] min-w-[250px]">Producto</TableHead>
+                                <TableHead className="text-right font-bold">Producción Total</TableHead>
+                                <TableHead className="text-right font-bold text-green-600">Producción Buena</TableHead>
+                                <TableHead className="text-right font-bold text-red-600">Total Merma</TableHead>
+                                <TableHead className="text-right font-bold">% Merma</TableHead>
                                 {wasteHeaders.map(h => <TableHead key={h.key} className="text-right">{h.label}</TableHead>)}
                             </TableRow>
                         </TableHeader>
@@ -204,17 +202,15 @@ export default function WasteReportPage() {
                             {processedData.length > 0 ? processedData.map(item => (
                                 <TableRow key={item.product}>
                                     <TableCell className="font-medium sticky left-0 bg-secondary">{item.product}</TableCell>
-                                    <TableCell className="text-right">{item.produccion_2024}</TableCell>
                                     <TableCell className="text-right">{item.produccion_2025}</TableCell>
-                                    <TableCell className="text-right">{item.total_merma}</TableCell>
+                                    <TableCell className="text-right font-semibold text-green-600">{item.produccion_buena}</TableCell>
+                                    <TableCell className="text-right font-semibold text-red-600">{item.total_merma}</TableCell>
                                     <TableCell className="text-right">{formatPercent(item.merma_producto)}</TableCell>
-                                    <TableCell className="text-right">{item.devoluciones}</TableCell>
-                                    <TableCell className="text-right">{formatPercent(item.merma_total)}</TableCell>
                                     {wasteHeaders.map(h => <TableCell key={h.key} className="text-right">{(item as any)[h.key] > 0 ? (item as any)[h.key] : ''}</TableCell>)}
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={wasteHeaders.length + 7} className="h-24 text-center">
+                                    <TableCell colSpan={wasteHeaders.length + 5} className="h-24 text-center">
                                         No se encontraron datos para los filtros seleccionados.
                                     </TableCell>
                                 </TableRow>
@@ -224,12 +220,10 @@ export default function WasteReportPage() {
                              <tfoot className="bg-secondary font-bold">
                                 <TableRow>
                                     <TableCell className="sticky left-0 bg-secondary">TOTAL</TableCell>
-                                    <TableCell className="text-right">{totals.produccion_2024}</TableCell>
                                     <TableCell className="text-right">{totals.produccion_2025}</TableCell>
-                                    <TableCell className="text-right">{totals.total_merma}</TableCell>
+                                    <TableCell className="text-right text-green-600">{totals.produccion_buena}</TableCell>
+                                    <TableCell className="text-right text-red-600">{totals.total_merma}</TableCell>
                                     <TableCell className="text-right">{formatPercent(totals.merma_producto)}</TableCell>
-                                    <TableCell className="text-right">{totals.devoluciones}</TableCell>
-                                    <TableCell className="text-right">{formatPercent(totals.merma_total)}</TableCell>
                                     {wasteHeaders.map(h => <TableCell key={h.key} className="text-right">{(totals as any)[h.key] > 0 ? (totals as any)[h.key] : ''}</TableCell>)}
                                 </TableRow>
                             </tfoot>
