@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, Fragment } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { initialRecipes, Recipe } from '@/app/recipes/page';
@@ -230,24 +230,24 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     </TableHeader>
                      <TableBody>
                         {productionNeeds.map(need => (
-                            <>
-                            <TableRow key={`${need.recipe.id}-general`} className="bg-blue-50">
+                            <Fragment key={need.recipe.id}>
+                            <TableRow className="bg-blue-50">
                                 <TableCell className="p-1 pl-4 text-xs italic">General</TableCell>
                                 <TableCell className="p-1 text-center">{need.inventoryStock}</TableCell>
                                 {need.demands.general.map((demand, index) => <TableCell key={index} className="p-1 text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
                                 <TableCell rowSpan={3} className="p-1 text-center align-middle font-bold text-lg text-blue-600">{need.netToProduce > 0 ? need.netToProduce : ''}</TableCell>
                             </TableRow>
-                             <TableRow key={`${need.recipe.id}-industrial`} className="bg-yellow-50">
+                             <TableRow className="bg-yellow-50">
                                 <TableCell className="p-1 pl-4 text-xs italic">Industrial</TableCell>
                                 <TableCell className="p-1 text-center"></TableCell>
                                 {need.demands.industrial.map((demand, index) => <TableCell key={index} className="p-1 text-center">{demand.quantity > 0 ? demand.quantity : ''}</TableCell>)}
                             </TableRow>
-                             <TableRow key={`${need.recipe.id}-total`} className="bg-gray-200 font-bold">
+                             <TableRow className="bg-gray-200 font-bold">
                                 <TableCell className="p-1">{need.recipe.name}</TableCell>
                                 <TableCell className="p-1 text-center"></TableCell>
                                 {planningDays.map((day, index) => <TableCell key={index} className="p-1 text-center">{ (need.demands.general[index].quantity + need.demands.industrial[index].quantity) || '' }</TableCell>)}
                             </TableRow>
-                            </>
+                            </Fragment>
                         ))}
                     </TableBody>
                 </Table>
@@ -317,7 +317,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     </TableHeader>
                      <TableBody>
                         {productionNeeds.length > 0 ? productionNeeds.map(need => (
-                            <React.Fragment key={need.recipe.id}>
+                            <Fragment key={need.recipe.id}>
                                <TableRow className="text-sm">
                                     <TableCell className="font-medium text-xs pl-8 italic">General</TableCell>
                                     <TableCell className="text-center">{need.inventoryStock}</TableCell>
@@ -341,7 +341,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                                     <TableCell></TableCell>
                                     {planningDays.map((day, index) => <TableCell key={index} className="text-center font-bold">{(need.demands.general[index].quantity + need.demands.industrial[index].quantity) || ''}</TableCell>)}
                                 </TableRow>
-                            </React.Fragment>
+                            </Fragment>
                         )) : (
                             <TableRow>
                                 <TableCell colSpan={8 + planningDays.length} className="text-center h-24">
@@ -378,3 +378,4 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
         </div>
     );
 }
+
