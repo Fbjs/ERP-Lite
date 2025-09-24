@@ -28,7 +28,7 @@ export default function QualityPage() {
             <div className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {qualityModules.map((module) => (
-                        <Link href={module.href} key={module.href} className="block hover:no-underline">
+                        <Link href={module.href} key={module.title} className="block hover:no-underline">
                             <Card className="hover:border-primary hover:shadow-lg transition-all h-full flex flex-col">
                                 <CardHeader className="flex-grow">
                                     <div className="flex items-start gap-4">
