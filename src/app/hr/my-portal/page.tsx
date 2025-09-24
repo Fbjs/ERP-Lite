@@ -6,9 +6,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { initialEmployees, Employee, initialLeaveRequests, LeaveRequest, LeaveType } from '../data';
-import { FileText, Download, Calendar, Briefcase, Clock, Sun, Moon, AlertTriangle, UserCheck, Plane, History } from 'lucide-react';
+import { FileText, Download, Calendar, Briefcase, Clock, Sun, Moon, AlertTriangle, UserCheck, Plane, History, UserX, Hourglass } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { format, parseISO, differenceInBusinessDays, startOfMonth, subDays } from 'date-fns';
+import { format, parseISO, differenceInBusinessDays, startOfMonth, subDays, isWithinInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useState, useMemo, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -85,6 +85,10 @@ export default function MyPortalPage() {
     const payslipRef = useRef<HTMLDivElement>(null);
     const [newRequest, setNewRequest] = useState<{leaveType: LeaveType, dateRange: DateRange | undefined, justification: string}>({leaveType: 'Vacaciones', dateRange: undefined, justification: ''});
     const { toast } = useToast();
+    const [attendanceDateRange, setAttendanceDateRange] = useState<DateRange | undefined>({
+        from: subDays(new Date('2025-07-31'), 7),
+        to: new Date('2025-07-31'),
+    });
 
     const handleCreateRequest = () => {
         if (!newRequest.dateRange?.from || !newRequest.dateRange?.to) {
@@ -123,6 +127,33 @@ export default function MyPortalPage() {
         late: mockAttendance.filter(a => a.status === 'Atraso').map(a => parseISO(a.date)),
         absent: mockAttendance.filter(a => a.status === 'Ausente').map(a => parseISO(a.date)),
     };
+
+    const attendanceSummary = useMemo(() => {
+        if (!attendanceDateRange?.from) return { records: [], totalHours: 0, totalLates: 0, totalAbsences: 0 };
+        
+        const filtered = mockAttendance.filter(a => {
+            const date = parseISO(a.date);
+            return isWithinInterval(date, { start: attendanceDateRange.from!, end: attendanceDateRange.to || attendanceDateRange.from! });
+        });
+
+        const totalMinutes = filtered.reduce((acc, curr) => {
+            if (!curr.hoursWorked) return acc;
+            const parts = curr.hoursWorked.match(/(\d+)h\s*(\d+)m/);
+            if (parts) {
+                const hours = parseInt(parts[1], 10) || 0;
+                const minutes = parseInt(parts[2], 10) || 0;
+                return acc + (hours * 60) + minutes;
+            }
+            return acc;
+        }, 0);
+
+        return {
+            records: filtered.sort((a,b) => parseISO(b.date).getTime() - parseISO(a.date).getTime()),
+            totalHours: Math.floor(totalMinutes / 60),
+            totalLates: filtered.filter(r => r.status === 'Atraso').length,
+            totalAbsences: filtered.filter(r => r.status === 'Ausente').length
+        };
+    }, [attendanceDateRange]);
     
     const handleViewPayslip = (payslip: PayslipData) => {
         setSelectedPayslip(payslip);
@@ -339,34 +370,78 @@ export default function MyPortalPage() {
 
              {/* Modal para calendario de asistencia */}
             <Dialog open={isCalendarModalOpen} onOpenChange={setIsCalendarModalOpen}>
-                <DialogContent className="sm:max-w-xl">
+                <DialogContent className="max-w-4xl">
                     <DialogHeader>
                         <DialogTitle className="font-headline">Calendario de Asistencia</DialogTitle>
                          <DialogDescription>
-                            Resumen visual de tu asistencia para el mes de {format(new Date(2025, 6, 1), 'MMMM yyyy', {locale: es})}.
+                           Selecciona un rango de fechas para ver tu historial y resumen de asistencia.
                         </DialogDescription>
                     </DialogHeader>
-                     <div className="flex flex-col items-center py-4">
-                         <CalendarComponent
-                            mode="single"
-                            month={startOfMonth(new Date(2025, 6, 1))}
-                            className="rounded-md border p-4"
-                            locale={es}
-                            modifiers={{
-                                onTime: attendanceModifiers.onTime,
-                                late: attendanceModifiers.late,
-                                absent: attendanceModifiers.absent
-                            }}
-                            modifiersStyles={{
-                                onTime: { backgroundColor: 'hsl(var(--primary) / 0.2)', color: 'hsl(var(--primary))' },
-                                late: { backgroundColor: 'hsl(48 96.5% 53.1% / 0.2)', color: 'hsl(48 96.5% 53.1%)' },
-                                absent: { backgroundColor: 'hsl(var(--destructive) / 0.2)', color: 'hsl(var(--destructive))' }
-                            }}
-                        />
-                        <div className="flex flex-wrap gap-4 mt-4 text-sm">
-                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: 'hsl(var(--primary) / 0.2)'}}></div><span>A Tiempo</span></div>
-                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: 'hsl(48 96.5% 53.1% / 0.2)'}}></div><span>Atraso</span></div>
-                                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{backgroundColor: 'hsl(var(--destructive) / 0.2)'}}></div><span>Ausente</span></div>
+                     <div className="grid md:grid-cols-2 gap-6 items-start py-4">
+                        <div>
+                             <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="attendance-date"
+                                        variant={"outline"}
+                                        className={cn("w-full justify-start text-left font-normal", !attendanceDateRange && "text-muted-foreground")}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {attendanceDateRange?.from ? (
+                                        attendanceDateRange.to ? (
+                                            <>{format(attendanceDateRange.from, "PPP", { locale: es })} - {format(attendanceDateRange.to, "PPP", { locale: es })}</>
+                                        ) : (format(attendanceDateRange.from, "PPP", { locale: es }))) : (<span>Selecciona un rango</span>)}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="center">
+                                    <CalendarComponent
+                                        initialFocus
+                                        mode="range"
+                                        defaultMonth={attendanceDateRange?.from}
+                                        selected={attendanceDateRange}
+                                        onSelect={setAttendanceDateRange}
+                                        numberOfMonths={2}
+                                        locale={es}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                             <div className="grid grid-cols-3 gap-2 mt-4 text-center">
+                                <div className="p-2 border rounded-lg bg-secondary">
+                                    <p className="text-xs text-muted-foreground">Hrs. Trabajadas</p>
+                                    <p className="text-lg font-bold">{attendanceSummary.totalHours}</p>
+                                </div>
+                                <div className="p-2 border rounded-lg bg-secondary">
+                                    <p className="text-xs text-muted-foreground">Atrasos</p>
+                                    <p className="text-lg font-bold">{attendanceSummary.totalLates}</p>
+                                </div>
+                                 <div className="p-2 border rounded-lg bg-secondary">
+                                    <p className="text-xs text-muted-foreground">Ausencias</p>
+                                    <p className="text-lg font-bold">{attendanceSummary.totalAbsences}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="h-96 overflow-y-auto border rounded-lg">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Fecha</TableHead>
+                                        <TableHead>Estado</TableHead>
+                                        <TableHead>Horas</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {attendanceSummary.records.map(r => (
+                                        <TableRow key={r.date}>
+                                            <TableCell>{format(parseISO(r.date), 'P', {locale: es})}</TableCell>
+                                            <TableCell><Badge variant={r.status === 'A Tiempo' ? 'default' : r.status === 'Atraso' ? 'secondary' : 'destructive'}>{r.status}</Badge></TableCell>
+                                            <TableCell>{r.hoursWorked || '-'}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                    {attendanceSummary.records.length === 0 && (
+                                        <TableRow><TableCell colSpan={3} className="text-center h-24">Sin registros</TableCell></TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
                         </div>
                     </div>
                 </DialogContent>
