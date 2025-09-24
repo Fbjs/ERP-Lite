@@ -265,7 +265,7 @@ const ProductionPage = forwardRef(({handleOpenFormProp, prefilledProduct}: {hand
         } else {
             // Creating new order
             const newOrder: Order = {
-                id: `PROD${Date.now() % 1000}`,
+                id: `PROD${Date.now() % 1000}-${Math.random().toString(36).substring(2, 5)}`,
                 date: new Date().toISOString().split('T')[0],
                 ...data,
             };
@@ -685,7 +685,7 @@ const ProductionPage = forwardRef(({handleOpenFormProp, prefilledProduct}: {hand
                                         </TableRow></TableHeader>
                                         <TableBody>
                                             {requiredMaterials.map(material => (
-                                                <TableRow key={material.sku}>
+                                                <TableRow key={`${material.sku}-${material.name}`}>
                                                     <TableCell className="py-1 px-1">{material.sku}</TableCell>
                                                     <TableCell className="py-1 px-1">{material.name}</TableCell>
                                                     <TableCell className="text-right py-1 px-1">{material.unit}</TableCell>
