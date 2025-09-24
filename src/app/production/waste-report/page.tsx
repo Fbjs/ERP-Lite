@@ -5,24 +5,32 @@ import AppLayout from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Download, FileSpreadsheet, ArrowLeft } from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import { Download, FileSpreadsheet, ArrowLeft, Calendar as CalendarIcon, RefreshCcw } from 'lucide-react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import Link from 'next/link';
+import { DateRange } from 'react-day-picker';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { format, parse, subMonths } from 'date-fns';
+import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 // Data from the image
 const wasteData = [
-  { product: 'ZONNENBROT 750 GRS', produccion_2024: 20044, produccion_2025: 23147, total_merma: 137, devoluciones: 0, m1: 0, m2: 12, m3: 0, m4: 0, m5: 2, m6: 0, m7: 0, m8: 7, m9: 0, m10: 0, m11: 10, m12: 0, m13: 0, m14: 0, m15: 22, m16: 15, m17: 0, m18: 24, m19: 0, m20: 0, m21: 45 },
-  { product: 'CROSTINI OREGANO AL OLIVA', produccion_2024: 2112, produccion_2025: 2815, total_merma: 6, devoluciones: 0, m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 0, m12: 0, m13: 0, m14: 0, m15: 0, m16: 0, m17: 0, m18: 0, m19: 0, m20: 0, m21: 0 },
-  { product: 'GROB 750 GRS', produccion_2024: 4550, produccion_2025: 4520, total_merma: 72, devoluciones: 0, m1: 1, m2: 0, m3: 0, m4: 22, m5: 23, m6: 2, m7: 0, m8: 0, m9: 0, m10: 0, m11: 12, m12: 0, m13: 0, m14: 8, m15: 14, m16: 0, m17: 0, m18: 2, m19: 0, m20: 0, m21: 0 },
-  { product: 'RUSTICO LINAZA 500 GRS', produccion_2024: 6767, produccion_2025: 6797, total_merma: 30, devoluciones: 0, m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 4, m12: 0, m13: 0, m14: 2, m15: 9, m16: 3, m17: 0, m18: 3, m19: 0, m20: 0, m21: 0 },
-  { product: 'RUSTICO MULTICEREAL 500 GRS', produccion_2024: 3154, produccion_2025: 5419, total_merma: 59, devoluciones: 0, m1: 0, m2: 0, m3: 0, m4: 5, m5: 0, m6: 0, m7: 2, m8: 1, m9: 0, m10: 0, m11: 11, m12: 0, m13: 0, m14: 3, m15: 7, m16: 1, m17: 0, m18: 0, m19: 1, m20: 6, m21: 0 },
-  { product: 'ROGGENBROT 600 GRS', produccion_2024: 3501, produccion_2025: 3511, total_merma: 15, devoluciones: 0, m1: 0, m2: 0, m3: 0, m4: 36, m5: 4, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 4, m12: 0, m13: 0, m14: 0, m15: 16, m16: 0, m17: 0, m18: 4, m19: 0, m20: 0, m21: 0 },
-  { product: 'SCHROTBROT 500 GRS', produccion_2024: 5055, produccion_2025: 4935, total_merma: 111, devoluciones: 0, m1: 0, m2: 0, m3: 0, m4: 25, m5: 1, m6: 1, m7: 0, m8: 1, m9: 0, m10: 0, m11: 15, m12: 0, m13: 0, m14: 0, m15: 14, m16: 4, m17: 0, m18: 0, m19: 0, m20: 0, m21: 0 },
-  { product: 'CHOCOSO CENTENO 500 GRS', produccion_2024: 286, produccion_2025: 108, total_merma: 54, devoluciones: 0, m1: 32, m2: 0, m3: 8, m4: 0, m5: 3, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 0, m12: 0, m13: 0, m14: 0, m15: 1, m16: 0, m17: 0, m18: 0, m19: 0, m20: 0, m21: 0 },
-  { product: 'LANDBROT 500 GRS', produccion_2024: 5491, produccion_2025: 5616, total_merma: 240, devoluciones: 0, m1: 14, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 0, m12: 0, m13: 0, m14: 0, m15: 29, m16: 6, m17: 0, m18: 0, m19: 57, m20: 14, m21: 186 },
+  { product: 'ZONNENBROT 750 GRS', produccion_2024: 20044, produccion_2025: 23147, total_merma: 137, devoluciones: 0, m1: 0, m2: 12, m3: 0, m4: 0, m5: 2, m6: 0, m7: 0, m8: 7, m9: 0, m10: 0, m11: 10, m12: 0, m13: 0, m14: 0, m15: 22, m16: 15, m17: 0, m18: 24, m19: 0, m20: 0, m21: 45, month: '2024-09-01' },
+  { product: 'CROSTINI OREGANO AL OLIVA', produccion_2024: 2112, produccion_2025: 2815, total_merma: 6, devoluciones: 0, m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 0, m12: 0, m13: 0, m14: 0, m15: 0, m16: 0, m17: 0, m18: 0, m19: 0, m20: 0, m21: 0, month: '2024-10-01' },
+  { product: 'GROB 750 GRS', produccion_2024: 4550, produccion_2025: 4520, total_merma: 72, devoluciones: 0, m1: 1, m2: 0, m3: 0, m4: 22, m5: 23, m6: 2, m7: 0, m8: 0, m9: 0, m10: 0, m11: 12, m12: 0, m13: 0, m14: 8, m15: 14, m16: 0, m17: 0, m18: 2, m19: 0, m20: 0, m21: 0, month: '2024-10-01' },
+  { product: 'RUSTICO LINAZA 500 GRS', produccion_2024: 6767, produccion_2025: 6797, total_merma: 30, devoluciones: 0, m1: 0, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 4, m12: 0, m13: 0, m14: 2, m15: 9, m16: 3, m17: 0, m18: 3, m19: 0, m20: 0, m21: 0, month: '2024-11-01' },
+  { product: 'RUSTICO MULTICEREAL 500 GRS', produccion_2024: 3154, produccion_2025: 5419, total_merma: 59, devoluciones: 0, m1: 0, m2: 0, m3: 0, m4: 5, m5: 0, m6: 0, m7: 2, m8: 1, m9: 0, m10: 0, m11: 11, m12: 0, m13: 0, m14: 3, m15: 7, m16: 1, m17: 0, m18: 0, m19: 1, m20: 6, m21: 0, month: '2024-11-01' },
+  { product: 'ROGGENBROT 600 GRS', produccion_2024: 3501, produccion_2025: 3511, total_merma: 15, devoluciones: 0, m1: 0, m2: 0, m3: 0, m4: 36, m5: 4, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 4, m12: 0, m13: 0, m14: 0, m15: 16, m16: 0, m17: 0, m18: 4, m19: 0, m20: 0, m21: 0, month: '2024-12-01' },
+  { product: 'SCHROTBROT 500 GRS', produccion_2024: 5055, produccion_2025: 4935, total_merma: 111, devoluciones: 0, m1: 0, m2: 0, m3: 0, m4: 25, m5: 1, m6: 1, m7: 0, m8: 1, m9: 0, m10: 0, m11: 15, m12: 0, m13: 0, m14: 0, m15: 14, m16: 4, m17: 0, m18: 0, m19: 0, m20: 0, m21: 0, month: '2024-12-01' },
+  { product: 'CHOCOSO CENTENO 500 GRS', produccion_2024: 286, produccion_2025: 108, total_merma: 54, devoluciones: 0, m1: 32, m2: 0, m3: 8, m4: 0, m5: 3, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 0, m12: 0, m13: 0, m14: 0, m15: 1, m16: 0, m17: 0, m18: 0, m19: 0, m20: 0, m21: 0, month: '2025-01-01' },
+  { product: 'LANDBROT 500 GRS', produccion_2024: 5491, produccion_2025: 5616, total_merma: 240, devoluciones: 0, m1: 14, m2: 0, m3: 0, m4: 0, m5: 0, m6: 0, m7: 0, m8: 0, m9: 0, m10: 0, m11: 0, m12: 0, m13: 0, m14: 0, m15: 29, m16: 6, m17: 0, m18: 0, m19: 57, m20: 14, m21: 186, month: '2025-01-01' },
 ];
 
 const wasteHeaders = [
@@ -41,9 +49,39 @@ const formatPercent = (value: number) => {
 
 export default function WasteReportPage() {
     const { toast } = useToast();
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+    const [selectedProduct, setSelectedProduct] = useState('all');
+
+    useEffect(() => {
+        const endDate = new Date();
+        const startDate = subMonths(endDate, 6);
+        setDateRange({ from: startDate, to: endDate });
+    }, []);
+
+    const productOptions = useMemo(() => ['all', ...Array.from(new Set(wasteData.map(item => item.product)))], []);
+    
+    const filteredData = useMemo(() => {
+        let data = wasteData;
+
+        if (dateRange?.from) {
+            const fromDate = dateRange.from;
+            const toDate = dateRange.to || fromDate;
+            data = data.filter(item => {
+                const itemDate = parse(item.month, 'yyyy-MM-dd', new Date());
+                return itemDate >= fromDate && itemDate <= toDate;
+            });
+        }
+        
+        if (selectedProduct !== 'all') {
+            data = data.filter(item => item.product === selectedProduct);
+        }
+        
+        return data;
+
+    }, [dateRange, selectedProduct]);
 
     const processedData = useMemo(() => {
-        return wasteData.map(item => {
+        return filteredData.map(item => {
             const merma_producto = item.produccion_2025 > 0 ? item.total_merma / item.produccion_2025 : 0;
             const merma_total = item.produccion_2025 > 0 ? (item.total_merma + item.devoluciones) / item.produccion_2025 : 0;
             return {
@@ -52,9 +90,11 @@ export default function WasteReportPage() {
                 merma_total
             };
         });
-    }, []);
+    }, [filteredData]);
 
     const totals = useMemo(() => {
+        if (processedData.length === 0) return null;
+        
         const totalRow: any = { product: 'TOTAL' };
         wasteHeaders.forEach(h => totalRow[h.key] = 0);
         ['produccion_2024', 'produccion_2025', 'total_merma', 'devoluciones'].forEach(key => {
@@ -73,6 +113,13 @@ export default function WasteReportPage() {
 
     const handleDownload = () => {
          toast({ title: 'Descarga no implementada', description: 'Esta función estará disponible en una futura actualización.' });
+    }
+
+    const resetFilters = () => {
+        const endDate = new Date();
+        const startDate = subMonths(endDate, 6);
+        setDateRange({ from: startDate, to: endDate });
+        setSelectedProduct('all');
     }
 
     return (
@@ -95,6 +142,49 @@ export default function WasteReportPage() {
                             <Button onClick={handleDownload}><Download className="mr-2 h-4 w-4" /> PDF</Button>
                         </div>
                     </div>
+                     <div className="flex flex-wrap gap-4 pt-6 border-t mt-4">
+                        <div className="flex-1 min-w-[280px] space-y-2">
+                            <Label>Rango de Fechas</Label>
+                             <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="date"
+                                        variant={"outline"}
+                                        className={cn("w-full justify-start text-left font-normal",!dateRange && "text-muted-foreground")}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dateRange?.from ? (
+                                        dateRange.to ? (
+                                            <>{format(dateRange.from, "LLL dd, y", { locale: es })} - {format(dateRange.to, "LLL dd, y", { locale: es })}</>
+                                        ) : ( format(dateRange.from, "LLL dd, y", { locale: es }))) : (<span>Selecciona un rango</span>)}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} locale={es}/>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                         <div className="flex-1 min-w-[300px] space-y-2">
+                             <Label>Producto</Label>
+                            <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Filtrar por producto..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Todos los Productos</SelectItem>
+                                    {productOptions.filter(p => p !== 'all').map(product => (
+                                        <SelectItem key={product} value={product}>{product}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex items-end">
+                            <Button variant="ghost" onClick={resetFilters}>
+                                <RefreshCcw className="mr-2 h-4 w-4" />
+                                Limpiar
+                            </Button>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
                     <Table>
@@ -111,7 +201,7 @@ export default function WasteReportPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {processedData.map(item => (
+                            {processedData.length > 0 ? processedData.map(item => (
                                 <TableRow key={item.product}>
                                     <TableCell className="font-medium sticky left-0 bg-secondary">{item.product}</TableCell>
                                     <TableCell className="text-right">{item.produccion_2024}</TableCell>
@@ -122,20 +212,28 @@ export default function WasteReportPage() {
                                     <TableCell className="text-right">{formatPercent(item.merma_total)}</TableCell>
                                     {wasteHeaders.map(h => <TableCell key={h.key} className="text-right">{(item as any)[h.key] > 0 ? (item as any)[h.key] : ''}</TableCell>)}
                                 </TableRow>
-                            ))}
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={wasteHeaders.length + 7} className="h-24 text-center">
+                                        No se encontraron datos para los filtros seleccionados.
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
-                         <tfoot className="bg-secondary font-bold">
-                            <TableRow>
-                                <TableCell className="sticky left-0 bg-secondary">TOTAL</TableCell>
-                                <TableCell className="text-right">{totals.produccion_2024}</TableCell>
-                                <TableCell className="text-right">{totals.produccion_2025}</TableCell>
-                                <TableCell className="text-right">{totals.total_merma}</TableCell>
-                                <TableCell className="text-right">{formatPercent(totals.merma_producto)}</TableCell>
-                                <TableCell className="text-right">{totals.devoluciones}</TableCell>
-                                <TableCell className="text-right">{formatPercent(totals.merma_total)}</TableCell>
-                                {wasteHeaders.map(h => <TableCell key={h.key} className="text-right">{(totals as any)[h.key] > 0 ? (totals as any)[h.key] : ''}</TableCell>)}
-                            </TableRow>
-                        </tfoot>
+                        {totals && (
+                             <tfoot className="bg-secondary font-bold">
+                                <TableRow>
+                                    <TableCell className="sticky left-0 bg-secondary">TOTAL</TableCell>
+                                    <TableCell className="text-right">{totals.produccion_2024}</TableCell>
+                                    <TableCell className="text-right">{totals.produccion_2025}</TableCell>
+                                    <TableCell className="text-right">{totals.total_merma}</TableCell>
+                                    <TableCell className="text-right">{formatPercent(totals.merma_producto)}</TableCell>
+                                    <TableCell className="text-right">{totals.devoluciones}</TableCell>
+                                    <TableCell className="text-right">{formatPercent(totals.merma_total)}</TableCell>
+                                    {wasteHeaders.map(h => <TableCell key={h.key} className="text-right">{(totals as any)[h.key] > 0 ? (totals as any)[h.key] : ''}</TableCell>)}
+                                </TableRow>
+                            </tfoot>
+                        )}
                     </Table>
                 </CardContent>
             </Card>
