@@ -4,7 +4,7 @@
 import type { ReactNode } from 'react';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, LayoutDashboard, NotebookText, Factory, ShoppingCart, Users, BookCopy, Truck, Warehouse, Settings, Building2, ShieldCheck, Contact, ShoppingBag, Trash2, ClipboardList, CalendarCheck, Group } from 'lucide-react';
+import { LogOut, LayoutDashboard, NotebookText, Factory, ShoppingCart, Users, BookCopy, Truck, Warehouse, Settings, Building2, ShieldCheck, Contact, ShoppingBag, Trash2, ClipboardList, CalendarCheck, Group, ClipboardCheck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from '@/components/logo';
@@ -26,6 +26,7 @@ const AppLayout = ({ children, pageTitle }: { children: React.ReactNode, pageTit
         { href: '/dashboard', label: 'Panel de Control', icon: LayoutDashboard, roles: ['Admin', 'Producción', 'Ventas', 'Logística', 'Contabilidad'] },
         { href: '/hr/my-portal', label: 'Mi Portal', icon: Contact, roles: ['Admin', 'Producción', 'Ventas', 'Logística', 'Contabilidad'] },
         { href: '/production', label: 'Producción', icon: Factory, roles: ['Admin', 'Producción'] },
+        { href: '/quality', label: 'Control de Calidad', icon: ClipboardCheck, roles: ['Admin', 'Producción'] },
         { href: '/recipes', label: 'Recetas', icon: NotebookText, roles: ['Admin', 'Producción'] },
         { href: '/inventory', label: 'Inventario', icon: Warehouse, roles: ['Admin', 'Producción', 'Logística'] },
         { href: '/sales', label: 'Ventas', icon: ShoppingCart, roles: ['Admin', 'Ventas', 'Contabilidad'] },

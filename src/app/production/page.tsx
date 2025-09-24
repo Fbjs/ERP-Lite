@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, FilePlus, Calendar as CalendarIcon, FileSpreadsheet, AreaChart, Warehouse, Trash2 } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, FilePlus, Calendar as CalendarIcon, FileSpreadsheet, AreaChart, Warehouse, Trash2, ClipboardCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -580,6 +580,12 @@ const ProductionPage = forwardRef(({handleOpenFormProp, prefilledProduct}: {hand
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleOpenDetails(order)}>Ver Ficha</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleOpenForm(order)}>Editar Orden</DropdownMenuItem>
+                         <DropdownMenuItem asChild>
+                            <Link href={`/quality/control?orderId=${order.id}`}>
+                                <ClipboardCheck className="mr-2 h-4 w-4" />
+                                Realizar Control Calidad
+                            </Link>
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
