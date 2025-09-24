@@ -185,7 +185,7 @@ export default function ConsumptionReportPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="sticky left-0 bg-secondary min-w-[200px]">Familia</TableHead>
+                                <TableHead className="sticky left-0 bg-secondary w-[250px] min-w-[250px]">Familia</TableHead>
                                 {processedData.map(d => (
                                     <TableHead key={d.month} className="text-center">{d.month}</TableHead>
                                 ))}
