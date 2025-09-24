@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -9,7 +9,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableFooter,
 } from "@/components/ui/table";
 import {
   Card,
@@ -19,12 +18,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { Download, FileSpreadsheet, ArrowLeft, AreaChart } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format, parse, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Link from 'next/link';
 import AppLayout from '@/components/layout/app-layout';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { DateRange } from 'react-day-picker';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+import { Label } from '@/components/ui/label';
 
 const reportData = [
   { month: "sep-24", "Aceites y Grasas": 560562, "aditivos": 5481100, "endulzantes": 543723, "envasado": 5442831, "harinas": 18596893, "masa madre": 984195, "semillas": 597202, "Facturacion": 146746100, "Dias": 21, "HH normal": 4018, "HH Extra": 430, "Unidades Producidas": null, "KG Harina": 39442, "$ Total Energia Electrica": 1826, "$ Energia Gas": 3229, "$ Demasia": 3004180, "HH Pnaderia (4P/4A)": 1543, "HH Extra Panaderia": 301 },
@@ -51,9 +55,25 @@ const formatPercent = (value: number | null) => {
 
 export default function ConsumptionReportPage() {
     const { toast } = useToast();
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+
+    useEffect(() => {
+        setDateRange({
+            from: new Date(2024, 8, 1), // Sep 2024
+            to: new Date(2025, 0, 31),  // Jan 2025
+        });
+    }, []);
 
     const processedData = useMemo(() => {
-        return reportData.map(d => {
+        const filteredReportData = reportData.filter(d => {
+            if (!dateRange?.from) return true;
+            const itemDate = parse(`01-${d.month}`, 'dd-MMM-yy', new Date());
+            const fromDate = dateRange.from;
+            const toDate = dateRange.to || fromDate;
+            return itemDate >= fromDate && itemDate <= toDate;
+        });
+
+        return filteredReportData.map(d => {
             const totalMateriales = d["Aceites y Grasas"] + d["aditivos"] + d["endulzantes"] + d["envasado"] + d["harinas"] + d["masa madre"] + d["semillas"];
             const HH_Total = d["HH normal"] + d["HH Extra"];
             const HH_Totale_Panaderia = d["HH Pnaderia (4P/4A)"] + d["HH Extra Panaderia"];
@@ -78,7 +98,7 @@ export default function ConsumptionReportPage() {
                 "Kg Harina/Demasia$": d["$ Demasia"] > 0 ? d["KG Harina"] / d["$ Demasia"] : null
             };
         })
-    }, []);
+    }, [dateRange]);
 
     const metrics = [
         { label: "Aceites y Grasas", key: "Aceites y Grasas", isCurrency: true },
@@ -134,6 +154,30 @@ export default function ConsumptionReportPage() {
                                     Volver a Producción
                                 </Link>
                             </Button>
+                        </div>
+                    </div>
+                     <div className="flex flex-wrap items-end gap-4 border-t pt-4 mt-4">
+                        <div className="space-y-2">
+                            <Label>Filtrar por Fecha</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        id="date"
+                                        variant={"outline"}
+                                        className={cn("w-[300px] justify-start text-left font-normal", !dateRange && "text-muted-foreground")}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dateRange?.from ? (
+                                            dateRange.to ? (
+                                                <>{format(dateRange.from, "LLL, y", { locale: es })} - {format(dateRange.to, "LLL, y", { locale: es })}</>
+                                            ) : (format(dateRange.from, "LLL, y", { locale: es }))
+                                        ) : (<span>Selecciona un rango</span>)}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} locale={es} />
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </div>
                 </CardHeader>
