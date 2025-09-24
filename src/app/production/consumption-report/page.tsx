@@ -185,7 +185,7 @@ export default function ConsumptionReportPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="sticky left-0 bg-secondary">Familia</TableHead>
+                                <TableHead className="sticky left-0 bg-secondary min-w-[200px]">Familia</TableHead>
                                 {processedData.map(d => (
                                     <TableHead key={d.month} className="text-center">{d.month}</TableHead>
                                 ))}
@@ -206,6 +206,11 @@ export default function ConsumptionReportPage() {
                             ))}
                         </TableBody>
                     </Table>
+                     {processedData.length === 0 && (
+                        <div className="text-center p-8 text-muted-foreground">
+                            No hay datos para mostrar en el período seleccionado.
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </AppLayout>
