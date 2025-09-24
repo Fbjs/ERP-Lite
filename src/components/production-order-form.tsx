@@ -354,6 +354,8 @@ export default function ProductionOrderForm({ onSubmit, onCancel, initialData, p
                     <CardContent className="space-y-2">
                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                             <Input placeholder="Amasadora" value={formData.processControl.doughMixer} onChange={e => handleChange('processControl', 'doughMixer', e.target.value)} />
+                            <Input type="number" placeholder="T° Agua (°C)" value={formData.processControl.waterTemp || ''} onChange={e => handleChange('processControl', 'waterTemp', Number(e.target.value))} />
+                            <Input type="number" placeholder="T° Masa Madre (°C)" value={formData.processControl.motherMassTemp || ''} onChange={e => handleChange('processControl', 'motherMassTemp', Number(e.target.value))} />
                             <Input type="time" placeholder="Hora Inicio" value={formData.processControl.mixStartTime} onChange={e => handleChange('processControl', 'mixStartTime', e.target.value)} />
                             <Input type="number" placeholder="Vel. Lenta (min)" value={formData.processControl.slowSpeedMin || ''} onChange={e => handleChange('processControl', 'slowSpeedMin', Number(e.target.value))} />
                             <Input type="number" placeholder="Vel. Rápida (min)" value={formData.processControl.fastSpeedMin || ''} onChange={e => handleChange('processControl', 'fastSpeedMin', Number(e.target.value))} />

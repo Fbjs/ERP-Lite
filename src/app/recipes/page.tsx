@@ -51,6 +51,7 @@ export const initialRecipes: Recipe[] = [
         { name: 'Agua', quantity: 0.3, unit: 'L' },
         { name: 'Levadura Fresca', quantity: 0.02, unit: 'kg' },
         { name: 'Sal de Mar', quantity: 0.01, unit: 'kg' },
+        { name: 'Masa Madre Blanca (MMB)', quantity: 0.1, unit: 'kg' },
     ], 
     formats: [{sku: 'GUABCO16-9.5', name: 'C/O - 9,5 mm', cost: 4100}], 
     lastUpdated: '2023-10-28' 
@@ -62,6 +63,7 @@ export const initialRecipes: Recipe[] = [
         { name: 'Agua', quantity: 0.25, unit: 'L' },
         { name: 'Levadura Fresca', quantity: 0.015, unit: 'kg' },
         { name: 'Sal de Mar', quantity: 0.008, unit: 'kg' },
+        { name: 'Masa Madre Blanca (MMB)', quantity: 0.08, unit: 'kg' },
     ], 
     formats: [{sku: 'GUBL1332-11', name: 'C/O - 11 mm', cost: 3900}], 
     lastUpdated: '2023-10-28' 
@@ -73,6 +75,7 @@ export const initialRecipes: Recipe[] = [
       { name: 'Agua', quantity: 0.28, unit: 'L' },
       { name: 'Levadura Fresca', quantity: 0.018, unit: 'kg' },
       { name: 'Sal de Mar', quantity: 0.009, unit: 'kg' },
+      { name: 'Masa Madre Blanca (MMB)', quantity: 0.09, unit: 'kg' },
     ], 
     formats: [{sku: 'GUBL1432-9.5', name: 'S/O - 9,5 mm', cost: 4000}], 
     lastUpdated: '2023-10-28' 
@@ -90,6 +93,7 @@ export const initialRecipes: Recipe[] = [
         { name: 'Agua', quantity: 0.4, unit: 'L' },
         { name: 'Levadura Fresca', quantity: 0.02, unit: 'kg' },
         { name: 'Sal de Mar', quantity: 0.01, unit: 'kg' },
+        { name: 'Masa Madre de Trigo (MMT)', quantity: 0.12, unit: 'kg' },
     ], 
     formats: [{sku: 'GUAINT16-7', name: '16x16 - 7 mm', cost: 4300}], 
     lastUpdated: '2023-10-28' 
@@ -133,6 +137,7 @@ export const initialRecipes: Recipe[] = [
         { name: 'Agua', quantity: 0.5, unit: 'L' },
         { name: 'Levadura Fresca', quantity: 0.01, unit: 'kg' },
         { name: 'Sal de Mar', quantity: 0.01, unit: 'kg' },
+        { name: 'Masa Madre de Centeno (MMC)', quantity: 0.2, unit: 'kg' },
     ], 
     formats: [{sku: 'TIPA0500-40K', name: '40K', cost: 3600}], 
     lastUpdated: '2023-10-28' 
@@ -167,6 +172,7 @@ export const initialRecipes: Recipe[] = [
         { name: 'Harina de Centeno', quantity: 0.8, unit: 'kg' },
         { name: 'Agua', quantity: 0.6, unit: 'L' },
         { name: 'Sal de Mar', quantity: 0.015, unit: 'kg' },
+        { name: 'Masa Madre de Centeno (MMC)', quantity: 0.15, unit: 'kg' },
     ], 
     formats: [], 
     lastUpdated: '2023-10-28' 
@@ -178,6 +184,7 @@ export const initialRecipes: Recipe[] = [
         { name: 'Agua', quantity: 0.35, unit: 'L' },
         { name: 'Cacao en Polvo', quantity: 0.05, unit: 'kg' },
         { name: 'Azucar', quantity: 0.1, unit: 'kg' },
+        { name: 'Masa Madre de Centeno (MMC)', quantity: 0.1, unit: 'kg' },
     ], 
     formats: [], 
     lastUpdated: '2023-10-28' 
@@ -196,6 +203,7 @@ export const initialRecipes: Recipe[] = [
         { name: 'Semillas de Linaza', quantity: 0.05, unit: 'kg' },
         { name: 'Agua', quantity: 0.3, unit: 'L' },
         { name: 'Sal de Mar', quantity: 0.01, unit: 'kg' },
+        { name: 'Masa Madre de Trigo (MMT)', quantity: 0.1, unit: 'kg' },
     ], 
     formats: [], 
     lastUpdated: '2023-10-28' 
@@ -262,6 +270,7 @@ export const initialRecipes: Recipe[] = [
         { name: 'Semillas de Linaza', quantity: 0.1, unit: 'kg' },
         { name: 'Agua', quantity: 0.3, unit: 'L' },
         { name: 'Sal de Mar', quantity: 0.01, unit: 'kg' },
+        { name: 'Masa Madre de Trigo (MMT)', quantity: 0.1, unit: 'kg' },
     ],
     formats: [],
     lastUpdated: '2023-10-28'

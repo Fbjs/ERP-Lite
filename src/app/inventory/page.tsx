@@ -34,6 +34,9 @@ export const initialInventoryItems: InventoryItem[] = [
   { sku: 'SAL-003', name: 'Sal de Mar', category: 'Materia Prima', stock: 500, unit: 'kg', location: 'Bodega A-2' },
   { sku: 'PAN-SOB-001', name: 'Pan Sobrante', category: 'Materia Prima', stock: 100, unit: 'kg', location: 'Contenedor Mermas' },
   { sku: 'AZU-001', name: 'Azucar', category: 'Materia Prima', stock: 300, unit: 'kg', location: 'Bodega A-2' },
+  { sku: 'MMC-001', name: 'Masa Madre de Centeno (MMC)', category: 'Materia Prima', stock: 50, unit: 'kg', location: 'Refrigerador 1' },
+  { sku: 'MMT-001', name: 'Masa Madre de Trigo (MMT)', category: 'Materia Prima', stock: 50, unit: 'kg', location: 'Refrigerador 1' },
+  { sku: 'MMB-001', name: 'Masa Madre Blanca (MMB)', category: 'Materia Prima', stock: 50, unit: 'kg', location: 'Refrigerador 1' },
   
   // Envasado
   { sku: 'CA-JA-150', name: 'CAJA CARTON 150x150x150CD', category: 'ENVASADO', stock: 5000, unit: 'Un', location: 'Estante B-3' },
