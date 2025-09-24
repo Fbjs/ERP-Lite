@@ -22,6 +22,7 @@ import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import Logo from './logo';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
 
 export type ProductionNeed = {
@@ -114,6 +115,31 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
 
     }, [planningDays]);
     
+    const sourdoughNeeds = useMemo(() => {
+        const needs = {
+            'MMC': { name: 'Masa Madre de Centeno (MMC)', required: 0, stock: initialInventoryItems.find(i => i.sku === 'MMC-001')?.stock || 0 },
+            'MMT': { name: 'Masa Madre de Trigo (MMT)', required: 0, stock: initialInventoryItems.find(i => i.sku === 'MMT-001')?.stock || 0 },
+            'MMB': { name: 'Masa Madre Blanca (MMB)', required: 0, stock: initialInventoryItems.find(i => i.sku === 'MMB-001')?.stock || 0 },
+        };
+
+        productionNeeds.forEach(need => {
+            if (need.netToProduce > 0) {
+                need.recipe.ingredients.forEach(ingredient => {
+                    if (ingredient.name.includes('Masa Madre de Centeno')) {
+                        needs.MMC.required += ingredient.quantity * need.netToProduce;
+                    } else if (ingredient.name.includes('Masa Madre de Trigo')) {
+                        needs.MMT.required += ingredient.quantity * need.netToProduce;
+                    } else if (ingredient.name.includes('Masa Madre Blanca')) {
+                        needs.MMB.required += ingredient.quantity * need.netToProduce;
+                    }
+                });
+            }
+        });
+        
+        return Object.values(needs);
+
+    }, [productionNeeds]);
+
     const totals = useMemo(() => {
         const dailyTotals = {
             general: planningDays.map(() => 0),
@@ -174,26 +200,26 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
     };
     
     const handleDownloadExcel = () => {
-        const dataForSheet = productionNeeds.flatMap(need => {
-             const generalRow: {[key: string]: any} = {
+        const dataForSheet = productionNeeds.map(need => {
+            const row: {[key: string]: any} = {
                 'Producto': need.recipe.name,
-                'Tipo Demanda': 'General',
                 'Stock Sobrante': need.inventoryStock,
             };
-            const industrialRow: {[key: string]: any} = {
-                'Producto': need.recipe.name,
-                'Tipo Demanda': 'Industrial',
-                'Stock Sobrante': '',
-            };
-             planningDays.forEach((day, index) => {
-                generalRow[`Pedido ${format(day, 'EEE dd')}`] = need.demands.general[index].quantity || '';
-                industrialRow[`Pedido ${format(day, 'EEE dd')}`] = need.demands.industrial[index].quantity || '';
+            planningDays.forEach((day, index) => {
+                 let demandToShow = 0;
+                 if (demandTypeFilter === 'general') {
+                    demandToShow = need.demands.general[index].quantity;
+                } else if (demandTypeFilter === 'industrial') {
+                    demandToShow = need.demands.industrial[index].quantity;
+                } else {
+                    demandToShow = need.demands.general[index].quantity + need.demands.industrial[index].quantity;
+                }
+                row[`Pedido ${format(day, 'EEE dd')}`] = demandToShow > 0 ? demandToShow : '';
             });
-            generalRow['A Producir'] = need.netToProduce || '';
-            industrialRow['A Producir'] = '';
+            row['A Producir'] = need.netToProduce > 0 ? need.netToProduce : '';
+            return row;
+        }).filter(Boolean);
 
-            return [generalRow, industrialRow];
-        });
 
         const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
         const workbook = XLSX.utils.book_new();
@@ -342,7 +368,7 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                                 demandToShow = planningDays.map((_, index) => need.demands.general[index].quantity + need.demands.industrial[index].quantity);
                             }
                             
-                             if (demandTypeFilter !== 'all' && demandToShow.every(d => d === 0)) {
+                             if (demandTypeFilter !== 'all' && need.totalDemand === 0) {
                                 return null;
                             }
 
@@ -381,6 +407,33 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
                     </tfoot>
                 </Table>
             </div>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="font-headline text-lg">Control de Masas Madre</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Tipo de Masa Madre</TableHead>
+                                <TableHead className="text-right">Stock Actual (kg)</TableHead>
+                                <TableHead className="text-right">Requerido para Producción (kg)</TableHead>
+                                <TableHead className="text-right">Saldo Final (kg)</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {sourdoughNeeds.map(need => (
+                                <TableRow key={need.name}>
+                                    <TableCell className="font-medium">{need.name}</TableCell>
+                                    <TableCell className="text-right">{need.stock.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">{need.required.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right font-bold">{(need.stock - need.required).toFixed(2)}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
             <DialogFooter>
                 <Button onClick={handleCreateOrders} disabled={productionNeeds.every(n => n.netToProduce === 0)}>
                     Crear Órdenes de Producción Sugeridas
@@ -389,4 +442,3 @@ export default function ProductionPlanner({ onCreateOrders, onCreateSingleOrder 
         </div>
     );
 }
-
