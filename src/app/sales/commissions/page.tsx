@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Download, ArrowLeft, Calculator, User, Calendar as CalendarIcon, Info } from 'lucide-react';
+import { Download, ArrowLeft, Calculator, User, Calendar as CalendarIcon, Info, ChevronDown, ChevronRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -23,10 +23,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 
 type CommissionDetail = {
     orderId: string;
+    orderDate: string;
+    customerName: string;
     productName: string;
     saleAmount: number;
     appliedRate: number;
@@ -66,6 +69,7 @@ export default function CommissionsPage() {
     const [period, setPeriod] = useState(format(new Date(), 'yyyy-MM'));
     const [selectedVendor, setSelectedVendor] = useState<string>('all');
     const [commissionData, setCommissionData] = useState<CommissionResult[]>([]);
+    const [openVendors, setOpenVendors] = useState<Record<string, boolean>>({});
 
     const uniqueVendors = useMemo(() => {
         const vendorNames = initialCommissionRules.map(rule => rule.vendor).filter(Boolean);
@@ -107,16 +111,13 @@ export default function CommissionsPage() {
                     const vendor = order.dispatcher;
                     const locationId = order.locationId;
                     
-                    // Find the best matching rule
                     const matchingRules = initialCommissionRules
                         .map(rule => {
                             let score = 0;
-                            let matches = 0;
-                            if (rule.vendor === vendor) { score += 4; matches++; }
-                            if (rule.productFamily === productFamily) { score += 2; matches++; }
-                            if (rule.locationId === locationId) { score += 1; matches++; }
+                            if (rule.vendor === vendor) { score += 4; }
+                            if (rule.productFamily === productFamily) { score += 2; }
+                            if (rule.locationId === locationId) { score += 1; }
 
-                            // If a specific field is set but doesn't match, this rule is not applicable.
                             if ((rule.vendor && rule.vendor !== vendor) || 
                                 (rule.productFamily && rule.productFamily !== productFamily) ||
                                 (rule.locationId && rule.locationId !== locationId)) {
@@ -134,42 +135,53 @@ export default function CommissionsPage() {
                     
                     const itemCommission = itemSaleAmount * appliedRate;
 
-                    vendorData.totalSales += itemSaleAmount;
-                    vendorData.totalCommission += itemCommission;
-                    vendorData.details.push({
-                        orderId: order.id,
-                        productName: recipe?.name || 'N/A',
-                        saleAmount: itemSaleAmount,
-                        appliedRate,
-                        commissionAmount: itemCommission,
-                        ruleApplied: ruleApplied,
-                    });
+                    if (itemCommission > 0) {
+                        vendorData.totalSales += itemSaleAmount;
+                        vendorData.totalCommission += itemCommission;
+                        vendorData.details.push({
+                            orderId: order.id,
+                            orderDate: order.date,
+                            customerName: order.customer,
+                            productName: recipe?.name || 'N/A',
+                            saleAmount: itemSaleAmount,
+                            appliedRate,
+                            commissionAmount: itemCommission,
+                            ruleApplied: ruleApplied,
+                        });
+                    }
                 });
             }
         });
 
-        const results: CommissionResult[] = Array.from(resultsMap.entries()).map(([vendor, data]) => ({
-            vendor,
-            ...data
-        }));
+        const results: CommissionResult[] = Array.from(resultsMap.entries())
+            .map(([vendor, data]) => ({ vendor, ...data }))
+            .filter(r => r.details.length > 0);
 
         setCommissionData(results);
+        if(results.length > 0) {
+            setOpenVendors(results.reduce((acc, v) => ({...acc, [v.vendor]: true}), {}));
+        }
+
         toast({
             title: "Comisiones Calculadas",
             description: `Se han calculado las comisiones para el período ${format(startDate, 'MMMM yyyy', {locale: es})}.`
         });
     };
 
+    const toggleVendor = (vendor: string) => {
+        setOpenVendors(prev => ({...prev, [vendor]: !prev[vendor]}));
+    };
+
 
     return (
-        <AppLayout pageTitle="Cálculo de Comisiones">
+        <AppLayout pageTitle="Índice de Comisiones">
             <Card>
                 <CardHeader>
                     <div className="flex flex-wrap justify-between items-center gap-4">
                         <div>
-                            <CardTitle className="font-headline">Cálculo de Comisiones por Venta</CardTitle>
+                            <CardTitle className="font-headline">Índice de Comisiones</CardTitle>
                             <CardDescription className="font-body">
-                                Selecciona un período y un vendedor para calcular las comisiones basadas en las reglas definidas.
+                                Calcula y desglosa las comisiones por vendedor para un período específico.
                             </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
@@ -213,41 +225,74 @@ export default function CommissionsPage() {
                         </div>
                     </div>
                     
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Vendedor</TableHead>
-                                <TableHead className="text-right">Total Ventas (Completadas)</TableHead>
-                                <TableHead className="text-right">Monto Comisión</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {commissionData.length > 0 ? commissionData.map(data => (
-                                <TableRow key={data.vendor}>
-                                    <TableCell className="font-medium">{data.vendor}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(data.totalSales)}</TableCell>
-                                    <TableCell className="text-right font-bold">{formatCurrency(data.totalCommission)}</TableCell>
-                                </TableRow>
-                            )) : (
-                                <TableRow>
-                                    <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                                        Selecciona un período y haz clic en "Calcular Comisiones" para ver los resultados.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                         {commissionData.length > 0 && (
-                            <TableFooter>
-                                <TableRow className="font-bold">
-                                    <TableCell>Total</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(commissionData.reduce((acc, curr) => acc + curr.totalSales, 0))}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(commissionData.reduce((acc, curr) => acc + curr.totalCommission, 0))}</TableCell>
-                                </TableRow>
-                            </TableFooter>
+                    <div className="space-y-4">
+                         {commissionData.length > 0 ? commissionData.map(data => (
+                            <Collapsible key={data.vendor} open={openVendors[data.vendor]} onOpenChange={() => toggleVendor(data.vendor)}>
+                                <CollapsibleTrigger asChild>
+                                    <div className="flex items-center justify-between p-3 bg-secondary rounded-lg cursor-pointer">
+                                        <div className="flex items-center gap-3">
+                                            {openVendors[data.vendor] ? <ChevronDown className="h-5 w-5"/> : <ChevronRight className="h-5 w-5"/>}
+                                            <span className="font-bold text-lg">{data.vendor}</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-bold text-primary">{formatCurrency(data.totalCommission)}</p>
+                                            <p className="text-xs text-muted-foreground">Total Comisión</p>
+                                        </div>
+                                    </div>
+                                </CollapsibleTrigger>
+                                <CollapsibleContent className="py-2 pl-4">
+                                     <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Día</TableHead>
+                                                <TableHead>N° Doc</TableHead>
+                                                <TableHead>Cliente</TableHead>
+                                                <TableHead>Producto</TableHead>
+                                                <TableHead className="text-right">Valor Afecto</TableHead>
+                                                <TableHead className="text-right">Comisión</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {data.details.map((detail, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell>{format(parseISO(detail.orderDate), 'dd')}</TableCell>
+                                                    <TableCell>{detail.orderId}</TableCell>
+                                                    <TableCell>{detail.customerName}</TableCell>
+                                                    <TableCell>{detail.productName}</TableCell>
+                                                    <TableCell className="text-right">{formatCurrency(detail.saleAmount)}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <TooltipProvider>
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <span className="cursor-pointer font-semibold">{formatCurrency(detail.commissionAmount)}</span>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    <p>Regla: {detail.ruleApplied}</p>
+                                                                    <p>Tasa: {(detail.appliedRate * 100).toFixed(2)}%</p>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                            <TableRow className="font-bold bg-secondary/50">
+                                                <TableCell colSpan={4} className="text-right">Total Vendedor</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(data.totalSales)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(data.totalCommission)}</TableCell>
+                                            </TableRow>
+                                        </TableBody>
+                                    </Table>
+                                </CollapsibleContent>
+                            </Collapsible>
+                         )) : (
+                            <div className="h-24 flex items-center justify-center text-center text-muted-foreground">
+                                <p>Selecciona un período y haz clic en "Calcular Comisiones" para ver los resultados.</p>
+                            </div>
                          )}
-                    </Table>
+                    </div>
                 </CardContent>
             </Card>
         </AppLayout>
     );
 }
+
