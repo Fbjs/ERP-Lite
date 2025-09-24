@@ -14,6 +14,8 @@ import InventoryItemForm from '@/components/inventory-item-form';
 import StockAdjustmentForm from '@/components/stock-adjustment-form';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 
 export type InventoryItem = {
@@ -85,6 +87,7 @@ export const initialInventoryItems: InventoryItem[] = [
 export default function InventoryPage() {
     const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>(initialInventoryItems);
     const [searchQuery, setSearchQuery] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
     const [isFormModalOpen, setFormModalOpen] = useState(false);
     const [isAdjustStockModalOpen, setAdjustStockModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
@@ -92,12 +95,16 @@ export default function InventoryPage() {
     const reportContentRef = useRef<HTMLDivElement>(null);
 
     const filteredItems = useMemo(() => {
-        if (!searchQuery) return inventoryItems;
-        return inventoryItems.filter(item => 
-            item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.sku.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }, [inventoryItems, searchQuery]);
+        return inventoryItems.filter(item => {
+            const matchesSearch = searchQuery === '' || 
+                item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.sku.toLowerCase().includes(searchQuery.toLowerCase());
+            
+            const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+
+            return matchesSearch && matchesCategory;
+        });
+    }, [inventoryItems, searchQuery, categoryFilter]);
 
     const handleOpenForm = (item: InventoryItem | null) => {
         setSelectedItem(item);
@@ -254,17 +261,7 @@ export default function InventoryPage() {
                     <CardDescription className="font-body">Consulta y gestiona el stock de materias primas, insumos y productos terminados.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                          type="search" 
-                          placeholder="Buscar por SKU o nombre..." 
-                          className="pl-8 w-full sm:w-[300px]"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                     <Button variant="outline" onClick={handleDownloadExcel}>
+                    <Button variant="outline" onClick={handleDownloadExcel}>
                         <FileSpreadsheet className="mr-2 h-4 w-4" />
                         Excel
                     </Button>
@@ -276,6 +273,32 @@ export default function InventoryPage() {
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Nuevo Ítem
                     </Button>
+                </div>
+            </div>
+            <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t">
+                 <div className="relative flex-1 min-w-[250px]">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        type="search" 
+                        placeholder="Buscar por SKU o nombre..." 
+                        className="pl-8 w-full"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+                <div className="flex-1 min-w-[250px]">
+                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Filtrar por categoría..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todas las Categorías</SelectItem>
+                            <SelectItem value="Materia Prima">Materia Prima</SelectItem>
+                            <SelectItem value="Insumo">Insumo</SelectItem>
+                            <SelectItem value="Producto Terminado">Producto Terminado</SelectItem>
+                            <SelectItem value="ENVASADO">Envasado</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
         </CardHeader>
@@ -364,4 +387,3 @@ export default function InventoryPage() {
     </AppLayout>
   );
 }
-
