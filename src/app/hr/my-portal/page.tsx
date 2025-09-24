@@ -136,7 +136,7 @@ export default function MyPortalPage() {
                  <Card>
                     <CardHeader className="flex flex-col md:flex-row items-start md:items-center gap-6">
                         <Avatar className="h-24 w-24 border-4 border-primary">
-                            <AvatarImage src={loggedInEmployee.photoUrl} alt={loggedInEmployee.name} />
+                            <AvatarImage src={loggedInEmployee.photoUrl} alt={loggedInEmployee.name} data-ai-hint="person portrait" />
                             <AvatarFallback className="text-3xl">{loggedInEmployee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -174,26 +174,38 @@ export default function MyPortalPage() {
                             </ul>
                         </CardContent>
                     </Card>
-                     <Card>
-                        <CardHeader>
-                            <CardTitle className="font-headline flex items-center gap-2">
-                                <Plane className="w-5 h-5"/> Mis Vacaciones
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                           <div className="text-center p-4 bg-secondary rounded-lg">
-                                <p className="text-sm text-muted-foreground">Días Disponibles</p>
-                                <p className="text-5xl font-bold">{loggedInEmployee.diasVacacionesDisponibles}</p>
-                                {loggedInEmployee.diasProgresivos > 0 && <p className="text-xs text-muted-foreground">(+{loggedInEmployee.diasProgresivos} días progresivos)</p>}
-                           </div>
-                            <div className="flex flex-col sm:flex-row gap-2">
-                               <Button className="w-full" onClick={() => setIsRequestModalOpen(true)}>Solicitar Ausencia</Button>
-                               <Button variant="secondary" className="w-full" onClick={() => setIsRequestsHistoryModalOpen(true)}>
-                                   <History className="mr-2 h-4 w-4" /> Ver Historial
-                                </Button>
-                           </div>
-                        </CardContent>
-                    </Card>
+                    <div className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline flex items-center gap-2">
+                                    <Clock className="w-5 h-5"/> Mi Turno Actual
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4 text-center">
+                               <p className="text-4xl font-bold text-primary">{loggedInEmployee.shift}</p>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="font-headline flex items-center gap-2">
+                                    <Plane className="w-5 h-5"/> Mis Vacaciones
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                            <div className="text-center p-4 bg-secondary rounded-lg">
+                                    <p className="text-sm text-muted-foreground">Días Disponibles</p>
+                                    <p className="text-5xl font-bold">{loggedInEmployee.diasVacacionesDisponibles}</p>
+                                    {loggedInEmployee.diasProgresivos > 0 && <p className="text-xs text-muted-foreground">(+{loggedInEmployee.diasProgresivos} días progresivos)</p>}
+                            </div>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                <Button className="w-full" onClick={() => setIsRequestModalOpen(true)}>Solicitar Ausencia</Button>
+                                <Button variant="secondary" className="w-full" onClick={() => setIsRequestsHistoryModalOpen(true)}>
+                                    <History className="mr-2 h-4 w-4" /> Ver Historial
+                                    </Button>
+                            </div>
+                            </CardContent>
+                        </Card>
+                    </div>
                     <Card className="lg:col-span-3">
                          <CardHeader>
                             <CardTitle className="font-headline flex items-center gap-2">
@@ -435,3 +447,5 @@ export default function MyPortalPage() {
     );
 }
 
+
+    
