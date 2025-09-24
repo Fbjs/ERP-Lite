@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { initialEmployees, Employee, initialLeaveRequests, LeaveRequest, LeaveType } from '../data';
 import { FileText, Download, Calendar, Briefcase, Clock, Sun, Moon, AlertTriangle, UserCheck, Plane, History } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { format, parseISO, differenceInBusinessDays, startOfMonth } from 'date-fns';
+import { format, parseISO, differenceInBusinessDays, startOfMonth, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useState, useMemo, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -42,6 +42,17 @@ const mockAttendance = [
     { date: '2025-07-22', status: 'A Tiempo' },
 ];
 
+const mockShiftHistory = [
+    { date: subDays(new Date(), 1), shift: 'Mañana' },
+    { date: subDays(new Date(), 2), shift: 'Mañana' },
+    { date: subDays(new Date(), 3), shift: 'Tarde' },
+    { date: subDays(new Date(), 4), shift: 'Noche' },
+    { date: subDays(new Date(), 5), shift: 'Libre' },
+    { date: subDays(new Date(), 6), shift: 'Libre' },
+    { date: subDays(new Date(), 7), shift: 'Mañana' },
+];
+
+
 const formatCurrency = (value: number) => {
     if (value === 0) return '$0';
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(Math.round(value));
@@ -67,6 +78,7 @@ export default function MyPortalPage() {
     const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
     const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
     const [isRequestsHistoryModalOpen, setIsRequestsHistoryModalOpen] = useState(false);
+    const [isShiftHistoryModalOpen, setIsShiftHistoryModalOpen] = useState(false);
     const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
     const [selectedPayslip, setSelectedPayslip] = useState<PayslipData | null>(null);
     const payslipRef = useRef<HTMLDivElement>(null);
@@ -183,6 +195,9 @@ export default function MyPortalPage() {
                             </CardHeader>
                             <CardContent className="space-y-4 text-center">
                                <p className="text-4xl font-bold text-primary">{loggedInEmployee.shift}</p>
+                               <Button variant="secondary" className="w-full" onClick={() => setIsShiftHistoryModalOpen(true)}>
+                                    <History className="mr-2 h-4 w-4" /> Ver Historial de Turnos
+                                </Button>
                             </CardContent>
                         </Card>
                         <Card>
@@ -201,7 +216,7 @@ export default function MyPortalPage() {
                                 <Button className="w-full" onClick={() => setIsRequestModalOpen(true)}>Solicitar Ausencia</Button>
                                 <Button variant="secondary" className="w-full" onClick={() => setIsRequestsHistoryModalOpen(true)}>
                                     <History className="mr-2 h-4 w-4" /> Ver Historial
-                                    </Button>
+                                </Button>
                             </div>
                             </CardContent>
                         </Card>
@@ -372,6 +387,37 @@ export default function MyPortalPage() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+             {/* Modal para historial de turnos */}
+            <Dialog open={isShiftHistoryModalOpen} onOpenChange={setIsShiftHistoryModalOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="font-headline">Historial de Turnos</DialogTitle>
+                    </DialogHeader>
+                    <div className="max-h-[60vh] overflow-y-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Fecha</TableHead>
+                                    <TableHead>Turno Asignado</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {mockShiftHistory.map((shift, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{format(shift.date, 'PPPP', { locale: es })}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={shift.shift === 'Libre' ? 'outline' : 'secondary'}>
+                                                {shift.shift}
+                                            </Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </DialogContent>
+            </Dialog>
             
              {/* Modal para ver liquidación */}
             <Dialog open={isPayslipModalOpen} onOpenChange={setIsPayslipModalOpen}>
@@ -446,6 +492,3 @@ export default function MyPortalPage() {
         </AppLayout>
     );
 }
-
-
-    
