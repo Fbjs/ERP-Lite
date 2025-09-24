@@ -45,6 +45,22 @@ const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(value);
 };
 
+// Map product families to the categories from the commission table
+const getProductFamily = (recipeFamily: string): 'Panes Retail' | 'Panes guguas / industriales' | 'Pan rallado' | null => {
+    const familyLower = recipeFamily.toLowerCase();
+    if (familyLower.includes('blanco') || familyLower.includes('centeno') || familyLower.includes('pasteleria')) {
+        return 'Panes Retail';
+    }
+    if (familyLower.includes('industrial')) {
+        return 'Panes guguas / industriales';
+    }
+    if (familyLower.includes('tostadas')) {
+        return 'Pan rallado';
+    }
+    return null;
+}
+
+
 export default function CommissionsPage() {
     const { toast } = useToast();
     const [period, setPeriod] = useState(format(new Date(), 'yyyy-MM'));
@@ -52,8 +68,10 @@ export default function CommissionsPage() {
     const [commissionData, setCommissionData] = useState<CommissionResult[]>([]);
 
     const uniqueVendors = useMemo(() => {
-        return ['all', ...Array.from(new Set(initialOrders.map(order => order.dispatcher)))];
+        const vendorNames = initialCommissionRules.map(rule => rule.vendor).filter(Boolean);
+        return ['all', ...Array.from(new Set(vendorNames as string[]))];
     }, []);
+
 
     const handleCalculateCommissions = () => {
         const [year, month] = period.split('-').map(Number);
@@ -80,28 +98,31 @@ export default function CommissionsPage() {
 
                 order.items.forEach(item => {
                     const recipe = initialRecipes.find(r => r.id === item.recipeId);
+                    if(!recipe) return;
+
                     const formatInfo = recipe?.formats.find(f => f.sku === item.formatSku);
                     const itemSaleAmount = (formatInfo?.cost || 0) * item.quantity;
                     
-                    // Rule matching logic with priority
-                    const rules = initialCommissionRules;
+                    const productFamily = getProductFamily(recipe.family);
                     const vendor = order.dispatcher;
-                    const productId = item.recipeId;
                     const locationId = order.locationId;
                     
-                    // Prioritize rules with more matches
-                    const matchingRules = rules
+                    // Find the best matching rule
+                    const matchingRules = initialCommissionRules
                         .map(rule => {
                             let score = 0;
-                            if (rule.vendor === vendor) score += 4;
-                            if (rule.productId === productId) score += 2;
-                            if (rule.locationId === locationId) score += 1;
-                             // General rule has score 0
-                            if(rule.vendor === null && rule.productId === null && rule.locationId === null) score = 0;
-                            else if(rule.vendor !== vendor && rule.vendor !== null) score = -1; // Mismatched specific rule
-                            else if(rule.productId !== productId && rule.productId !== null) score = -1;
-                            else if(rule.locationId !== locationId && rule.locationId !== null) score = -1;
+                            let matches = 0;
+                            if (rule.vendor === vendor) { score += 4; matches++; }
+                            if (rule.productFamily === productFamily) { score += 2; matches++; }
+                            if (rule.locationId === locationId) { score += 1; matches++; }
 
+                            // If a specific field is set but doesn't match, this rule is not applicable.
+                            if ((rule.vendor && rule.vendor !== vendor) || 
+                                (rule.productFamily && rule.productFamily !== productFamily) ||
+                                (rule.locationId && rule.locationId !== locationId)) {
+                                return { rule, score: -1 }; 
+                            }
+                            
                             return { rule, score };
                         })
                         .filter(m => m.score >= 0)

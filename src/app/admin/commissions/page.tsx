@@ -18,20 +18,42 @@ import { initialOrders } from '@/app/sales/page';
 
 export type CommissionRule = {
     id: string;
-    name: string; // Descriptive name for the rule
+    name: string; 
     rate: number;
-    // Optional fields for matching. If a field is null, it matches all.
-    vendor: string | null; // e.g., 'RENE', null for all vendors
-    productId: string | null; // e.g., 'GUABCO16', null for all products
-    locationId: string | null; // e.g., 'loc2', null for all locations
+    vendor: string | null; 
+    productFamily: 'Panes Retail' | 'Panes guguas / industriales' | 'Pan rallado' | null;
+    locationId: string | null; 
 };
 
 export const initialCommissionRules: CommissionRule[] = [
-    { id: '1', name: 'Tasa General', rate: 0.01, vendor: null, productId: null, locationId: null },
-    { id: '2', name: 'Comisión Especial RENE', rate: 0.02, vendor: 'RENE', productId: null, locationId: null },
-    { id: '3', name: 'Bono Producto Estrella', rate: 0.05, vendor: null, productId: 'GUABCO16', locationId: null },
-    { id: '4', name: 'Bono Sucursal Providencia', rate: 0.03, vendor: null, productId: null, locationId: 'loc2' },
-    { id: '5', name: 'Campaña RENE en Providencia', rate: 0.04, vendor: 'RENE', productId: null, locationId: 'loc2' },
+    // Felipe Campos
+    { id: '1', name: 'Felipe Campos - Retail', rate: 0.105, vendor: 'Felipe Campos', productFamily: 'Panes Retail', locationId: null },
+    { id: '2', name: 'Felipe Campos - Industrial', rate: 0.06, vendor: 'Felipe Campos', productFamily: 'Panes guguas / industriales', locationId: null },
+    { id: '3', name: 'Felipe Campos - Pan Rallado', rate: 0.15, vendor: 'Felipe Campos', productFamily: 'Pan rallado', locationId: null },
+    // Diego Cid
+    { id: '4', name: 'Diego Cid - Retail', rate: 0.10, vendor: 'Diego Cid', productFamily: 'Panes Retail', locationId: null },
+    { id: '5', name: 'Diego Cid - Industrial', rate: 0.06, vendor: 'Diego Cid', productFamily: 'Panes guguas / industriales', locationId: null },
+    { id: '6', name: 'Diego Cid - Pan Rallado', rate: 0.15, vendor: 'Diego Cid', productFamily: 'Pan rallado', locationId: null },
+    // Gabriel Martinez
+    { id: '7', name: 'Gabriel Martinez - Retail', rate: 0.13, vendor: 'Gabriel Martinez', productFamily: 'Panes Retail', locationId: null },
+    { id: '8', name: 'Gabriel Martinez - Industrial', rate: 0.06, vendor: 'Gabriel Martinez', productFamily: 'Panes guguas / industriales', locationId: null },
+    { id: '9', name: 'Gabriel Martinez - Pan Rallado', rate: 0.15, vendor: 'Gabriel Martinez', productFamily: 'Pan rallado', locationId: null },
+    // Francisca Sandoval
+    { id: '10', name: 'Francisca Sandoval - Retail', rate: 0.105, vendor: 'Francisca Sandoval', productFamily: 'Panes Retail', locationId: null },
+    { id: '11', name: 'Francisca Sandoval - Industrial', rate: 0.06, vendor: 'Francisca Sandoval', productFamily: 'Panes guguas / industriales', locationId: null },
+    { id: '12', name: 'Francisca Sandoval - Pan Rallado', rate: 0.15, vendor: 'Francisca Sandoval', productFamily: 'Pan rallado', locationId: null },
+    // Alejandro Zuñiga
+    { id: '13', name: 'Alejandro Zuñiga - Retail', rate: 0.10, vendor: 'Alejandro Zuñiga', productFamily: 'Panes Retail', locationId: null },
+    { id: '14', name: 'Alejandro Zuñiga - Industrial', rate: 0.06, vendor: 'Alejandro Zuñiga', productFamily: 'Panes guguas / industriales', locationId: null },
+    { id: '15', name: 'Alejandro Zuñiga - Pan Rallado', rate: 0.15, vendor: 'Alejandro Zuñiga', productFamily: 'Pan rallado', locationId: null },
+    // Esteban Troncoso
+    { id: '16', name: 'Esteban Troncoso - Retail', rate: 0.10, vendor: 'Esteban Troncoso', productFamily: 'Panes Retail', locationId: null },
+    { id: '17', name: 'Esteban Troncoso - Industrial', rate: 0.06, vendor: 'Esteban Troncoso', productFamily: 'Panes guguas / industriales', locationId: null },
+    { id: '18', name: 'Esteban Troncoso - Pan Rallado', rate: 0.15, vendor: 'Esteban Troncoso', productFamily: 'Pan rallado', locationId: null },
+    // Rene Medel - Jumbo Rancagua
+    { id: '19', name: 'Rene Medel - Retail (Jumbo)', rate: 0.05, vendor: 'Rene Medel', productFamily: 'Panes Retail', locationId: 'Jumbo Rancagua' },
+    { id: '20', name: 'Rene Medel - Industrial (Jumbo)', rate: 0.05, vendor: 'Rene Medel', productFamily: 'Panes guguas / industriales', locationId: 'Jumbo Rancagua' },
+    { id: '21', name: 'Rene Medel - Pan Rallado (Jumbo)', rate: 0.05, vendor: 'Rene Medel', productFamily: 'Pan rallado', locationId: 'Jumbo Rancagua' },
 ];
 
 export default function CommissionsPage() {
@@ -117,9 +139,9 @@ export default function CommissionsPage() {
                                     <TableCell>
                                         <div className="flex flex-wrap gap-1">
                                             {rule.vendor && <Badge variant="secondary">Vendedor: {rule.vendor}</Badge>}
-                                            {rule.productId && <Badge variant="secondary">Producto: {initialRecipes.find(r=>r.id === rule.productId)?.name || rule.productId}</Badge>}
+                                            {rule.productFamily && <Badge variant="secondary">Familia: {rule.productFamily}</Badge>}
                                             {rule.locationId && <Badge variant="secondary">Local: {rule.locationId}</Badge>}
-                                            {!rule.vendor && !rule.productId && !rule.locationId && <Badge>General</Badge>}
+                                            {!rule.vendor && !rule.productFamily && !rule.locationId && <Badge>General</Badge>}
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-right font-mono">{(rule.rate * 100).toFixed(2)}%</TableCell>

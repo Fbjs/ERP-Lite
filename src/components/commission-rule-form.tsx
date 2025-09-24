@@ -25,7 +25,7 @@ const defaultFormData: CommissionRuleFormData = {
     name: '',
     rate: 0,
     vendor: null,
-    productId: null,
+    productFamily: null,
     locationId: null,
 };
 
@@ -34,18 +34,28 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel, recipes, 
 
     useEffect(() => {
         if (rule) {
-            setFormData({ name: rule.name, rate: rule.rate, vendor: rule.vendor, productId: rule.productId, locationId: rule.locationId });
+            setFormData({ name: rule.name, rate: rule.rate, vendor: rule.vendor, productFamily: rule.productFamily, locationId: rule.locationId });
         } else {
             setFormData(defaultFormData);
         }
     }, [rule]);
 
     const allLocations = useMemo(() => {
-        return initialCustomers.flatMap(c => c.deliveryLocations.map(l => ({ value: l.id, label: `${c.name} - ${l.name}` })));
+        const locations = new Set<string>();
+        initialCustomers.forEach(c => {
+            c.deliveryLocations.forEach(l => {
+                if(l.name.toLowerCase().includes('jumbo')) {
+                     locations.add(l.name);
+                }
+            })
+        });
+        return Array.from(locations);
     }, []);
+    
+    const productFamilies = ['Panes Retail', 'Panes guguas / industriales', 'Pan rallado'];
 
     const handleSelectChange = (field: keyof CommissionRuleFormData, value: string) => {
-        setFormData(prev => ({ ...prev, [field]: value === 'all' ? null : value }));
+        setFormData(prev => ({ ...prev, [field]: value === 'all' ? null : value as any }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -78,24 +88,24 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel, recipes, 
                     </Select>
                 </div>
                  <div className="space-y-1">
-                    <Label htmlFor="productId">Producto (Opcional)</Label>
-                    <Select value={formData.productId || 'all'} onValueChange={value => handleSelectChange('productId', value)}>
+                    <Label htmlFor="productFamily">Familia de Producto (Opcional)</Label>
+                    <Select value={formData.productFamily || 'all'} onValueChange={value => handleSelectChange('productFamily', value)}>
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Todos los Productos</SelectItem>
-                            {recipes.map(r => <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>)}
+                            <SelectItem value="all">Todas las Familias</SelectItem>
+                            {productFamilies.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                         </SelectContent>
                     </Select>
                 </div>
             </div>
 
             <div className="space-y-1">
-                <Label htmlFor="locationId">Local de Entrega (Opcional)</Label>
+                <Label htmlFor="locationId">Local Específico (Opcional)</Label>
                 <Select value={formData.locationId || 'all'} onValueChange={value => handleSelectChange('locationId', value)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">Todos los Locales</SelectItem>
-                        {allLocations.map(l => <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>)}
+                        {allLocations.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
                     </SelectContent>
                 </Select>
             </div>
@@ -105,7 +115,7 @@ export default function CommissionRuleForm({ rule, onSubmit, onCancel, recipes, 
                 <Input 
                     id="rate" 
                     type="number"
-                    value={formData.rate ? (formData.rate * 100).toFixed(2) : ''}
+                    value={formData.rate ? (formData.rate * 100) : ''}
                     onChange={(e) => setFormData(p => ({...p, rate: Number(e.target.value) / 100}))}
                     required 
                     placeholder="Ej: 2.5"
