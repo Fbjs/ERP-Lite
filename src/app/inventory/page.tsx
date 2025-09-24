@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Search, Download, FileSpreadsheet } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, Download, FileSpreadsheet, Truck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import Link from 'next/link';
 
 
 export type InventoryItem = {
@@ -261,6 +262,12 @@ export default function InventoryPage() {
                     <CardDescription className="font-body">Consulta y gestiona el stock de materias primas, insumos y productos terminados.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Button variant="secondary" asChild>
+                        <Link href="/purchasing/receptions">
+                            <Truck className="mr-2 h-4 w-4" />
+                            Recepcionar Mercadería
+                        </Link>
+                    </Button>
                     <Button variant="outline" onClick={handleDownloadExcel}>
                         <FileSpreadsheet className="mr-2 h-4 w-4" />
                         Excel
