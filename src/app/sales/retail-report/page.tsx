@@ -4,7 +4,7 @@
 import React, { useState, useMemo } from 'react';
 import AppLayout from '@/components/layout/app-layout';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, FileSpreadsheet } from 'lucide-react';
 import { initialCustomers } from '@/app/admin/customers/page';
