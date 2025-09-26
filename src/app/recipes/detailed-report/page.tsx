@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { initialRecipes, Ingredient } from '@/app/recipes/page';
 import { initialInventoryItems } from '@/app/inventory/page';
 import { initialPurchaseOrders } from '@/app/purchasing/orders/page';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { Download, ArrowLeft } from 'lucide-react';
+import { Download, ArrowLeft, Search } from 'lucide-react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
@@ -16,6 +16,7 @@ import { es } from 'date-fns/locale';
 import Logo from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { Input } from '@/components/ui/input';
 
 // Helper to find the latest price for a raw material
 const getLatestPrice = (itemName: string) => {
@@ -53,10 +54,20 @@ export default function DetailedRecipesReport() {
     const reportRef = useRef<HTMLDivElement>(null);
     const { toast } = useToast();
     const [generationDate, setGenerationDate] = useState<Date | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         setGenerationDate(new Date());
     }, []);
+
+    const filteredRecipes = useMemo(() => {
+        if (!searchQuery) {
+            return initialRecipes;
+        }
+        return initialRecipes.filter(recipe =>
+            recipe.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [searchQuery]);
 
     const handleDownloadPdf = async () => {
         const input = reportRef.current;
@@ -91,13 +102,26 @@ export default function DetailedRecipesReport() {
     return (
         <AppLayout pageTitle="Reporte Detallado de Recetas">
             <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                    <h1 className="text-2xl font-bold font-headline">Índice de Fórmulas</h1>
-                    <div className="flex gap-2">
+                <div className="flex flex-wrap justify-between items-center gap-4">
+                     <div className="flex-1">
+                        <h1 className="text-2xl font-bold font-headline">Índice de Fórmulas</h1>
+                        <p className="text-sm text-muted-foreground">Mostrando {filteredRecipes.length} de {initialRecipes.length} recetas.</p>
+                     </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                type="search"
+                                placeholder="Buscar por nombre de receta..."
+                                className="pl-8 sm:w-[300px]"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
                         <Button variant="outline" asChild>
                             <Link href="/recipes">
                                 <ArrowLeft className="mr-2 h-4 w-4" />
-                                Volver a Recetas
+                                Volver
                             </Link>
                         </Button>
                         <Button onClick={handleDownloadPdf}>
@@ -118,7 +142,7 @@ export default function DetailedRecipesReport() {
                         </div>
                     </header>
 
-                    {initialRecipes.map(recipe => {
+                    {filteredRecipes.map(recipe => {
                         const ingredients = getIngredientDetails(recipe.ingredients);
                         const totalCost = ingredients.reduce((acc, item) => acc + item.totalValue, 0);
 
@@ -164,6 +188,11 @@ export default function DetailedRecipesReport() {
                             </div>
                         );
                     })}
+                     {filteredRecipes.length === 0 && (
+                        <div className="text-center text-gray-500 py-10">
+                            No se encontraron recetas con el nombre "{searchQuery}".
+                        </div>
+                    )}
                 </div>
             </div>
         </AppLayout>
