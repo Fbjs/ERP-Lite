@@ -18,6 +18,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { initialInventoryItems } from '@/app/inventory/page';
 
 
 export type Ingredient = {
@@ -427,6 +428,22 @@ export default function RecipesPage() {
 
         toast({ title: "Archivo Generado", description: "Se ha exportado el listado de recetas a Excel." });
     };
+    
+    // Mock data for recipe detail view
+    const getIngredientDetails = (ingredients: Ingredient[]) => {
+        return ingredients.map(ing => {
+            const itemInfo = initialInventoryItems.find(i => i.name.toLowerCase() === ing.name.toLowerCase());
+            // Mocking price and total value for demonstration
+            const price = Math.random() * 2000 + 500;
+            return {
+                ...ing,
+                code: itemInfo?.sku || 'N/A',
+                classification: itemInfo?.category || 'Materia Prima',
+                price: price,
+                totalValue: ing.quantity * price,
+            }
+        })
+    }
 
   return (
     <AppLayout pageTitle="Recetas">
@@ -550,91 +567,66 @@ export default function RecipesPage() {
       
       {/* Modal Ver Detalles */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setDetailsModalOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle className="font-headline">{selectedRecipe?.name}</DialogTitle>
              <DialogDescription className="font-body">
-                Ficha de Producto - {selectedRecipe?.id}
+                Índice de Fórmula - {selectedRecipe?.id}
             </DialogDescription>
           </DialogHeader>
           {selectedRecipe && (
              <div className="max-h-[70vh] overflow-y-auto p-1 font-body">
-                <div ref={detailsModalContentRef} className="p-8 bg-white text-black rounded-md">
-                     <header className="flex justify-between items-start mb-10 border-b-2 border-gray-800 pb-4">
-                        <div className="flex items-center gap-3">
-                            <Logo className="w-28 text-orange-600" />
-                            <div>
-                                <h1 className="text-2xl font-bold font-headline text-gray-800">Panificadora Vollkorn</h1>
-                                <p className="text-sm text-gray-500">Avenida Principal 123, Santiago, Chile</p>
-                            </div>
+                <div ref={detailsModalContentRef} className="p-4 bg-white text-black rounded-md">
+                     <header className="flex justify-between items-center mb-4 border-b-2 border-gray-800 pb-2">
+                        <div>
+                            <h2 className="text-xl font-bold font-headline text-gray-800">Índice de Fórmulas</h2>
+                            <p className="text-xs text-gray-500">Alimentos Vollkorn</p>
                         </div>
-                        <div className="text-right">
-                            <h2 className="text-3xl font-headline font-bold uppercase text-gray-700">Ficha de Producto</h2>
-                            <p className="text-sm text-gray-500">SKU: {selectedRecipe.id}</p>
+                        <div className="text-right text-xs">
+                           <p><span className="font-semibold">Fecha:</span> {format(new Date(), 'dd-MM-yyyy')}</p>
+                           <p><span className="font-semibold">Hora:</span> {format(new Date(), 'HH:mm:ss')}</p>
                         </div>
                     </header>
-                    <div className="mb-6 text-center">
-                        <p className="font-semibold text-gray-600">Familia:</p>
-                        <p className="text-2xl font-bold font-headline text-primary">{selectedRecipe.family}</p>
+                    <div className="text-sm mb-4">
+                        <p><strong className="w-20 inline-block">FAMILIA:</strong> {selectedRecipe.family}</p>
+                        <p><strong className="w-20 inline-block">Código:</strong> {selectedRecipe.id}</p>
+                        <p><strong className="w-20 inline-block">Producto:</strong> {selectedRecipe.name}</p>
                     </div>
 
                     <div className="space-y-6">
-                       <div>
-                            <h3 className="font-headline text-xl mb-2 border-b pb-2 text-gray-800">Formatos de Venta</h3>
-                             {selectedRecipe.formats.length > 0 ? (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="text-black font-semibold">SKU</TableHead>
-                                            <TableHead className="text-black font-semibold">Nombre Formato</TableHead>
-                                            <TableHead className="text-right text-black font-semibold">Costo</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {selectedRecipe.formats.map((format, index) => (
-                                            <TableRow key={index} className="border-gray-200">
-                                                <TableCell className="font-medium font-mono">{format.sku}</TableCell>
-                                                <TableCell>{format.name}</TableCell>
-                                                <TableCell className="text-right">${format.cost.toLocaleString('es-CL')}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            ) : (
-                                <p className="text-sm text-center py-4 text-gray-500">No hay formatos de venta definidos.</p>
-                            )}
-                        </div>
-                        <div>
-                            <h3 className="font-headline text-xl mb-2 border-b pb-2 text-gray-800">Receta Base</h3>
-                            {selectedRecipe.ingredients.length > 0 ? (
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead className="text-black font-semibold">Ingrediente</TableHead>
-                                            <TableHead className="text-right text-black font-semibold">Cantidad</TableHead>
-                                            <TableHead className="text-black font-semibold">Unidad</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {selectedRecipe.ingredients.map((ing, index) => (
-                                            <TableRow key={index} className="border-gray-200">
-                                                <TableCell className="font-medium">{ing.name}</TableCell>
-                                                <TableCell className="text-right">{ing.quantity}</TableCell>
-                                                <TableCell>{ing.unit}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            ) : (
-                                <p className="text-sm text-center py-4 text-gray-500">No hay ingredientes definidos para esta receta.</p>
-                            )}
-                        </div>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="text-black font-semibold h-auto p-1">Producto</TableHead>
+                                    <TableHead className="text-black font-semibold h-auto p-1">Descripción</TableHead>
+                                    <TableHead className="text-black font-semibold h-auto p-1">Clasificación</TableHead>
+                                    <TableHead className="text-black font-semibold h-auto p-1 text-center">Unidad</TableHead>
+                                    <TableHead className="text-black font-semibold h-auto p-1 text-right">Cantidad</TableHead>
+                                    <TableHead className="text-black font-semibold h-auto p-1 text-right">Precio Med</TableHead>
+                                    <TableHead className="text-black font-semibold h-auto p-1 text-right">Valor Total</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {getIngredientDetails(selectedRecipe.ingredients).map((ing, index) => (
+                                    <TableRow key={index} className="border-gray-300">
+                                        <TableCell className="font-mono text-xs py-1 px-1">{ing.code}</TableCell>
+                                        <TableCell className="py-1 px-1">{ing.name}</TableCell>
+                                        <TableCell className="py-1 px-1">{ing.classification}</TableCell>
+                                        <TableCell className="py-1 px-1 text-center">{ing.unit}</TableCell>
+                                        <TableCell className="text-right py-1 px-1">{ing.quantity.toFixed(3)}</TableCell>
+                                        <TableCell className="text-right py-1 px-1">${ing.price.toLocaleString('es-CL', {minimumFractionDigits: 2})}</TableCell>
+                                        <TableCell className="text-right py-1 px-1 font-semibold">${ing.totalValue.toLocaleString('es-CL')}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                             <TableFooter>
+                                <TableRow className="font-bold">
+                                    <TableCell colSpan={6} className="text-right py-1 px-1">Total Costo Receta</TableCell>
+                                    <TableCell className="text-right py-1 px-1">${getIngredientDetails(selectedRecipe.ingredients).reduce((acc, item) => acc + item.totalValue, 0).toLocaleString('es-CL')}</TableCell>
+                                </TableRow>
+                            </TableFooter>
+                        </Table>
                     </div>
-                    
-                    <footer className="border-t-2 border-gray-200 pt-4 mt-6 text-center text-xs text-gray-500">
-                        <p>Última actualización: {new Date(selectedRecipe.lastUpdated + 'T00:00:00').toLocaleDateString('es-ES')}</p>
-                        <p>Documento generado el {new Date().toLocaleDateString('es-ES')}</p>
-                    </footer>
                 </div>
              </div>
           )}
