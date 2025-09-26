@@ -10,7 +10,7 @@ import { initialFees } from '../fees-ledger/page';
 import { initialJournalEntries } from '../journal/page';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { AreaChart, ArrowLeft, Download, FileSpreadsheet } from 'lucide-react';
+import { ArrowLeft, Download, FileSpreadsheet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -26,6 +26,10 @@ const formatCurrency = (value: number) => {
     if (value === 0) return '';
     return value.toLocaleString('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 });
 };
+
+const formatNumber = (value: number) => {
+    return value.toLocaleString('es-CL', { minimumFractionDigits: 0 });
+}
 
 type AccountType = 'Activo' | 'Pasivo' | 'Patrimonio' | 'Resultado Ganancia' | 'Resultado Perdida';
 
@@ -60,6 +64,68 @@ const financialIndicesData = [
   { month: 'feb-22', SOLVENCIA: 1.81, LIQUIDEZ: 1.21, ENDEUDAMIENTO: 1.21, TESORERIA: 1.68 },
 ];
 
+const incomeStatementData = {
+    ingresos: [
+        { account: '4.1.1.1001', name: 'Ventas Pan Centeno', amount: 88913860 },
+        { account: '4.1.1.1002', name: 'Ventas Pan Integral', amount: 13315128 },
+        { account: '4.1.1.1003', name: 'Ventas Pan Pasteleria', amount: 7506659 },
+        { account: '4.1.1.6001', name: 'Ventas Pan Industrial', amount: 38889659 },
+        { account: '4.1.1.7001', name: 'Ventas Pan Blanco', amount: 25563238 },
+        { account: '4.1.1.8001', name: 'Ventas Subproductos', amount: 186144 },
+        { account: '4.1.1.9001', name: 'Ventas Otros', amount: 38753 },
+    ],
+    costos: [
+        { account: '3.2.1.0901', name: 'Costo Insumos Masa Madre', amount: -15227532 },
+        { account: '3.2.1.1001', name: 'Costo Pan Centeno', amount: -17023548 },
+        { account: '3.2.1.3001', name: 'Costo Pan Pasteleria', amount: -3662948 },
+        { account: '3.2.1.5001', name: 'Costo Tostadas', amount: -1160383 },
+        { account: '3.2.1.6001', name: 'Costo Pan Industrial', amount: -4141344 },
+        { account: '3.2.1.7001', name: 'Costo Pan Blanco', amount: -8609033 },
+        { account: '3.2.1.9001', name: 'Costo Otros', amount: 1272652 },
+        { account: '3.2.1.9101', name: 'Costo ajuste inventario', amount: 19763304 },
+    ],
+    gastos: [
+        { account: '3.2.1.0101', name: 'Remuneraciones', amount: -49613315 },
+        { account: '3.2.1.0201', name: 'Otros Gastos Personal', amount: -9684141 },
+        { account: '3.2.1.1101', name: 'Honorarios', amount: -2376213 },
+        { account: '3.2.1.2501', name: 'Arriendos Pagados', amount: -3323137 },
+        { account: '5.2.1.2401', name: 'Servicios de Limpieza e Higiene', amount: -2737523 },
+    ],
+    noOperacionales: {
+        ingresos: [
+            { account: '6.1.1.0201', name: 'Diferencias de Cambio', amount: 51455 },
+            { account: '6.1.1.0301', name: 'Intereses Inversiones', amount: 1 },
+            { account: '6.1.1.9001', name: 'Otros Ingresos Fuera Explot', amount: 51490 },
+        ],
+        egresos: [
+            { account: '7.2.1.0101', name: 'Gastos Financieros', amount: -1783488 },
+            { account: '7.2.1.9001', name: 'Otros Egresos Fuera Explot', amount: -1348580 },
+        ]
+    }
+};
+
+const calculateTotals = (data: typeof incomeStatementData) => {
+    const totalIngresos = data.ingresos.reduce((acc, item) => acc + item.amount, 0);
+    const totalCostos = data.costos.reduce((acc, item) => acc + item.amount, 0);
+    const margenContribucion = totalIngresos + totalCostos;
+    const totalGastos = data.gastos.reduce((acc, item) => acc + item.amount, 0);
+    const resultadoOperacional = margenContribucion + totalGastos;
+
+    const totalIngresosNoOp = data.noOperacionales.ingresos.reduce((acc, item) => acc + item.amount, 0);
+    const totalEgresosNoOp = data.noOperacionales.egresos.reduce((acc, item) => acc + item.amount, 0);
+    const resultadoNoOperacional = totalIngresosNoOp + totalEgresosNoOp;
+    
+    const resultadoAntesImpuesto = resultadoOperacional + resultadoNoOperacional;
+    const impuestoRenta = resultadoAntesImpuesto > 0 ? -resultadoAntesImpuesto * 0.27 : 0; // Assuming 27% tax rate
+    const resultadoDespuesImpuesto = resultadoAntesImpuesto + impuestoRenta;
+
+    return {
+        totalIngresos, totalCostos, margenContribucion, totalGastos, resultadoOperacional,
+        totalIngresosNoOp, totalEgresosNoOp, resultadoNoOperacional,
+        resultadoAntesImpuesto, impuestoRenta, resultadoDespuesImpuesto
+    };
+};
+
 export default function ReportsPage() {
     const { toast } = useToast();
     const balanceReportRef = useRef<HTMLDivElement>(null);
@@ -70,37 +136,8 @@ export default function ReportsPage() {
         setGenerationDate(new Date());
     }, []);
     
-    const incomeStatementData = useMemo(() => {
-        const totalSales = initialSales
-            .filter(s => s.docType === 'Factura Electrónica')
-            .reduce((acc, s) => acc + s.net, 0);
-        
-        const totalCreditNotes = initialSales
-            .filter(s => s.docType === 'Nota de Crédito')
-            .reduce((acc, s) => acc + s.net, 0); 
+    const incomeStatementTotals = useMemo(() => calculateTotals(incomeStatementData), []);
 
-        const revenue = totalSales + totalCreditNotes;
-        
-        const costOfGoodsSold = revenue * 0.6;
-        const grossProfit = revenue - costOfGoodsSold;
-
-        const totalPurchases = initialPurchases
-            .filter(p => p.docType === 'Factura Electrónica')
-            .reduce((acc, p) => acc + p.net, 0);
-
-        const totalFees = initialFees.reduce((acc, f) => acc + f.gross, 0);
-
-        const operatingExpenses = totalPurchases + totalFees;
-        const netIncome = grossProfit - operatingExpenses;
-
-        return {
-            revenue,
-            costOfGoodsSold,
-            grossProfit,
-            operatingExpenses,
-            netIncome
-        };
-    }, []);
 
     const eightColumnBalanceData = useMemo(() => {
         const ledger: { [key: string]: { debit: number, credit: number } } = {};
@@ -155,7 +192,16 @@ export default function ReportsPage() {
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF(orientation, 'px', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, 0, undefined, 'FAST');
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const ratio = canvas.width / canvas.height;
+        let newWidth = pdfWidth - 20;
+        let newHeight = newWidth / ratio;
+        if (newHeight > pdfHeight - 20) {
+            newHeight = pdfHeight - 20;
+            newWidth = newHeight * ratio;
+        }
+        const xOffset = (pdfWidth - newWidth) / 2;
+        pdf.addImage(imgData, 'PNG', xOffset, 10, newWidth, newHeight);
         pdf.save(fileName);
 
         toast({
@@ -199,6 +245,16 @@ export default function ReportsPage() {
             </div>
         </header>
     );
+    
+    const renderIncomeStatementRows = (items: { account: string; name: string; amount: number }[]) => {
+        return items.map(item => (
+            <TableRow key={item.account}>
+                <TableCell className="pl-8 text-muted-foreground text-xs">{item.account}</TableCell>
+                <TableCell>{item.name}</TableCell>
+                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+            </TableRow>
+        ));
+    };
 
     return (
         <AppLayout pageTitle="Reportes Financieros">
@@ -243,16 +299,26 @@ export default function ReportsPage() {
                     </Table>
                 </div>
             </div>
-             <div className="fixed -left-[9999px] top-0 bg-white text-black p-4 font-body" style={{ width: '8.5in' }}>
+            
+            <div className="fixed -left-[9999px] top-0 bg-white text-black p-4 font-body" style={{ width: '8.5in' }}>
                 <div ref={incomeStatementRef}>
                     {renderPdfHeader("Estado de Resultados")}
                      <Table>
                         <TableBody>
-                            <TableRow><TableCell className="p-1 font-bold text-base">Ingresos por Ventas</TableCell><TableCell className="p-1 text-right">{formatCurrency(incomeStatementData.revenue)}</TableCell></TableRow>
-                            <TableRow><TableCell className="pl-8 p-1">Costo de Ventas (COGS)</TableCell><TableCell className="p-1 text-right text-red-600">({formatCurrency(incomeStatementData.costOfGoodsSold)})</TableCell></TableRow>
-                            <TableRow className="font-bold text-lg border-y-2 border-primary"><TableCell className="p-1">Utilidad Bruta</TableCell><TableCell className="text-right p-1">{formatCurrency(incomeStatementData.grossProfit)}</TableCell></TableRow>
-                            <TableRow><TableCell className="pl-8 p-1">Gastos Operacionales</TableCell><TableCell className="p-1 text-right text-red-600">({formatCurrency(incomeStatementData.operatingExpenses)})</TableCell></TableRow>
-                            <TableRow className="font-bold text-xl bg-secondary"><TableCell className="p-1">Utilidad Neta (Antes de Impuestos)</TableCell><TableCell className="text-right p-1">{formatCurrency(incomeStatementData.netIncome)}</TableCell></TableRow>
+                            <TableRow className="font-bold bg-gray-50"><TableCell>INGRESOS POR VENTAS</TableCell><TableCell></TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.totalIngresos)}</TableCell></TableRow>
+                            {renderIncomeStatementRows(incomeStatementData.ingresos)}
+                            <TableRow className="font-bold bg-gray-50"><TableCell>COSTOS DE VENTA</TableCell><TableCell></TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.totalCostos)}</TableCell></TableRow>
+                            {renderIncomeStatementRows(incomeStatementData.costos)}
+                            <TableRow className="font-bold text-base bg-secondary"><TableCell>MARGEN DE CONTRIBUCION</TableCell><TableCell></TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.margenContribucion)}</TableCell></TableRow>
+                            <TableRow className="font-bold bg-gray-50"><TableCell>GASTOS OPERACIONALES</TableCell><TableCell></TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.totalGastos)}</TableCell></TableRow>
+                            {renderIncomeStatementRows(incomeStatementData.gastos)}
+                            <TableRow className="font-bold text-base bg-secondary"><TableCell>RESULTADO OPERACIONAL</TableCell><TableCell></TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.resultadoOperacional)}</TableCell></TableRow>
+                            <TableRow className="font-bold bg-gray-50"><TableCell>INGRESOS NO OPERACIONALES</TableCell><TableCell></TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.totalIngresosNoOp)}</TableCell></TableRow>
+                            {renderIncomeStatementRows(incomeStatementData.noOperacionales.ingresos)}
+                             <TableRow className="font-bold bg-gray-50"><TableCell>EGRESOS NO OPERACIONALES</TableCell><TableCell></TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.totalEgresosNoOp)}</TableCell></TableRow>
+                            {renderIncomeStatementRows(incomeStatementData.noOperacionales.egresos)}
+                            <TableRow className="font-bold text-base bg-secondary"><TableCell>RESULTADO NO OPERACIONAL</TableCell><TableCell></TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.resultadoNoOperacional)}</TableCell></TableRow>
+                            <TableRow className="font-bold text-lg bg-primary/20"><TableCell>RESULTADO ANTES DE IMPUESTO</TableCell><TableCell></TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.resultadoAntesImpuesto)}</TableCell></TableRow>
                         </TableBody>
                     </Table>
                 </div>
@@ -274,12 +340,6 @@ export default function ReportsPage() {
                                         <ArrowLeft className="mr-2 h-4 w-4" />
                                         Volver
                                     </Link>
-                                </Button>
-                                <Button asChild>
-                                   <Link href="/accounting/cash-flow">
-                                    <AreaChart className="mr-2 h-4 w-4"/>
-                                     Ver Flujo de Caja
-                                   </Link>
                                 </Button>
                             </div>
                         </div>
@@ -422,7 +482,7 @@ export default function ReportsPage() {
                                     <div>
                                         <CardTitle className="font-headline">Estado de Resultados</CardTitle>
                                         <CardDescription className="font-body">
-                                        Un resumen de los ingresos y gastos durante un período específico.
+                                            Un resumen de los ingresos y gastos durante un período específico.
                                         </CardDescription>
                                     </div>
                                     <Button variant="outline" onClick={() => handleDownloadPdf(incomeStatementRef, 'Estado-de-Resultados.pdf', 'p')}><Download className="mr-2 h-4 w-4"/>PDF</Button>
@@ -430,34 +490,45 @@ export default function ReportsPage() {
                             </CardHeader>
                             <CardContent>
                                 <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-1/6">Cuenta</TableHead>
+                                            <TableHead>Nombre</TableHead>
+                                            <TableHead className="text-right">Monto</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
                                     <TableBody>
-                                        <TableRow className="font-bold text-base">
-                                            <TableCell>Ingresos por Ventas</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(incomeStatementData.revenue)}</TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell className="pl-8">Costo de Ventas (COGS)</TableCell>
-                                            <TableCell className="text-right text-red-600">({formatCurrency(incomeStatementData.costOfGoodsSold)})</TableCell>
-                                        </TableRow>
-                                        <TableRow className="font-bold text-lg border-t-2 border-b-2 border-primary">
-                                            <TableCell>Utilidad Bruta</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(incomeStatementData.grossProfit)}</TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell className="pl-8">Gastos Operacionales</TableCell>
-                                            <TableCell className="text-right text-red-600">({formatCurrency(incomeStatementData.operatingExpenses)})</TableCell>
-                                        </TableRow>
-                                        <TableRow className="font-bold text-xl bg-secondary">
-                                            <TableCell>Utilidad Neta (Antes de Impuestos)</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(incomeStatementData.netIncome)}</TableCell>
-                                        </TableRow>
+                                        <TableRow className="font-bold bg-gray-100 dark:bg-gray-800"><TableCell colSpan={2}>INGRESOS POR VENTAS</TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.totalIngresos)}</TableCell></TableRow>
+                                        {renderIncomeStatementRows(incomeStatementData.ingresos)}
+
+                                        <TableRow className="font-bold bg-gray-100 dark:bg-gray-800"><TableCell colSpan={2}>COSTOS DE VENTA</TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.totalCostos)}</TableCell></TableRow>
+                                        {renderIncomeStatementRows(incomeStatementData.costos)}
+                                        
+                                        <TableRow className="font-bold text-base bg-secondary"><TableCell colSpan={2}>MARGEN DE CONTRIBUCION</TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.margenContribucion)}</TableCell></TableRow>
+                                        
+                                        <TableRow className="font-bold bg-gray-100 dark:bg-gray-800"><TableCell colSpan={2}>GASTOS OPERACIONALES</TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.totalGastos)}</TableCell></TableRow>
+                                        {renderIncomeStatementRows(incomeStatementData.gastos)}
+                                        
+                                        <TableRow className="font-bold text-base bg-secondary"><TableCell colSpan={2}>RESULTADO OPERACIONAL</TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.resultadoOperacional)}</TableCell></TableRow>
+
+                                        <TableRow className="font-bold bg-gray-100 dark:bg-gray-800"><TableCell colSpan={2}>INGRESOS NO OPERACIONALES</TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.totalIngresosNoOp)}</TableCell></TableRow>
+                                        {renderIncomeStatementRows(incomeStatementData.noOperacionales.ingresos)}
+
+                                        <TableRow className="font-bold bg-gray-100 dark:bg-gray-800"><TableCell colSpan={2}>EGRESOS NO OPERACIONALES</TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.totalEgresosNoOp)}</TableCell></TableRow>
+                                        {renderIncomeStatementRows(incomeStatementData.noOperacionales.egresos)}
+
+                                        <TableRow className="font-bold text-base bg-secondary"><TableCell colSpan={2}>RESULTADO NO OPERACIONAL</TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.resultadoNoOperacional)}</TableCell></TableRow>
+
+                                        <TableRow className="font-bold text-lg bg-primary/20"><TableCell colSpan={2}>RESULTADO ANTES DE IMPUESTO</TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.resultadoAntesImpuesto)}</TableCell></TableRow>
+                                        <TableRow><TableCell colSpan={2} className="pl-8">Impuesto a la Renta (27%)</TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.impuestoRenta)}</TableCell></TableRow>
+                                        <TableRow className="font-bold text-xl bg-primary/30"><TableCell colSpan={2}>RESULTADO DESPUÉS DE IMPUESTO</TableCell><TableCell className="text-right">{formatCurrency(incomeStatementTotals.resultadoDespuesImpuesto)}</TableCell></TableRow>
                                     </TableBody>
                                 </Table>
-                                <p className="text-xs text-muted-foreground mt-4">* Los datos son para fines demostrativos y se basan en los movimientos de los libros de Ventas y Compras.</p>
+                                <p className="text-xs text-muted-foreground mt-4">* Los datos son para fines demostrativos.</p>
                             </CardContent>
                         </Card>
                     </TabsContent>
-                    <TabsContent value="indices" className="space-y-6 mt-4">
+                     <TabsContent value="indices" className="space-y-6 mt-4">
                          <Card>
                             <CardHeader>
                                 <CardTitle className="font-headline">Evolución de Indicadores Financieros</CardTitle>
@@ -520,5 +591,3 @@ export default function ReportsPage() {
         </AppLayout>
     );
 }
-
-    
