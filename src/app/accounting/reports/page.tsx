@@ -10,16 +10,21 @@ import { initialFees } from '../fees-ledger/page';
 import { initialJournalEntries } from '../journal/page';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowLeft, Download, FileSpreadsheet } from 'lucide-react';
+import { ArrowLeft, Download, FileSpreadsheet, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Logo from '@/components/logo';
-import { format } from 'date-fns';
+import { format, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
+import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 
 const formatCurrency = (value: number) => {
@@ -131,9 +136,14 @@ export default function ReportsPage() {
     const balanceReportRef = useRef<HTMLDivElement>(null);
     const incomeStatementRef = useRef<HTMLDivElement>(null);
     const [generationDate, setGenerationDate] = useState<Date | null>(null);
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
      useEffect(() => {
         setGenerationDate(new Date());
+        setDateRange({
+            from: new Date(2025, 0, 1),
+            to: new Date(2025, 11, 31),
+        });
     }, []);
     
     const incomeStatementTotals = useMemo(() => calculateTotals(incomeStatementData), []);
@@ -242,6 +252,9 @@ export default function ReportsPage() {
             </div>
             <div className="text-right text-xs">
                 {generationDate && <p><span className="font-semibold">Fecha de Emisión:</span> {format(generationDate, "P p", { locale: es })}</p>}
+                 {dateRange?.from && (
+                        <p><span className="font-semibold">Período:</span> {format(dateRange.from, 'P', { locale: es })} a {dateRange.to ? format(dateRange.to, 'P', { locale: es }) : ''}</p>
+                    )}
             </div>
         </header>
     );
@@ -334,13 +347,33 @@ export default function ReportsPage() {
                                     Visualiza y descarga los reportes financieros clave para la toma de decisiones.
                                 </CardDescription>
                             </div>
-                             <div className="flex items-center gap-2">
-                                <Button asChild variant="outline">
-                                    <Link href="/accounting">
-                                        <ArrowLeft className="mr-2 h-4 w-4" />
-                                        Volver
-                                    </Link>
-                                </Button>
+                             <div className="flex items-center gap-2 flex-wrap">
+                                 <div className="space-y-1.5">
+                                    <Label>Período del Reporte</Label>
+                                     <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                id="date"
+                                                variant={"outline"}
+                                                className={cn("w-[300px] justify-start text-left font-normal", !dateRange && "text-muted-foreground")}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {dateRange?.from ? (dateRange.to ? (<>{format(dateRange.from, "LLL dd, y", { locale: es })} - {format(dateRange.to, "LLL dd, y", { locale: es })}</>) : (format(dateRange.from, "LLL dd, y", { locale: es }))) : (<span>Selecciona un rango</span>)}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0" align="end">
+                                            <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} locale={es} />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                                <div className="flex items-end h-full">
+                                    <Button asChild variant="outline">
+                                        <Link href="/accounting">
+                                            <ArrowLeft className="mr-2 h-4 w-4" />
+                                            Volver
+                                        </Link>
+                                    </Button>
+                                </div>
                             </div>
                         </div>
                     </CardHeader>
