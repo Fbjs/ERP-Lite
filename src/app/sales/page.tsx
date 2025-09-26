@@ -4,7 +4,7 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck, FileBarChart, NotebookText, Edit, BadgePercent } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Download, Calendar as CalendarIcon, DollarSign, FileCheck, Clock, Ban, Truck, FileBarChart, NotebookText, Edit, BadgePercent, LayoutGrid } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -336,6 +336,12 @@ export default function SalesPage() {
                                     <Link href="/sales/commissions">
                                         <BadgePercent className="mr-2 h-4 w-4" />
                                         Cálculo de Comisiones
+                                    </Link>
+                                </Button>
+                                 <Button asChild variant="outline">
+                                    <Link href="/sales/retail-report">
+                                        <LayoutGrid className="mr-2 h-4 w-4" />
+                                        Reporte Retail
                                     </Link>
                                 </Button>
                                 <Button asChild variant="outline">
