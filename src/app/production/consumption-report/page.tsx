@@ -18,7 +18,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar as CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Download, FileSpreadsheet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format, parse, subMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -29,6 +29,9 @@ import { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const reportData = [
   { month: "sep-24", "Aceites y Grasas": 560562, "aditivos": 5481100, "endulzantes": 543723, "envasado": 5442831, "harinas": 18596893, "masa madre": 984195, "semillas": 597202, "Facturacion": 146746100, "Dias": 21, "HH normal": 4018, "HH Extra": 430, "Unidades Producidas": null, "KG Harina": 39442, "$ Total Energia Electrica": 1826, "$ Energia Gas": 3229, "$ Demasia": 3004180, "HH Pnaderia (4P/4A)": 1543, "HH Extra Panaderia": 301 },
@@ -52,6 +55,44 @@ const formatPercent = (value: number | null) => {
     if (value === null || isNaN(value)) return 'N/A';
     return `${formatNumber(value * 100, 1)}%`;
 }
+
+const metrics = [
+    { label: "Aceites y Grasas", key: "Aceites y Grasas", isCurrency: true },
+    { label: "Aditivos", key: "aditivos", isCurrency: true },
+    { label: "Endulzantes", key: "endulzantes", isCurrency: true },
+    { label: "Envasado", key: "envasado", isCurrency: true },
+    { label: "Harinas", key: "harinas", isCurrency: true },
+    { label: "Masa Madre", key: "masa madre", isCurrency: true },
+    { label: "Semillas", key: "semillas", isCurrency: true },
+    { label: "Total MP", key: "totalMateriales", isCurrency: true, isBold: true },
+    { label: "MP / Facturación", key: "MP/Facturacion", isPercent: true },
+    { label: "Facturación", key: "Facturacion", isCurrency: true },
+    { label: "Días", key: "Dias" },
+    { label: "Venta/día", key: "Venta/dia", isCurrency: true },
+    { label: "HH Normal", key: "HH normal" },
+    { label: "HH Extra", key: "HH Extra" },
+    { label: "HH Total", key: "HH Total", isBold: true },
+    { label: "Productividad HH ($Fact/HH)", key: "Productividad HH", isCurrency: true },
+    { label: "Unidades Producidas", key: "Unidades Producidas" },
+    { label: "Unidades/HH", key: "Unidades/HH" },
+    { label: "HH/Unidades", key: "HH/Unidades" },
+    { label: "Factor (Fact/Costo MP)", key: "Factor (Facturacion/Costo MP)" },
+    { label: "KG Harina", key: "KG Harina" },
+    { label: "Fact/Kg Harina", key: "Fact/Kg Harina" },
+    { label: "Kg Harina/HH", key: "Kg Harina/HH" },
+    { label: "$ Total Energía Eléctrica", key: "$ Total Energia Electrica" },
+    { label: "$ Electricidad/Kg Harina", key: "$ Electricidad/Kg Harina" },
+    { label: "$ Energía Gas", key: "$ Energia Gas" },
+    { label: "$Gas/Kg Harina", key: "$Gas/Kg Harina" },
+    { label: "$ Demasía", key: "$ Demasia", isCurrency: true },
+    { label: "HH Panadería", key: "HH Pnaderia (4P/4A)" },
+    { label: "HH Extra Panadería", key: "HH Extra Panaderia" },
+    { label: "HH Total Panadería", key: "HH Totale Panaderia", isBold: true },
+    { label: "Demasía$/kg Harina", key: "Demasia$/kg Harina" },
+    { label: "Demasía$/HH Totales", key: "Demasi$/HH Totales panaderia" },
+    { label: "Kg Harina/Demasía$", key: "Kg Harina/Demasia$" },
+];
+
 
 export default function ConsumptionReportPage() {
     const { toast } = useToast();
@@ -100,43 +141,84 @@ export default function ConsumptionReportPage() {
         })
     }, [dateRange]);
 
-    const metrics = [
-        { label: "Aceites y Grasas", key: "Aceites y Grasas", isCurrency: true },
-        { label: "Aditivos", key: "aditivos", isCurrency: true },
-        { label: "Endulzantes", key: "endulzantes", isCurrency: true },
-        { label: "Envasado", key: "envasado", isCurrency: true },
-        { label: "Harinas", key: "harinas", isCurrency: true },
-        { label: "Masa Madre", key: "masa madre", isCurrency: true },
-        { label: "Semillas", key: "semillas", isCurrency: true },
-        { label: "Total MP", key: "totalMateriales", isCurrency: true, isBold: true },
-        { label: "MP / Facturación", key: "MP/Facturacion", isPercent: true },
-        { label: "Facturación", key: "Facturacion", isCurrency: true },
-        { label: "Días", key: "Dias" },
-        { label: "Venta/día", key: "Venta/dia", isCurrency: true },
-        { label: "HH Normal", key: "HH normal" },
-        { label: "HH Extra", key: "HH Extra" },
-        { label: "HH Total", key: "HH Total", isBold: true },
-        { label: "Productividad HH ($Fact/HH)", key: "Productividad HH", isCurrency: true },
-        { label: "Unidades Producidas", key: "Unidades Producidas" },
-        { label: "Unidades/HH", key: "Unidades/HH" },
-        { label: "HH/Unidades", key: "HH/Unidades" },
-        { label: "Factor (Fact/Costo MP)", key: "Factor (Facturacion/Costo MP)" },
-        { label: "KG Harina", key: "KG Harina" },
-        { label: "Fact/Kg Harina", key: "Fact/Kg Harina" },
-        { label: "Kg Harina/HH", key: "Kg Harina/HH" },
-        { label: "$ Total Energía Eléctrica", key: "$ Total Energia Electrica" },
-        { label: "$ Electricidad/Kg Harina", key: "$ Electricidad/Kg Harina" },
-        { label: "$ Energía Gas", key: "$ Energia Gas" },
-        { label: "$Gas/Kg Harina", key: "$Gas/Kg Harina" },
-        { label: "$ Demasía", key: "$ Demasia", isCurrency: true },
-        { label: "HH Panadería", key: "HH Pnaderia (4P/4A)" },
-        { label: "HH Extra Panadería", key: "HH Extra Panaderia" },
-        { label: "HH Total Panadería", key: "HH Totale Panaderia", isBold: true },
-        { label: "Demasía$/kg Harina", key: "Demasia$/kg Harina" },
-        { label: "Demasía$/HH Totales", key: "Demasi$/HH Totales panaderia" },
-        { label: "Kg Harina/Demasía$", key: "Kg Harina/Demasia$" },
-    ];
+    const handleDownloadExcel = () => {
+        const dataForSheet = metrics.map(metric => {
+            const row: any = { 'Métrica': metric.label };
+            processedData.forEach(d => {
+                const rawValue = (d as any)[metric.key];
+                if (metric.isCurrency) {
+                    row[d.month] = rawValue;
+                } else if (metric.isPercent) {
+                    row[d.month] = rawValue;
+                } else {
+                     row[d.month] = rawValue;
+                }
+            });
+            return row;
+        });
 
+        const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
+
+        // Formatting
+        const currencyFormat = '$#,##0;[Red]-$#,##0';
+        const numberFormat = '#,##0.00';
+        const percentFormat = '0.0%';
+        
+        const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+        for (let R = range.s.r; R <= range.e.r; ++R) {
+            const metric = metrics[R];
+            if(!metric) continue;
+            for (let C = range.s.c + 1; C <= range.e.c; ++C) {
+                const cell_address = {c:C, r:R};
+                const cell_ref = XLSX.utils.encode_cell(cell_address);
+                if(worksheet[cell_ref]) {
+                    worksheet[cell_ref].t = 'n';
+                    if (metric.isCurrency) worksheet[cell_ref].z = currencyFormat;
+                    else if (metric.isPercent) worksheet[cell_ref].z = percentFormat;
+                    else if (typeof worksheet[cell_ref].v === 'number') worksheet[cell_ref].z = numberFormat;
+                }
+            }
+        }
+
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Consumo");
+        XLSX.writeFile(workbook, `reporte-consumo-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+        toast({ title: 'Excel Descargado', description: 'El reporte de consumo se ha exportado a Excel.' });
+    };
+
+    const handleDownloadPdf = () => {
+        const doc = new jsPDF({ orientation: 'landscape' });
+        
+        doc.setFontSize(18);
+        doc.text("Reporte de Consumo y Productividad", 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        
+        const head = [['Métrica', ...processedData.map(d => d.month)]];
+        const body = metrics.map(metric => {
+            return [
+                metric.label,
+                ...processedData.map(d => {
+                     const rawValue = (d as any)[metric.key];
+                     if (metric.isCurrency) return formatCurrency(rawValue);
+                     if (metric.isPercent) return formatPercent(rawValue);
+                     return formatNumber(rawValue, metric.key === 'Dias' || metric.key.includes('HH') ? 0 : 2)
+                })
+            ]
+        });
+
+        (doc as any).autoTable({
+            head: head,
+            body: body,
+            startY: 30,
+            styles: { fontSize: 7, cellPadding: 1.5 },
+            headStyles: { fillColor: [244, 245, 247], textColor: [23, 23, 23], fontStyle: 'bold' }
+        });
+
+        doc.save(`reporte-consumo-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+        toast({ title: 'PDF Descargado', description: 'El reporte de consumo se ha exportado a PDF.' });
+    };
 
     return (
         <AppLayout pageTitle="Reporte de Consumo y Productividad">
@@ -154,6 +236,8 @@ export default function ConsumptionReportPage() {
                                     Volver a Producción
                                 </Link>
                             </Button>
+                             <Button variant="outline" onClick={handleDownloadExcel}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
+                            <Button variant="outline" onClick={handleDownloadPdf}><Download className="mr-2 h-4 w-4" /> PDF</Button>
                         </div>
                     </div>
                      <div className="flex flex-wrap items-end gap-4 border-t pt-4 mt-4">
