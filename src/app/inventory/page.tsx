@@ -235,7 +235,7 @@ export default function InventoryPage() {
         <CardHeader>
             <div className="flex flex-wrap justify-between items-center gap-4">
                 <div>
-                    <CardTitle className="font-headline">Inventario</CardTitle>
+                    <CardTitle className="font-headline">Maestro de Productos</CardTitle>
                     <CardDescription className="font-body">Consulta y gestiona el stock de materias primas, insumos y productos terminados.</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
@@ -264,7 +264,7 @@ export default function InventoryPage() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input 
                         type="search" 
-                        placeholder="Buscar por SKU o nombre..." 
+                        placeholder="Buscar por SKU o descripción..." 
                         className="pl-8 w-full"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -286,40 +286,40 @@ export default function InventoryPage() {
                 </div>
             </div>
         </CardHeader>
-        <CardContent>
-          <Table className="responsive-table">
+        <CardContent className="overflow-x-auto">
+          <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>SKU</TableHead>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead>Familia</TableHead>
-                <TableHead className="text-center">Stock</TableHead>
-                <TableHead className="text-center">Ud. Consumo</TableHead>
-                <TableHead className="text-center">Ud. Compra</TableHead>
+                <TableHead className="w-[12%]">Clasificación</TableHead>
+                <TableHead className="w-[12%]">Nombre FAMILIA</TableHead>
+                <TableHead className="w-[10%]">Código</TableHead>
+                <TableHead className="w-[25%]">Descripción</TableHead>
+                <TableHead className="text-center">U. Consumo</TableHead>
+                <TableHead className="text-center">U. Compra</TableHead>
                 <TableHead className="text-center">Factor</TableHead>
                 <TableHead className="text-center">Inactivo</TableHead>
-                <TableHead>
-                  <span className="sr-only">Acciones</span>
-                </TableHead>
+                <TableHead className="text-right">Stock Actual</TableHead>
+                <TableHead className="text-right">Stock Periodo</TableHead>
+                <TableHead className="text-right">Cantidad</TableHead>
+                <TableHead className="text-right">Valor Total</TableHead>
+                <TableHead><span className="sr-only">Acciones</span></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredItems.map((item) => (
                 <TableRow key={item.sku}>
-                  <TableCell data-label="SKU" className="font-medium">{item.sku}</TableCell>
-                  <TableCell data-label="Nombre">{item.name}</TableCell>
-                  <TableCell data-label="Categoría">
-                    <Badge variant="outline">{item.category}</Badge>
-                  </TableCell>
-                  <TableCell data-label="Familia">{item.family}</TableCell>
-                  <TableCell data-label="Stock" className="text-center">{item.stock}</TableCell>
-                  <TableCell data-label="Ud. Consumo" className="text-center">{item.unit}</TableCell>
-                  <TableCell data-label="Ud. Compra" className="text-center">{item.purchaseUnit}</TableCell>
-                  <TableCell data-label="Factor" className="text-center">{item.conversionFactor}</TableCell>
-                  <TableCell data-label="Inactivo" className="text-center">
-                    {item.inactive && <Check className="mx-auto h-5 w-5 text-muted-foreground" />}
-                  </TableCell>
+                  <TableCell>{item.category}</TableCell>
+                  <TableCell>{item.family}</TableCell>
+                  <TableCell className="font-mono">{item.sku}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell className="text-center">{item.unit}</TableCell>
+                  <TableCell className="text-center">{item.purchaseUnit}</TableCell>
+                  <TableCell className="text-center">{item.conversionFactor}</TableCell>
+                  <TableCell className="text-center">{item.inactive ? 'Sí' : 'No'}</TableCell>
+                  <TableCell className="text-right font-medium">{item.stock}</TableCell>
+                  <TableCell className="text-right">{/* Stock Periodo Placeholder */}</TableCell>
+                  <TableCell className="text-right">{/* Cantidad Placeholder */}</TableCell>
+                  <TableCell className="text-right">{/* Valor Total Placeholder */}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -382,3 +382,4 @@ export default function InventoryPage() {
   );
 }
 
+    
