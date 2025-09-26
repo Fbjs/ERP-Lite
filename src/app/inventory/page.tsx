@@ -4,20 +4,18 @@ import AppLayout from '@/components/layout/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal, PlusCircle, Search, Download, FileSpreadsheet, Truck, Check } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, Download, FileSpreadsheet, Truck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { useState, useMemo, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import InventoryItemForm from '@/components/inventory-item-form';
 import StockAdjustmentForm from '@/components/stock-adjustment-form';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import Link from 'next/link';
-import { Checkbox } from '@/components/ui/checkbox';
 
 
 export type InventoryItem = {
@@ -138,7 +136,7 @@ export default function InventoryPage() {
             
             const canvas = await html2canvas(input, { scale: 2, backgroundColor: '#ffffff' });
             const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('p', 'px', 'a4');
+            const pdf = new jsPDF('l', 'px', 'a3');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
             const canvasWidth = canvas.width;
@@ -166,15 +164,15 @@ export default function InventoryPage() {
     
     const handleDownloadExcel = () => {
         const dataForSheet = filteredItems.map(item => ({
-            'SKU': item.sku,
-            'Nombre': item.name,
-            'Categoría': item.category,
-            'Familia': item.family,
-            'Stock': item.stock,
+            'Clasificación': item.category,
+            'Nombre FAMILIA': item.family,
+            'Código': item.sku,
+            'Descripción': item.name,
             'Unidad Consumo': item.unit,
             'Unidad Compra': item.purchaseUnit,
             'Factor': item.conversionFactor,
             'Inactivo': item.inactive ? 'Sí' : 'No',
+            'Stock Actual': item.stock,
             'Ubicación': item.location,
         }));
         const worksheet = XLSX.utils.json_to_sheet(dataForSheet);
@@ -191,7 +189,7 @@ export default function InventoryPage() {
   return (
     <AppLayout pageTitle="Gestión de Inventario">
 
-      <div ref={reportContentRef} className="fixed -left-[9999px] top-0 bg-white text-black p-8 font-body" style={{ width: '8.5in', minHeight: '11in'}}>
+      <div ref={reportContentRef} className="fixed -left-[9999px] top-0 bg-white text-black p-8 font-body" style={{ width: '1200px' }}>
           <header className="flex justify-between items-center mb-8 border-b-2 border-gray-800 pb-4">
               <div>
                   <h1 className="text-3xl font-bold font-headline text-gray-800">Reporte de Inventario</h1>
@@ -203,24 +201,32 @@ export default function InventoryPage() {
           </header>
 
           <main>
-              <Table className="w-full text-sm">
+              <Table className="w-full text-xs">
                   <TableHeader className="bg-gray-100">
                       <TableRow>
-                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">SKU</TableHead>
-                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Nombre</TableHead>
-                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Categoría</TableHead>
-                          <TableHead className="text-right font-bold text-gray-700 uppercase p-3">Stock</TableHead>
-                          <TableHead className="text-left font-bold text-gray-700 uppercase p-3">Ubicación</TableHead>
+                          <TableHead className="p-1">Clasificación</TableHead>
+                          <TableHead className="p-1">Nombre FAMILIA</TableHead>
+                          <TableHead className="p-1">Código</TableHead>
+                          <TableHead className="p-1">Descripción</TableHead>
+                          <TableHead className="p-1 text-center">U. Consumo</TableHead>
+                          <TableHead className="p-1 text-center">U. Compra</TableHead>
+                          <TableHead className="p-1 text-center">Factor</TableHead>
+                          <TableHead className="p-1 text-center">Inactivo</TableHead>
+                          <TableHead className="p-1 text-right">Stock Actual</TableHead>
                       </TableRow>
                   </TableHeader>
                   <TableBody>
-                      {inventoryItems.map((item) => (
+                      {filteredItems.map((item) => (
                           <TableRow key={item.sku} className="border-b border-gray-200">
-                              <TableCell className="p-3">{item.sku}</TableCell>
-                              <TableCell className="p-3">{item.name}</TableCell>
-                              <TableCell className="p-3">{item.category}</TableCell>
-                              <TableCell className="text-right p-3">{item.stock} {item.unit}</TableCell>
-                              <TableCell className="p-3">{item.location}</TableCell>
+                              <TableCell className="p-1">{item.category}</TableCell>
+                              <TableCell className="p-1">{item.family}</TableCell>
+                              <TableCell className="p-1 font-mono">{item.sku}</TableCell>
+                              <TableCell className="p-1">{item.name}</TableCell>
+                              <TableCell className="p-1 text-center">{item.unit}</TableCell>
+                              <TableCell className="p-1 text-center">{item.purchaseUnit}</TableCell>
+                              <TableCell className="p-1 text-center">{item.conversionFactor}</TableCell>
+                              <TableCell className="p-1 text-center">{item.inactive ? 'Sí' : 'No'}</TableCell>
+                              <TableCell className="p-1 text-right">{item.stock}</TableCell>
                           </TableRow>
                       ))}
                   </TableBody>
@@ -354,7 +360,7 @@ export default function InventoryPage() {
           <InventoryItemForm
             onSubmit={selectedItem ? handleUpdateItem : handleCreateItem}
             onCancel={() => { setFormModalOpen(false); setSelectedItem(null); }}
-            initialData={selectedItem || undefined}
+            initialData={selectedItem}
           />
         </DialogContent>
       </Dialog>
@@ -381,5 +387,6 @@ export default function InventoryPage() {
     </AppLayout>
   );
 }
-
     
+
+      
