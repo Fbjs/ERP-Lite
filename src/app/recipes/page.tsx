@@ -19,6 +19,7 @@ import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { initialInventoryItems } from '@/app/inventory/page';
+import Link from 'next/link';
 
 
 export type Ingredient = {
@@ -493,6 +494,9 @@ export default function RecipesPage() {
                     <CardDescription className="font-body">Gestiona los productos, sus recetas base y categorías (familias).</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
+                    <Button asChild variant="outline">
+                        <Link href="/recipes/detailed-report">Reporte Detallado</Link>
+                    </Button>
                      <Button variant="outline" onClick={handleExportExcel}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
                     <Button variant="outline" onClick={handleDownloadReportPdf}><Download className="mr-2 h-4 w-4" /> PDF</Button>
                     <Button onClick={() => handleOpenForm(null)}>
