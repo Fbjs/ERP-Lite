@@ -111,9 +111,60 @@ export default function WasteReportPage() {
         return totalRow;
     }, [processedData]);
 
-    const handleDownload = () => {
-         toast({ title: 'Descarga no implementada', description: 'Esta función estará disponible en una futura actualización.' });
-    }
+    const handleDownloadExcel = () => {
+        const dataToExport = [...processedData, totals].filter(Boolean).map(item => {
+            const row: any = {
+                'Producto': item.product,
+                'Producción Total': item.produccion_2025,
+                'Producción Buena': item.produccion_buena,
+                'Total Merma': item.total_merma,
+                '% Merma': formatPercent(item.merma_producto),
+            };
+            wasteHeaders.forEach(h => {
+                row[h.label] = (item as any)[h.key] > 0 ? (item as any)[h.key] : '';
+            });
+            return row;
+        });
+        
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte de Mermas");
+        XLSX.writeFile(workbook, `reporte-mermas-${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+
+        toast({ title: 'Excel Descargado', description: 'El reporte de mermas se ha exportado a Excel.' });
+    };
+
+    const handleDownloadPdf = () => {
+        const doc = new jsPDF({ orientation: 'landscape' });
+        
+        doc.setFontSize(18);
+        doc.text("Reporte de Calidad y Mermas de Producción", 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Período: ${format(dateRange?.from || new Date(), 'P', { locale: es })} - ${format(dateRange?.to || new Date(), 'P', { locale: es })}`, 14, 30);
+        
+        const head = [['Producto', 'Prod. Total', 'Prod. Buena', 'Merma Total', '% Merma', ...wasteHeaders.map(h => h.label.substring(0, 10))]];
+        
+        const body = [...processedData, totals].filter(Boolean).map(item => [
+            item.product,
+            item.produccion_2025.toLocaleString('es-CL'),
+            item.produccion_buena.toLocaleString('es-CL'),
+            item.total_merma.toLocaleString('es-CL'),
+            formatPercent(item.merma_producto),
+            ...wasteHeaders.map(h => (item as any)[h.key] > 0 ? (item as any)[h.key] : ''),
+        ]);
+
+        (doc as any).autoTable({
+            head: head,
+            body: body,
+            startY: 35,
+            styles: { fontSize: 5, cellPadding: 1 },
+            headStyles: { fillColor: [244, 245, 247], textColor: [23, 23, 23], fontStyle: 'bold' }
+        });
+
+        doc.save(`reporte-mermas-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+        toast({ title: 'PDF Descargado', description: 'El reporte de mermas se ha exportado a PDF.' });
+    };
 
     const resetFilters = () => {
         const endDate = new Date();
@@ -138,8 +189,8 @@ export default function WasteReportPage() {
                                     Volver
                                 </Link>
                             </Button>
-                            <Button onClick={handleDownload}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
-                            <Button onClick={handleDownload}><Download className="mr-2 h-4 w-4" /> PDF</Button>
+                            <Button onClick={handleDownloadExcel}><FileSpreadsheet className="mr-2 h-4 w-4" /> Excel</Button>
+                            <Button onClick={handleDownloadPdf}><Download className="mr-2 h-4 w-4" /> PDF</Button>
                         </div>
                     </div>
                      <div className="flex flex-wrap gap-4 pt-6 border-t mt-4">
@@ -217,7 +268,7 @@ export default function WasteReportPage() {
                             )}
                         </TableBody>
                         {totals && (
-                             <tfoot className="bg-secondary font-bold">
+                             <tfoot className="bg-secondary font-bold sticky bottom-0">
                                 <TableRow>
                                     <TableCell className="sticky left-0 bg-secondary">TOTAL</TableCell>
                                     <TableCell className="text-right">{totals.produccion_2025}</TableCell>
